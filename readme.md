@@ -20,6 +20,9 @@ curl https://dlang.org/install.sh | bash -s ldc-1.20.0
 # Add the compiler to the $PATH
 source ~/dlang/ldc-1.20.0/activate
 
+# Run unittests
+rdmd -g -unittest -main --compiler=ldc2 -vcolumns src/dscp/SCP.d
+
 # Build the library
 dub build
 
