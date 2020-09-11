@@ -302,7 +302,7 @@ Slot::getJsonInfo(bool fullKeys)
         v.append(mSCP.envToStr(item.mStatement, fullKeys));
         v.append(item.mValidated);
 
-        Hash const& qSetHash =
+        ref const(Hash) qSetHash =
             getCompanionQuorumSetHashFromStatement(item.mStatement);
         auto qSet = getSCPDriver().getQSet(qSetHash);
         if (qSet)

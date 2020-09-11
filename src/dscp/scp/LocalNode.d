@@ -32,7 +32,7 @@ class LocalNode
     void updateQuorumSet (ref const(SCPQuorumSet) qSet);
 
     ref const(SCPQuorumSet) getQuorumSet ();
-    Hash const& getQuorumSetHash ();
+    ref const(Hash) getQuorumSetHash ();
     bool isValidator ();
 
     // returns the quorum set {{X}}

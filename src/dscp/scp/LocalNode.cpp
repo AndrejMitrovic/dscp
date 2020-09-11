@@ -56,7 +56,7 @@ LocalNode::getQuorumSet()
     return mQSet;
 }
 
-Hash const&
+ref const(Hash)
 LocalNode::getQuorumSetHash()
 {
     return mQSetHash;

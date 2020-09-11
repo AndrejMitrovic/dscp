@@ -316,7 +316,7 @@ SCP::envToStr(SCPStatement const& st, bool fullKeys) const
 {
     std::ostringstream oss;
 
-    Hash const& qSetHash = Slot::getCompanionQuorumSetHashFromStatement(st);
+    ref const(Hash) qSetHash = Slot::getCompanionQuorumSetHashFromStatement(st);
 
     std::string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
 
