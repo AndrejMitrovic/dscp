@@ -292,7 +292,7 @@ LocalNode::findClosestVBlocking(
 
 NodeID[]
 LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
-                                set!NodeID const& nodes,
+                                const(set!NodeID) nodes,
                                 const(NodeID)* excluded)
 {
     size_t leftTillBlock =

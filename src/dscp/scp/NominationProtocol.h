@@ -98,7 +98,7 @@ class NominationProtocol
     void stopNomination();
 
     // return the current leaders
-    set!NodeID const& getLeaders() const;
+    const(set!NodeID) getLeaders() const;
 
     Value const&
     getLatestCompositeCandidate() const

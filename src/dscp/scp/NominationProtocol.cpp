@@ -545,7 +545,7 @@ NominationProtocol::stopNomination()
     mNominationStarted = false;
 }
 
-set!NodeID const&
+const(set!NodeID)
 NominationProtocol::getLeaders() const
 {
     return mRoundLeaders;
