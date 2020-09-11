@@ -4,17 +4,16 @@ module dscp.scp.SCPDriver;
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-//#include <chrono>
-//#include <functional>
-//#include <map>
-//#include <memory>
-//#include <set>
-
+import dscp.crypto.ByteSlice;
+import dscp.crypto.Hash;
+import dscp.crypto.Hex;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
 import core.stdc.stdint;
 import core.time;
+
+import std.conv;
 
 /// std.set equivalent
 public alias set (V) = void[][V];
@@ -115,20 +114,20 @@ abstract class SCPDriver
     public string getValueString (ref const(Value) v) const
     {
         uint512 valueHash = getHashOf(v);
-        return hexAbbrev(valueHash);
+        return hexAbbrev(ByteSlice(valueHash));
     }
 
     // `toStrKey` returns StrKey encoded string representation
     public string toStrKey (ref const(PublicKey) pk,
         bool fullKey = true) const
     {
-        return fullKey ? KeyUtils.toStrKey(pk) : toShortString(pk);
+        return pk.to!string;
     }
 
     // `toShortString` converts to the common name of a key if found
     public string toShortString (ref const(PublicKey) pk) const
     {
-        return KeyUtils.toShortString(pk);
+        return pk.to!string;
     }
 
     // `computeHashNode` is used by the nomination protocol to
@@ -163,7 +162,7 @@ abstract class SCPDriver
         else
             timeoutInSeconds = cast(int)roundNumber;
 
-        return std.chrono.seconds(timeoutInSeconds);
+        return timeoutInSeconds.seconds;
     }
 
     /*\ Inform about events happening within the consensus algorithm. */
