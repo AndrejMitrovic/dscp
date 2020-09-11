@@ -124,7 +124,7 @@ LocalNode::getNodeWeight(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
 
 bool
 LocalNode::isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
-                                 std::vector<NodeID> const& nodeSet)
+                                 const(NodeID)[] nodeSet)
 {
     uint32 thresholdLeft = qset.threshold;
     for (auto const& validator : qset.validators)
@@ -156,7 +156,7 @@ LocalNode::isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
 
 bool
 LocalNode::isQuorumSlice(ref const(SCPQuorumSet) qSet,
-                         std::vector<NodeID> const& nodeSet)
+                         const(NodeID)[] nodeSet)
 {
     // CLOG(TRACE, "SCP") << "LocalNode::isQuorumSlice"
     //                    << " nodeSet.size: " << nodeSet.size();
@@ -167,7 +167,7 @@ LocalNode::isQuorumSlice(ref const(SCPQuorumSet) qSet,
 // called recursively
 bool
 LocalNode::isVBlockingInternal(ref const(SCPQuorumSet) qset,
-                               std::vector<NodeID> const& nodeSet)
+                               const(NodeID)[] nodeSet)
 {
     // There is no v-blocking set for {\empty}
     if (qset.threshold == 0)
@@ -208,7 +208,7 @@ LocalNode::isVBlockingInternal(ref const(SCPQuorumSet) qset,
 
 bool
 LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
-                       std::vector<NodeID> const& nodeSet)
+                       const(NodeID)[] nodeSet)
 {
     // CLOG(TRACE, "SCP") << "LocalNode::isVBlocking"
     //                    << " nodeSet.size: " << nodeSet.size();
@@ -326,8 +326,8 @@ LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
     struct orderBySize
     {
         bool
-        operator()(std::vector<NodeID> const& v1,
-                   std::vector<NodeID> const& v2) const
+        operator()(const(NodeID)[] v1,
+                   const(NodeID)[] v2) const
         {
             return v1.size() < v2.size();
         }

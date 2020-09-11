@@ -48,9 +48,9 @@ class LocalNode
 
     // Tests this node against nodeSet for the specified qSethash.
     static bool isQuorumSlice(ref const(SCPQuorumSet) qSet,
-                              std::vector<NodeID> const& nodeSet);
+                              const(NodeID)[] nodeSet);
     static bool isVBlocking(ref const(SCPQuorumSet) qSet,
-                            std::vector<NodeID> const& nodeSet);
+                            const(NodeID)[] nodeSet);
 
     // Tests this node against a map of nodeID -> T for the specified qSetHash.
 
@@ -96,7 +96,7 @@ class LocalNode
 
     // called recursively
     static bool isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
-                                      std::vector<NodeID> const& nodeSet);
+                                      const(NodeID)[] nodeSet);
     static bool isVBlockingInternal(ref const(SCPQuorumSet) qset,
-                                    std::vector<NodeID> const& nodeSet);
+                                    const(NodeID)[] nodeSet);
 }
