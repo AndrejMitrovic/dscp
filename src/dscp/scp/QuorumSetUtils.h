@@ -13,5 +13,5 @@ bool isQuorumSetSane(ref const(SCPQuorumSet) qSet, bool extraChecks,
     const char** reason = nullptr);
 
 // normalize the quorum set, optionally removing idToRemove
-void normalizeQSet(SCPQuorumSet& qSet, NodeID const* idToRemove = nullptr);
+void normalizeQSet(SCPQuorumSet& qSet, const(NodeID)* idToRemove = nullptr);
 }

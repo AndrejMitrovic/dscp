@@ -142,7 +142,7 @@ namespace
 //      { t:1, { innerSet } } into innerSet
 
 void
-normalizeQSetSimplify(SCPQuorumSet& qSet, NodeID const* idToRemove)
+normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
 {
     using xdr::operator==;
     auto& v = qSet.validators;
@@ -266,7 +266,7 @@ normalizeQuorumSetReorder(SCPQuorumSet& qset)
 }
 }
 void
-normalizeQSet(SCPQuorumSet& qSet, NodeID const* idToRemove)
+normalizeQSet(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
 {
     normalizeQSetSimplify(qSet, idToRemove);
     normalizeQuorumSetReorder(qSet);
