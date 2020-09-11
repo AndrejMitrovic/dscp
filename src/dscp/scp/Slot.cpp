@@ -91,7 +91,7 @@ Slot::getCurrentState() const
 }
 
 SCPEnvelope const*
-Slot::getLatestMessage(NodeID const& id) const
+Slot::getLatestMessage(ref const(NodeID) id) const
 {
     auto m = mBallotProtocol.getLatestMessage(id);
     if (m == nullptr)
@@ -325,7 +325,7 @@ Slot::getJsonInfo(bool fullKeys)
 }
 
 Json::Value
-Slot::getJsonQuorumInfo(NodeID const& id, bool summary, bool fullKeys)
+Slot::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys)
 {
     Json::Value ret = mBallotProtocol.getJsonQuorumInfo(id, summary, fullKeys);
     if (getLocalNode()->isValidator())

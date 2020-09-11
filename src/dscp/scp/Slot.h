@@ -95,7 +95,7 @@ class Slot : public std::enable_shared_from_this<Slot>
 
     // returns the latest message from a node
     // or nullptr if not found
-    SCPEnvelope const* getLatestMessage(NodeID const& id) const;
+    SCPEnvelope const* getLatestMessage(ref const(NodeID) id) const;
 
     // returns messages that helped this slot externalize
     std::vector<SCPEnvelope> getExternalizingState() const;
@@ -143,7 +143,7 @@ class Slot : public std::enable_shared_from_this<Slot>
     Json::Value getJsonInfo(bool fullKeys = false);
 
     // returns information about the quorum for a given node
-    Json::Value getJsonQuorumInfo(NodeID const& id, bool summary,
+    Json::Value getJsonQuorumInfo(ref const(NodeID) id, bool summary,
                                   bool fullKeys = false);
 
     // returns the hash of the QuorumSet that should be downloaded

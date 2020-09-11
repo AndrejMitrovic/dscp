@@ -27,7 +27,7 @@ NominationProtocol::NominationProtocol(Slot& slot)
 }
 
 bool
-NominationProtocol::isNewerStatement(NodeID const& nodeID,
+NominationProtocol::isNewerStatement(ref const(NodeID) nodeID,
                                      SCPNomination const& st)
 {
     auto oldp = mLatestNominations.find(nodeID);
@@ -219,7 +219,7 @@ NominationProtocol::updateRoundLeaders()
     newRoundLeaders.insert(localID);
     uint64 topPriority = getNodePriority(localID, myQSet);
 
-    LocalNode::forAllNodes(myQSet, [&](NodeID const& cur) {
+    LocalNode::forAllNodes(myQSet, [&](ref const(NodeID) cur) {
         uint64 w = getNodePriority(cur, myQSet);
         if (w > topPriority)
         {
@@ -246,7 +246,7 @@ NominationProtocol::updateRoundLeaders()
 }
 
 uint64
-NominationProtocol::hashNode(bool isPriority, NodeID const& nodeID)
+NominationProtocol::hashNode(bool isPriority, ref const(NodeID) nodeID)
 {
     dbgAssert(!mPreviousValue.empty());
     return mSlot.getSCPDriver().computeHashNode(
@@ -262,7 +262,7 @@ NominationProtocol::hashValue(Value const& value)
 }
 
 uint64
-NominationProtocol::getNodePriority(NodeID const& nodeID,
+NominationProtocol::getNodePriority(ref const(NodeID) nodeID,
                                     ref const(SCPQuorumSet) qset)
 {
     uint64 res;
@@ -622,7 +622,7 @@ NominationProtocol::getCurrentState() const
 }
 
 SCPEnvelope const*
-NominationProtocol::getLatestMessage(NodeID const& id) const
+NominationProtocol::getLatestMessage(ref const(NodeID) id) const
 {
     auto it = mLatestNominations.find(id);
     if (it != mLatestNominations.end())

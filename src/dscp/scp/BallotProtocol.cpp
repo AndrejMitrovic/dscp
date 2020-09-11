@@ -32,7 +32,7 @@ BallotProtocol::BallotProtocol(Slot& slot)
 }
 
 bool
-BallotProtocol::isNewerStatement(NodeID const& nodeID, SCPStatement const& st)
+BallotProtocol::isNewerStatement(ref const(NodeID) nodeID, SCPStatement const& st)
 {
     auto oldp = mLatestEnvelopes.find(nodeID);
     bool res = false;
@@ -153,7 +153,7 @@ BallotProtocol::processEnvelope(SCPEnvelope const& envelope, bool self)
     dbgAssert(envelope.statement.slotIndex == mSlot.getSlotIndex());
 
     SCPStatement const& statement = envelope.statement;
-    NodeID const& nodeID = statement.nodeID;
+    ref const(NodeID) nodeID = statement.nodeID;
 
     if (!isStatementSane(statement, self))
     {
@@ -1805,7 +1805,7 @@ BallotProtocol::getCurrentState() const
 }
 
 SCPEnvelope const*
-BallotProtocol::getLatestMessage(NodeID const& id) const
+BallotProtocol::getLatestMessage(ref const(NodeID) id) const
 {
     auto it = mLatestEnvelopes.find(id);
     if (it != mLatestEnvelopes.end())
@@ -1983,7 +1983,7 @@ BallotProtocol::getJsonInfo()
 }
 
 Json::Value
-BallotProtocol::getJsonQuorumInfo(NodeID const& id, bool summary, bool fullKeys)
+BallotProtocol::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys)
 {
     Json::Value ret;
     auto& phase = ret["phase"];
@@ -2040,7 +2040,7 @@ BallotProtocol::getJsonQuorumInfo(NodeID const& id, bool summary, bool fullKeys)
         phase = "expired";
         return ret;
     }
-    LocalNode::forAllNodes(*qSet, [&](NodeID const& n) {
+    LocalNode::forAllNodes(*qSet, [&](ref const(NodeID) n) {
         auto it = mLatestEnvelopes.find(n);
         if (it == mLatestEnvelopes.end())
         {

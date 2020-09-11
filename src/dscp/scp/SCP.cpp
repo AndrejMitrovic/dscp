@@ -18,7 +18,7 @@
 namespace stellar
 {
 
-SCP::SCP(SCPDriver& driver, NodeID const& nodeID, bool isValidator,
+SCP::SCP(SCPDriver& driver, ref const(NodeID) nodeID, bool isValidator,
          ref const(SCPQuorumSet) qSetLocal)
     : mDriver(driver)
 {
@@ -62,7 +62,7 @@ SCP::getLocalQuorumSet()
     return mLocalNode->getQuorumSet();
 }
 
-NodeID const&
+ref const(NodeID)
 SCP::getLocalNodeID()
 {
     return mLocalNode->getNodeID();
@@ -127,7 +127,7 @@ SCP::getJsonInfo(size_t limit, bool fullKeys)
 }
 
 Json::Value
-SCP::getJsonQuorumInfo(NodeID const& id, bool summary, bool fullKeys,
+SCP::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
                        uint64 index)
 {
     Json::Value ret;
@@ -247,7 +247,7 @@ SCP::getCurrentState(uint64 slotIndex)
 }
 
 SCPEnvelope const*
-SCP::getLatestMessage(NodeID const& id)
+SCP::getLatestMessage(ref const(NodeID) id)
 {
     for (auto it = mKnownSlots.rbegin(); it != mKnownSlots.rend(); it++)
     {

@@ -40,7 +40,7 @@ class NominationProtocol
     // the value from the previous slot
     Value mPreviousValue;
 
-    bool isNewerStatement(NodeID const& nodeID, SCPNomination const& st);
+    bool isNewerStatement(ref const(NodeID) nodeID, SCPNomination const& st);
     static bool isNewerStatement(SCPNomination const& oldst,
                                  SCPNomination const& st);
 
@@ -71,12 +71,12 @@ class NominationProtocol
 
     // computes Gi(isPriority?P:N, prevValue, mRoundNumber, nodeID)
     // from the paper
-    uint64 hashNode(bool isPriority, NodeID const& nodeID);
+    uint64 hashNode(bool isPriority, ref const(NodeID) nodeID);
 
     // computes Gi(K, prevValue, mRoundNumber, value)
     uint64 hashValue(Value const& value);
 
-    uint64 getNodePriority(NodeID const& nodeID, ref const(SCPQuorumSet) qset);
+    uint64 getNodePriority(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset);
 
     // returns the highest value that we don't have yet, that we should
     // vote for, extracted from a nomination.
@@ -120,6 +120,6 @@ class NominationProtocol
 
     // returns the latest message from a node
     // or nullptr if not found
-    SCPEnvelope const* getLatestMessage(NodeID const& id) const;
+    SCPEnvelope const* getLatestMessage(ref const(NodeID) id) const;
 };
 }

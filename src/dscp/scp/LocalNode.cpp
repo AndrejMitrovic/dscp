@@ -19,7 +19,7 @@
 
 namespace stellar
 {
-LocalNode::LocalNode(NodeID const& nodeID, bool isValidator,
+LocalNode::LocalNode(ref const(NodeID) nodeID, bool isValidator,
                      ref const(SCPQuorumSet) qSet, SCP* scp)
     : mNodeID(nodeID), mIsValidator(isValidator), mQSet(qSet), mSCP(scp)
 {
@@ -35,7 +35,7 @@ LocalNode::LocalNode(NodeID const& nodeID, bool isValidator,
 }
 
 SCPQuorumSet
-LocalNode::buildSingletonQSet(NodeID const& nodeID)
+LocalNode::buildSingletonQSet(ref const(NodeID) nodeID)
 {
     SCPQuorumSet qSet;
     qSet.threshold = 1;
@@ -63,14 +63,14 @@ LocalNode::getQuorumSetHash()
 }
 
 SCPQuorumSetPtr
-LocalNode::getSingletonQSet(NodeID const& nodeID)
+LocalNode::getSingletonQSet(ref const(NodeID) nodeID)
 {
     return std::make_shared<SCPQuorumSet>(buildSingletonQSet(nodeID));
 }
 
 void
 LocalNode::forAllNodes(ref const(SCPQuorumSet) qset,
-                       std::function<void(NodeID const&)> proc)
+                       std::function<void(ref const(NodeID))> proc)
 {
     for (auto const& n : qset.validators)
     {
@@ -94,7 +94,7 @@ LocalNode::computeWeight(uint64 m, uint64 total, uint64 threshold)
 // if a validator is repeated multiple times its weight is only the
 // weight of the first occurrence
 uint64
-LocalNode::getNodeWeight(NodeID const& nodeID, ref const(SCPQuorumSet) qset)
+LocalNode::getNodeWeight(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
 {
     uint64 n = qset.threshold;
     uint64 d = qset.innerSets.size() + qset.validators.size();
@@ -405,7 +405,7 @@ LocalNode::to_string(ref const(SCPQuorumSet) qSet) const
     return fw.write(toJson(qSet, false));
 }
 
-NodeID const&
+ref const(NodeID)
 LocalNode::getNodeID()
 {
     return mNodeID;

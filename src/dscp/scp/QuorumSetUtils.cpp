@@ -148,7 +148,7 @@ normalizeQSetSimplify(SCPQuorumSet& qSet, NodeID const* idToRemove)
     auto& v = qSet.validators;
     if (idToRemove)
     {
-        auto it_v = std::remove_if(v.begin(), v.end(), [&](NodeID const& n) {
+        auto it_v = std::remove_if(v.begin(), v.end(), [&](ref const(NodeID) n) {
             return n == *idToRemove;
         });
         qSet.threshold -= uint32(v.end() - it_v);

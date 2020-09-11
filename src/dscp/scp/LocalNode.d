@@ -24,10 +24,10 @@ class LocalNode
     SCP* mSCP;
 
   public:
-    this(NodeID const& nodeID, bool isValidator, ref const(SCPQuorumSet) qSet,
+    this(ref const(NodeID) nodeID, bool isValidator, ref const(SCPQuorumSet) qSet,
         SCP* scp);
 
-    NodeID const& getNodeID();
+    ref const(NodeID) getNodeID();
 
     void updateQuorumSet(ref const(SCPQuorumSet) qSet);
 
@@ -36,15 +36,15 @@ class LocalNode
     bool isValidator();
 
     // returns the quorum set {{X}}
-    static SCPQuorumSetPtr getSingletonQSet(NodeID const& nodeID);
+    static SCPQuorumSetPtr getSingletonQSet(ref const(NodeID) nodeID);
 
     // runs proc over all nodes contained in qset
     static void forAllNodes(ref const(SCPQuorumSet) qset,
-                            std::function<void(NodeID const&)> proc);
+                            std::function<void(ref const(NodeID))> proc);
 
     // returns the weight of the node within the qset
     // normalized between 0-UINT64_MAX
-    static uint64 getNodeWeight(NodeID const& nodeID, ref const(SCPQuorumSet) qset);
+    static uint64 getNodeWeight(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset);
 
     // Tests this node against nodeSet for the specified qSethash.
     static bool isQuorumSlice(ref const(SCPQuorumSet) qSet,
@@ -92,7 +92,7 @@ class LocalNode
 
   protected:
     // returns a quorum set {{ nodeID }}
-    static SCPQuorumSet buildSingletonQSet(NodeID const& nodeID);
+    static SCPQuorumSet buildSingletonQSet(ref const(NodeID) nodeID);
 
     // called recursively
     static bool isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
