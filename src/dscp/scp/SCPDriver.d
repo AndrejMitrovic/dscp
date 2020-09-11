@@ -51,7 +51,7 @@ abstract class SCPDriver
     // hence their retrieval is delegated to the user of SCP.
     // The return value is not cached by SCP, as quorum sets are transient.
     //
-    // `nullptr` is a valid return value which cause the statement to be
+    // `null` is a valid return value which cause the statement to be
     // considered invalid.
     public abstract SCPQuorumSetPtr getQSet (ref const(Hash) qSetHash);
 
@@ -70,7 +70,7 @@ abstract class SCPDriver
         ref const(set!Value) candidates);
 
     // `setupTimer`: requests to trigger 'cb' after timeout
-    // if cb is nullptr, the timer is cancelled
+    // if cb is null, the timer is cancelled
     public abstract void setupTimer (uint64 slotIndex, int timerID,
         Duration timeout, void delegate () cb);
 

@@ -95,7 +95,7 @@ class SCP
     SCPEnvelope[] getCurrentState (uint64 slotIndex);
 
     // returns the latest message from a node
-    // or nullptr if not found
+    // or null if not found
     ref const(SCPEnvelope) getLatestMessage (ref const(NodeID) id);
 
     // returns messages that contributed to externalizing the slot

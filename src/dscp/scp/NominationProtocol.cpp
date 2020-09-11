@@ -629,6 +629,6 @@ NominationProtocol::getLatestMessage(ref const(NodeID) id) const
     {
         return &it->second;
     }
-    return nullptr;
+    return null;
 }
 }

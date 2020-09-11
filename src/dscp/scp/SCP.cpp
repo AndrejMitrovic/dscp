@@ -253,12 +253,12 @@ SCP::getLatestMessage(ref const(NodeID) id)
     {
         auto slot = it->second;
         auto res = slot->getLatestMessage(id);
-        if (res != nullptr)
+        if (res != null)
         {
             return res;
         }
     }
-    return nullptr;
+    return null;
 }
 
 std::vector<SCPEnvelope>

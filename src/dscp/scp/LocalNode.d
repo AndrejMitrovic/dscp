@@ -82,9 +82,8 @@ class LocalNode
 
     static NodeID[] findClosestVBlocking(
         ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
-        bool delegate (ref const(SCPStatement)) filter =
-            [](SCPStatement const&) { return true; },
-        const(NodeID)* excluded = nullptr);
+        bool delegate (ref const(SCPStatement)) filter = (ref const s) => true,
+        const(NodeID)* excluded = null);
 
     string to_string(ref const(SCPQuorumSet) qSet) const;
 

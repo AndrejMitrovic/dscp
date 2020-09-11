@@ -94,7 +94,7 @@ SCPEnvelope const*
 Slot::getLatestMessage(ref const(NodeID) id) const
 {
     auto m = mBallotProtocol.getLatestMessage(id);
-    if (m == nullptr)
+    if (m == null)
     {
         m = mNominationProtocol.getLatestMessage(id);
     }
@@ -111,7 +111,7 @@ void
 Slot::recordStatement(SCPStatement const& st)
 {
     mStatementsHistory.emplace_back(
-        HistoricalStatement{std::time(nullptr), st, mFullyValidated});
+        HistoricalStatement{std::time(null), st, mFullyValidated});
     CLOG(DEBUG, "SCP") << "new statement: "
                        << " i: " << getSlotIndex()
                        << " st: " << mSCP.envToStr(st, false) << " validated: "
