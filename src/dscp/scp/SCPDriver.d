@@ -16,11 +16,28 @@ import dscp.xdr.Stellar_types;
 import core.stdc.stdint;
 import core.time;
 
-/// std::set equivalent
+/// std.set equivalent
 public alias set (V) = void[][V];
 
 // was: shared_ptr. could use RefCounted
 alias SCPQuorumSetPtr = SCPQuorumSet*;
+
+// values used to switch hash function between priority and neighborhood checks
+private enum uint32 hash_N = 1;
+private enum uint32 hash_P = 2;
+private enum uint32 hash_K = 3;
+
+static uint64 hashHelper (ref const(uint512) hash)
+{
+    uint64 res = 0;
+    for (size_t i = 0; i < res.sizeof; i++)
+        res = (res << 8) | hash[i];
+
+    return res;
+}
+
+/// timeouts will keep increasing until this ceiling
+private enum int MAX_TIMEOUT_SECONDS = 30 * 60;
 
 abstract class SCPDriver
 {
@@ -88,33 +105,66 @@ abstract class SCPDriver
     // This is used during nomination when encountering an invalid value (ie
     // validateValue did not return `kFullyValidatedValue` for this value).
     // returning Value() means no valid value could be extracted
-    public Value extractValidValue (uint64 slotIndex, ref const(Value) value);
+    public Value extractValidValue (uint64 slotIndex, ref const(Value) value)
+    {
+        return Value.init;
+    }
 
     // `getValueString` is used for debugging
     // default implementation is the hash of the value
-    public string getValueString (ref const(Value) v) const;
+    public string getValueString (ref const(Value) v) const
+    {
+        uint512 valueHash = getHashOf(v);
+        return hexAbbrev(valueHash);
+    }
 
     // `toStrKey` returns StrKey encoded string representation
     public string toStrKey (ref const(PublicKey) pk,
-        bool fullKey = true) const;
+        bool fullKey = true) const
+    {
+        return fullKey ? KeyUtils.toStrKey(pk) : toShortString(pk);
+    }
 
     // `toShortString` converts to the common name of a key if found
-    public string toShortString (ref const(PublicKey) pk) const;
+    public string toShortString (ref const(PublicKey) pk) const
+    {
+        return KeyUtils.toShortString(pk);
+    }
 
     // `computeHashNode` is used by the nomination protocol to
     // randomize the order of messages between nodes.
     public uint64 computeHashNode (uint64 slotIndex, ref const(Value) prev,
-        bool isPriority, int32_t roundNumber, ref const(NodeID) nodeID);
+        bool isPriority, int32_t roundNumber, ref const(NodeID) nodeID)
+    {
+        uint512 hash = getHashOf(slotIndex, prev, isPriority ? hash_P : hash_N,
+            roundNumber, nodeID);
+        return hashHelper(hash);
+    }
 
     // `computeValueHash` is used by the nomination protocol to
     // randomize the relative order between values.
     public uint64 computeValueHash (uint64 slotIndex, ref const(Value) prev,
-        int32_t roundNumber, ref const(Value) value);
+        int32_t roundNumber, ref const(Value) value)
+    {
+        uint512 hash = getHashOf(slotIndex, prev, hash_K, roundNumber, value);
+        return hashHelper(hash);
+    }
 
     // `computeTimeout` computes a timeout given a round number
     // it should be sufficiently large such that nodes in a
     // quorum can exchange 4 messages
-    public Duration computeTimeout (uint32 roundNumber);
+    public Duration computeTimeout (uint32 roundNumber)
+    {
+        // straight linear timeout
+        // starting at 1 second and capping at MAX_TIMEOUT_SECONDS
+        int timeoutInSeconds;
+        if (roundNumber > MAX_TIMEOUT_SECONDS)
+            timeoutInSeconds = MAX_TIMEOUT_SECONDS;
+        else
+            timeoutInSeconds = cast(int)roundNumber;
+
+        return std.chrono.seconds(timeoutInSeconds);
+    }
 
     /*\ Inform about events happening within the consensus algorithm. */
 
