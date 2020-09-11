@@ -6,6 +6,7 @@ module dscp.scp.SCP;
 
 import dscp.scp.LocalNode;
 import dscp.scp.SCPDriver;
+import dscp.scp.Slot;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 

@@ -14,6 +14,9 @@ alias int32 = int;
 alias uint64 = ulong;
 alias int64 = long;
 
+/// std.set equivalent
+public alias set (V) = void[][V];
+
 enum CryptoKeyType
 {
     KEY_TYPE_ED25519 = 0,

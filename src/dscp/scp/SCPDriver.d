@@ -15,9 +15,6 @@ import core.time;
 
 import std.conv;
 
-/// std.set equivalent
-public alias set (V) = void[][V];
-
 // was: shared_ptr. could use RefCounted
 alias SCPQuorumSetPtr = SCPQuorumSet*;
 

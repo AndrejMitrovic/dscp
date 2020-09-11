@@ -5,6 +5,9 @@
 module dscp.scp.LocalNode;
 
 import dscp.scp.SCP;
+import dscp.xdr.Stellar_types;
+import dscp.xdr.Stellar_SCP;
+
 
 /**
  * This is one Node in the stellar network
@@ -59,8 +62,9 @@ class LocalNode
     static bool
     isVBlocking(ref const(SCPQuorumSet) qSet,
                 const(SCPEnvelope[NodeID]) map,
-                bool delegate (ref const(SCPStatement)) filter =
-                    (ref const s) => true);
+                bool delegate (ref const(SCPStatement)) filter
+                //= (ref const s) => true  // todo: can't use context here
+                );
 
     // `isQuorum` tests if the filtered nodes V form a quorum
     // (meaning for each v \in V there is q \in Q(v)
@@ -70,8 +74,9 @@ class LocalNode
     static bool isQuorum (ref const(SCPQuorumSet) qSet,
         const(SCPEnvelope[NodeID]) map,
         SCPQuorumSetPtr delegate (ref const(SCPStatement)) qfun,
-        bool delegate (ref const(SCPStatement)) filter =
-            (ref const s) => true);
+        bool delegate (ref const(SCPStatement)) filter
+            //= (ref const s) => true  // todo: can't use context here
+            );
 
     // computes the distance to the set of v-blocking sets given
     // a set of nodes that agree (but can fail)
@@ -82,7 +87,8 @@ class LocalNode
 
     static NodeID[] findClosestVBlocking(
         ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
-        bool delegate (ref const(SCPStatement)) filter = (ref const s) => true,
+        bool delegate (ref const(SCPStatement)) filter,
+        //= (ref const s) => true  // todo: can't use context here
         const(NodeID)* excluded = null);
 
     string to_string(ref const(SCPQuorumSet) qSet) const;
