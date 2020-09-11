@@ -2,18 +2,17 @@
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-%#include "xdr/Stellar-types.h"
+module dscp.xdr.Stellar_SCP;
 
-namespace stellar
-{
+import dscp.xdr.Stellar_types;
 
-typedef opaque Value<>;
+alias Value = ubyte[];
 
 struct SCPBallot
 {
     uint32 counter; // n
     Value value;    // x
-};
+}
 
 enum SCPStatementType
 {
@@ -21,24 +20,23 @@ enum SCPStatementType
     SCP_ST_CONFIRM = 1,
     SCP_ST_EXTERNALIZE = 2,
     SCP_ST_NOMINATE = 3
-};
+}
 
 struct SCPNomination
 {
     Hash quorumSetHash; // D
-    Value votes<>;      // X
-    Value accepted<>;   // Y
-};
+    Value[] votes;      // X
+    Value[] accepted;   // Y
+}
 
 struct SCPStatement
 {
     NodeID nodeID;    // v
     uint64 slotIndex; // i
 
-    union switch (SCPStatementType type)
+    static struct _pledges_t
     {
-    case SCP_ST_PREPARE:
-        struct
+        static struct _prepare_t
         {
             Hash quorumSetHash;       // D
             SCPBallot ballot;         // b
@@ -46,41 +44,49 @@ struct SCPStatement
             SCPBallot* preparedPrime; // p'
             uint32 nC;                // c.n
             uint32 nH;                // h.n
-        } prepare;
-    case SCP_ST_CONFIRM:
-        struct
+        }
+
+        static struct _confirm_t
         {
             SCPBallot ballot;   // b
             uint32 nPrepared;   // p.n
             uint32 nCommit;     // c.n
             uint32 nH;          // h.n
             Hash quorumSetHash; // D
-        } confirm;
-    case SCP_ST_EXTERNALIZE:
-        struct
+        }
+
+        static struct _externalize_t
         {
             SCPBallot commit;         // c
             uint32 nH;                // h.n
             Hash commitQuorumSetHash; // D used before EXTERNALIZE
-        } externalize;
-    case SCP_ST_NOMINATE:
-        SCPNomination nominate;
+        }
+
+        static union
+        {
+            _prepare_t prepare_;
+            _confirm_t confirm_;
+            _externalize_t externalize_;
+            SCPNomination nominate_;
+        }
+
+        SCPStatementType type;
     }
-    pledges;
-};
+
+    _pledges_t pledges;
+}
 
 struct SCPEnvelope
 {
     SCPStatement statement;
     Signature signature;
-};
+}
 
 // supports things like: A,B,C,(D,E,F),(G,H,(I,J,K,L))
 // only allows 2 levels of nesting
 struct SCPQuorumSet
 {
     uint32 threshold;
-    PublicKey validators<>;
-    SCPQuorumSet innerSets<>;
-};
+    PublicKey[] validators;
+    SCPQuorumSet[] innerSets;
 }
