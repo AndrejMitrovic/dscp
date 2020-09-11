@@ -70,7 +70,7 @@ LocalNode::getSingletonQSet(ref const(NodeID) nodeID)
 
 void
 LocalNode::forAllNodes(ref const(SCPQuorumSet) qset,
-                       std::function<void(ref const(NodeID))> proc)
+                       void delegate (ref const(NodeID)) proc)
 {
     for (auto const& n : qset.validators)
     {

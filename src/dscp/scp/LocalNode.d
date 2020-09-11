@@ -24,23 +24,23 @@ class LocalNode
     SCP* mSCP;
 
   public:
-    this(ref const(NodeID) nodeID, bool isValidator, ref const(SCPQuorumSet) qSet,
-        SCP* scp);
+    this (ref const(NodeID) nodeID, bool isValidator,
+        ref const(SCPQuorumSet) qSet, SCP* scp);
 
-    ref const(NodeID) getNodeID();
+    ref const(NodeID) getNodeID ();
 
-    void updateQuorumSet(ref const(SCPQuorumSet) qSet);
+    void updateQuorumSet (ref const(SCPQuorumSet) qSet);
 
-    ref const(SCPQuorumSet) getQuorumSet();
-    Hash const& getQuorumSetHash();
-    bool isValidator();
+    ref const(SCPQuorumSet) getQuorumSet ();
+    Hash const& getQuorumSetHash ();
+    bool isValidator ();
 
     // returns the quorum set {{X}}
-    static SCPQuorumSetPtr getSingletonQSet(ref const(NodeID) nodeID);
+    static SCPQuorumSetPtr getSingletonQSet (ref const(NodeID) nodeID);
 
     // runs proc over all nodes contained in qset
-    static void forAllNodes(ref const(SCPQuorumSet) qset,
-                            std::function<void(ref const(NodeID))> proc);
+    static void forAllNodes (ref const(SCPQuorumSet) qset,
+        void delegate (ref const(NodeID)) proc);
 
     // returns the weight of the node within the qset
     // normalized between 0-UINT64_MAX
