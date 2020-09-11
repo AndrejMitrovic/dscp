@@ -279,7 +279,7 @@ LocalNode::findClosestVBlocking(
     bool delegate (ref const(SCPStatement)) filter,
     const(NodeID)* excluded)
 {
-    std::set<NodeID> s;
+    set!NodeID s;
     for (auto const& n : map)
     {
         if (filter(n.second.statement))
@@ -292,7 +292,7 @@ LocalNode::findClosestVBlocking(
 
 NodeID[]
 LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
-                                std::set<NodeID> const& nodes,
+                                set!NodeID const& nodes,
                                 const(NodeID)* excluded)
 {
     size_t leftTillBlock =

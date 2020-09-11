@@ -182,7 +182,7 @@ Slot::stopNomination()
     mNominationProtocol.stopNomination();
 }
 
-std::set<NodeID>
+set!NodeID
 Slot::getNominationLeaders() const
 {
     return mNominationProtocol.getLeaders();

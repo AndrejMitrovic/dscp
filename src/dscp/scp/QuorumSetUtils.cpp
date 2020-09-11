@@ -30,7 +30,7 @@ class QuorumSetSanityChecker
 
   private:
     bool mExtraChecks;
-    std::set<NodeID> mKnownNodes;
+    set!NodeID mKnownNodes;
     bool mIsSane;
     size_t mCount{0};
 

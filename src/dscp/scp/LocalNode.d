@@ -78,7 +78,7 @@ class LocalNode
     // excluded, if set will be skipped altogether
     static NodeID[]
     findClosestVBlocking(ref const(SCPQuorumSet) qset,
-                         std::set<NodeID> const& nodes, const(NodeID)* excluded);
+                         set!NodeID const& nodes, const(NodeID)* excluded);
 
     static NodeID[] findClosestVBlocking(
         ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,

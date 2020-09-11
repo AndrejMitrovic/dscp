@@ -212,7 +212,7 @@ NominationProtocol::updateRoundLeaders()
     SCPQuorumSet myQSet = mSlot.getLocalNode()->getQuorumSet();
 
     // initialize priority with value derived from self
-    std::set<NodeID> newRoundLeaders;
+    set!NodeID newRoundLeaders;
     auto localID = mSlot.getLocalNode()->getNodeID();
     normalizeQSet(myQSet, &localID);
 
@@ -545,7 +545,7 @@ NominationProtocol::stopNomination()
     mNominationStarted = false;
 }
 
-std::set<NodeID> const&
+set!NodeID const&
 NominationProtocol::getLeaders() const
 {
     return mRoundLeaders;

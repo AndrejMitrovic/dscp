@@ -29,7 +29,7 @@ class NominationProtocol
         mLastEnvelope; // last envelope emitted by this node
 
     // nodes from quorum set that have the highest priority this round
-    std::set<NodeID> mRoundLeaders;
+    set!NodeID mRoundLeaders;
 
     // true if 'nominate' was called
     bool mNominationStarted;
@@ -98,7 +98,7 @@ class NominationProtocol
     void stopNomination();
 
     // return the current leaders
-    std::set<NodeID> const& getLeaders() const;
+    set!NodeID const& getLeaders() const;
 
     Value const&
     getLatestCompositeCandidate() const
