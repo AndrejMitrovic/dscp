@@ -76,7 +76,7 @@ class NominationProtocol
     // computes Gi(K, prevValue, mRoundNumber, value)
     uint64 hashValue(Value const& value);
 
-    uint64 getNodePriority(NodeID const& nodeID, SCPQuorumSet const& qset);
+    uint64 getNodePriority(NodeID const& nodeID, ref const(SCPQuorumSet) qset);
 
     // returns the highest value that we don't have yet, that we should
     // vote for, extracted from a nomination.

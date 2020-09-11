@@ -20,7 +20,7 @@ namespace
 class QuorumSetSanityChecker
 {
   public:
-    explicit QuorumSetSanityChecker(SCPQuorumSet const& qSet, bool extraChecks,
+    explicit QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet, bool extraChecks,
                                     const char** reason);
     bool
     isSane() const
@@ -34,10 +34,10 @@ class QuorumSetSanityChecker
     bool mIsSane;
     size_t mCount{0};
 
-    bool checkSanity(SCPQuorumSet const& qSet, int depth, const char** reason);
+    bool checkSanity(ref const(SCPQuorumSet) qSet, int depth, const char** reason);
 };
 
-QuorumSetSanityChecker::QuorumSetSanityChecker(SCPQuorumSet const& qSet,
+QuorumSetSanityChecker::QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet,
                                                bool extraChecks,
                                                const char** reason)
     : mExtraChecks{extraChecks}
@@ -63,7 +63,7 @@ QuorumSetSanityChecker::QuorumSetSanityChecker(SCPQuorumSet const& qSet,
 }
 
 bool
-QuorumSetSanityChecker::checkSanity(SCPQuorumSet const& qSet, int depth,
+QuorumSetSanityChecker::checkSanity(ref const(SCPQuorumSet) qSet, int depth,
                                     const char** reason)
 {
     if (depth > 2)
@@ -122,7 +122,7 @@ QuorumSetSanityChecker::checkSanity(SCPQuorumSet const& qSet, int depth,
 }
 
 bool
-isQuorumSetSane(SCPQuorumSet const& qSet, bool extraChecks, const char** reason)
+isQuorumSetSane(ref const(SCPQuorumSet) qSet, bool extraChecks, const char** reason)
 {
     QuorumSetSanityChecker checker{qSet, extraChecks, reason};
     return checker.isSane();
@@ -209,7 +209,7 @@ intLexicographicalCompare(InputIt1 first1, InputIt1 last1, InputIt2 first2,
 // lexicographical sort
 // looking at, in order: validators, innerSets, threshold
 int
-qSetCompareInt(SCPQuorumSet const& l, SCPQuorumSet const& r)
+qSetCompareInt(ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r)
 {
     auto& lvals = l.validators;
     auto& rvals = r.validators;
@@ -260,7 +260,7 @@ normalizeQuorumSetReorder(SCPQuorumSet& qset)
     }
     // now, we can reorder the inner sets
     std::sort(qset.innerSets.begin(), qset.innerSets.end(),
-              [](SCPQuorumSet const& l, SCPQuorumSet const& r) {
+              [](ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r) {
                   return qSetCompareInt(l, r) < 0;
               });
 }

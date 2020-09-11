@@ -19,7 +19,7 @@ namespace stellar
 {
 
 SCP::SCP(SCPDriver& driver, NodeID const& nodeID, bool isValidator,
-         SCPQuorumSet const& qSetLocal)
+         ref const(SCPQuorumSet) qSetLocal)
     : mDriver(driver)
 {
     mLocalNode =
@@ -51,12 +51,12 @@ SCP::stopNomination(uint64 slotIndex)
 }
 
 void
-SCP::updateLocalQuorumSet(SCPQuorumSet const& qSet)
+SCP::updateLocalQuorumSet(ref const(SCPQuorumSet) qSet)
 {
     mLocalNode->updateQuorumSet(qSet);
 }
 
-SCPQuorumSet const&
+ref const(SCPQuorumSet)
 SCP::getLocalQuorumSet()
 {
     return mLocalNode->getQuorumSet();

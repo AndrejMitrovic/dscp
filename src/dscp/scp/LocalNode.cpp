@@ -20,7 +20,7 @@
 namespace stellar
 {
 LocalNode::LocalNode(NodeID const& nodeID, bool isValidator,
-                     SCPQuorumSet const& qSet, SCP* scp)
+                     ref const(SCPQuorumSet) qSet, SCP* scp)
     : mNodeID(nodeID), mIsValidator(isValidator), mQSet(qSet), mSCP(scp)
 {
     normalizeQSet(mQSet);
@@ -44,13 +44,13 @@ LocalNode::buildSingletonQSet(NodeID const& nodeID)
 }
 
 void
-LocalNode::updateQuorumSet(SCPQuorumSet const& qSet)
+LocalNode::updateQuorumSet(ref const(SCPQuorumSet) qSet)
 {
     mQSetHash = getHashOf(qSet);
     mQSet = qSet;
 }
 
-SCPQuorumSet const&
+ref const(SCPQuorumSet)
 LocalNode::getQuorumSet()
 {
     return mQSet;
@@ -69,7 +69,7 @@ LocalNode::getSingletonQSet(NodeID const& nodeID)
 }
 
 void
-LocalNode::forAllNodes(SCPQuorumSet const& qset,
+LocalNode::forAllNodes(ref const(SCPQuorumSet) qset,
                        std::function<void(NodeID const&)> proc)
 {
     for (auto const& n : qset.validators)
@@ -94,7 +94,7 @@ LocalNode::computeWeight(uint64 m, uint64 total, uint64 threshold)
 // if a validator is repeated multiple times its weight is only the
 // weight of the first occurrence
 uint64
-LocalNode::getNodeWeight(NodeID const& nodeID, SCPQuorumSet const& qset)
+LocalNode::getNodeWeight(NodeID const& nodeID, ref const(SCPQuorumSet) qset)
 {
     uint64 n = qset.threshold;
     uint64 d = qset.innerSets.size() + qset.validators.size();
@@ -123,7 +123,7 @@ LocalNode::getNodeWeight(NodeID const& nodeID, SCPQuorumSet const& qset)
 }
 
 bool
-LocalNode::isQuorumSliceInternal(SCPQuorumSet const& qset,
+LocalNode::isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
                                  std::vector<NodeID> const& nodeSet)
 {
     uint32 thresholdLeft = qset.threshold;
@@ -155,7 +155,7 @@ LocalNode::isQuorumSliceInternal(SCPQuorumSet const& qset,
 }
 
 bool
-LocalNode::isQuorumSlice(SCPQuorumSet const& qSet,
+LocalNode::isQuorumSlice(ref const(SCPQuorumSet) qSet,
                          std::vector<NodeID> const& nodeSet)
 {
     // CLOG(TRACE, "SCP") << "LocalNode::isQuorumSlice"
@@ -166,7 +166,7 @@ LocalNode::isQuorumSlice(SCPQuorumSet const& qSet,
 
 // called recursively
 bool
-LocalNode::isVBlockingInternal(SCPQuorumSet const& qset,
+LocalNode::isVBlockingInternal(ref const(SCPQuorumSet) qset,
                                std::vector<NodeID> const& nodeSet)
 {
     // There is no v-blocking set for {\empty}
@@ -207,7 +207,7 @@ LocalNode::isVBlockingInternal(SCPQuorumSet const& qset,
 }
 
 bool
-LocalNode::isVBlocking(SCPQuorumSet const& qSet,
+LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
                        std::vector<NodeID> const& nodeSet)
 {
     // CLOG(TRACE, "SCP") << "LocalNode::isVBlocking"
@@ -217,7 +217,7 @@ LocalNode::isVBlocking(SCPQuorumSet const& qSet,
 }
 
 bool
-LocalNode::isVBlocking(SCPQuorumSet const& qSet,
+LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
                        std::map<NodeID, SCPEnvelope> const& map,
                        std::function<bool(SCPStatement const&)> const& filter)
 {
@@ -235,7 +235,7 @@ LocalNode::isVBlocking(SCPQuorumSet const& qSet,
 
 bool
 LocalNode::isQuorum(
-    SCPQuorumSet const& qSet, std::map<NodeID, SCPEnvelope> const& map,
+    ref const(SCPQuorumSet) qSet, std::map<NodeID, SCPEnvelope> const& map,
     std::function<SCPQuorumSetPtr(SCPStatement const&)> const& qfun,
     std::function<bool(SCPStatement const&)> const& filter)
 {
@@ -275,7 +275,7 @@ LocalNode::isQuorum(
 
 std::vector<NodeID>
 LocalNode::findClosestVBlocking(
-    SCPQuorumSet const& qset, std::map<NodeID, SCPEnvelope> const& map,
+    ref const(SCPQuorumSet) qset, std::map<NodeID, SCPEnvelope> const& map,
     std::function<bool(SCPStatement const&)> const& filter,
     NodeID const* excluded)
 {
@@ -291,7 +291,7 @@ LocalNode::findClosestVBlocking(
 }
 
 std::vector<NodeID>
-LocalNode::findClosestVBlocking(SCPQuorumSet const& qset,
+LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
                                 std::set<NodeID> const& nodes,
                                 NodeID const* excluded)
 {
@@ -373,7 +373,7 @@ LocalNode::findClosestVBlocking(SCPQuorumSet const& qset,
 }
 
 Json::Value
-LocalNode::toJson(SCPQuorumSet const& qSet, bool fullKeys) const
+LocalNode::toJson(ref const(SCPQuorumSet) qSet, bool fullKeys) const
 {
     return toJson(qSet, [&](PublicKey const& k) {
         return mSCP->getDriver().toStrKey(k, fullKeys);
@@ -381,7 +381,7 @@ LocalNode::toJson(SCPQuorumSet const& qSet, bool fullKeys) const
 }
 
 Json::Value
-LocalNode::toJson(SCPQuorumSet const& qSet,
+LocalNode::toJson(ref const(SCPQuorumSet) qSet,
                   std::function<std::string(PublicKey const&)> r)
 {
     Json::Value ret;
@@ -399,7 +399,7 @@ LocalNode::toJson(SCPQuorumSet const& qSet,
 }
 
 std::string
-LocalNode::to_string(SCPQuorumSet const& qSet) const
+LocalNode::to_string(ref const(SCPQuorumSet) qSet) const
 {
     Json::FastWriter fw;
     return fw.write(toJson(qSet, false));

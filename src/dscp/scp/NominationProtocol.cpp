@@ -263,7 +263,7 @@ NominationProtocol::hashValue(Value const& value)
 
 uint64
 NominationProtocol::getNodePriority(NodeID const& nodeID,
-                                    SCPQuorumSet const& qset)
+                                    ref const(SCPQuorumSet) qset)
 {
     uint64 res;
     uint64 w;
