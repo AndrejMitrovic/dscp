@@ -1,4 +1,3 @@
 module dscp.main;
 
-import dscp.xdr.Stellar_SCP;
-import dscp.scp.SCPDriver;
+import dscp.scp.SCP;

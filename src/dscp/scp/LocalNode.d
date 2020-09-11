@@ -1,17 +1,11 @@
-#pragma once
-
 // Copyright 2014 Stellar Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-#include <memory>
-#include <set>
-#include <vector>
+module dscp.scp.LocalNode;
 
-#include "scp/SCP.h"
+import dscp.scp.SCP;
 
-namespace stellar
-{
 /**
  * This is one Node in the stellar network
  */
@@ -92,11 +86,7 @@ class LocalNode
             [](SCPStatement const&) { return true; },
         NodeID const* excluded = nullptr);
 
-    static Json::Value toJson(SCPQuorumSet const& qSet,
-                              std::function<std::string(PublicKey const&)> r);
-
-    Json::Value toJson(SCPQuorumSet const& qSet, bool fullKeys) const;
-    std::string to_string(SCPQuorumSet const& qSet) const;
+    string to_string(SCPQuorumSet const& qSet) const;
 
     static uint64 computeWeight(uint64 m, uint64 total, uint64 threshold);
 
@@ -109,5 +99,4 @@ class LocalNode
                                       std::vector<NodeID> const& nodeSet);
     static bool isVBlockingInternal(SCPQuorumSet const& qset,
                                     std::vector<NodeID> const& nodeSet);
-};
 }
