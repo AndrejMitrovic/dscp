@@ -337,7 +337,7 @@ Slot::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys)
 
 bool
 Slot::federatedAccept(StatementPredicate voted, StatementPredicate accepted,
-                      std::map<NodeID, SCPEnvelope> const& envs)
+                      const(SCPEnvelope[NodeID]) envs)
 {
     // Checks if the nodes that claimed to accept the statement form a
     // v-blocking set
@@ -367,7 +367,7 @@ Slot::federatedAccept(StatementPredicate voted, StatementPredicate accepted,
 
 bool
 Slot::federatedRatify(StatementPredicate voted,
-                      std::map<NodeID, SCPEnvelope> const& envs)
+                      const(SCPEnvelope[NodeID]) envs)
 {
     return LocalNode::isQuorum(
         getLocalNode()->getQuorumSet(), envs,

@@ -167,11 +167,11 @@ class Slot : public std::enable_shared_from_this<Slot>
     // returns true if the statement defined by voted and accepted
     // should be accepted
     bool federatedAccept(StatementPredicate voted, StatementPredicate accepted,
-                         std::map<NodeID, SCPEnvelope> const& envs);
+                         const(SCPEnvelope[NodeID]) envs);
     // returns true if the statement defined by voted
     // is ratified
     bool federatedRatify(StatementPredicate voted,
-                         std::map<NodeID, SCPEnvelope> const& envs);
+                         const(SCPEnvelope[NodeID]) envs);
 
     std::shared_ptr<LocalNode> getLocalNode();
 

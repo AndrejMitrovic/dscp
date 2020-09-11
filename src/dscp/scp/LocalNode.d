@@ -58,7 +58,7 @@ class LocalNode
     // this node.
     static bool
     isVBlocking(ref const(SCPQuorumSet) qSet,
-                std::map<NodeID, SCPEnvelope> const& map,
+                const(SCPEnvelope[NodeID]) map,
                 std::function<bool(SCPStatement const&)> const& filter =
                     [](SCPStatement const&) { return true; });
 
@@ -68,7 +68,7 @@ class LocalNode
     // SCPQuorumSetPtr from the SCPStatement for its associated node in map
     // (required for transitivity)
     static bool
-    isQuorum(ref const(SCPQuorumSet) qSet, std::map<NodeID, SCPEnvelope> const& map,
+    isQuorum(ref const(SCPQuorumSet) qSet, const(SCPEnvelope[NodeID]) map,
              std::function<SCPQuorumSetPtr(SCPStatement const&)> const& qfun,
              std::function<bool(SCPStatement const&)> const& filter =
                  [](SCPStatement const&) { return true; });
@@ -81,7 +81,7 @@ class LocalNode
                          std::set<NodeID> const& nodes, NodeID const* excluded);
 
     static std::vector<NodeID> findClosestVBlocking(
-        ref const(SCPQuorumSet) qset, std::map<NodeID, SCPEnvelope> const& map,
+        ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
         std::function<bool(SCPStatement const&)> const& filter =
             [](SCPStatement const&) { return true; },
         NodeID const* excluded = nullptr);

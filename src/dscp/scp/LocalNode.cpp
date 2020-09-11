@@ -218,7 +218,7 @@ LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
 
 bool
 LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
-                       std::map<NodeID, SCPEnvelope> const& map,
+                       const(SCPEnvelope[NodeID]) map,
                        std::function<bool(SCPStatement const&)> const& filter)
 {
     std::vector<NodeID> pNodes;
@@ -235,7 +235,7 @@ LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
 
 bool
 LocalNode::isQuorum(
-    ref const(SCPQuorumSet) qSet, std::map<NodeID, SCPEnvelope> const& map,
+    ref const(SCPQuorumSet) qSet, const(SCPEnvelope[NodeID]) map,
     std::function<SCPQuorumSetPtr(SCPStatement const&)> const& qfun,
     std::function<bool(SCPStatement const&)> const& filter)
 {
@@ -275,7 +275,7 @@ LocalNode::isQuorum(
 
 std::vector<NodeID>
 LocalNode::findClosestVBlocking(
-    ref const(SCPQuorumSet) qset, std::map<NodeID, SCPEnvelope> const& map,
+    ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
     std::function<bool(SCPStatement const&)> const& filter,
     NodeID const* excluded)
 {

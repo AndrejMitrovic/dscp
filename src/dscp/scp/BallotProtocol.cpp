@@ -1363,7 +1363,7 @@ statementBallotCounter(SCPStatement const& st)
 
 static bool
 hasVBlockingSubsetStrictlyAheadOf(std::shared_ptr<LocalNode> localNode,
-                                  std::map<NodeID, SCPEnvelope> const& map,
+                                  const(SCPEnvelope[NodeID]) map,
                                   uint32_t n)
 {
     return LocalNode::isVBlocking(
