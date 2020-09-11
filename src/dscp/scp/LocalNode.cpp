@@ -221,7 +221,7 @@ LocalNode::isVBlocking(ref const(SCPQuorumSet) qSet,
                        const(SCPEnvelope[NodeID]) map,
                        bool delegate (ref const(SCPStatement)) filter)
 {
-    std::vector<NodeID> pNodes;
+    NodeID[] pNodes;
     for (auto const& it : map)
     {
         if (filter(it.second.statement))
@@ -239,7 +239,7 @@ LocalNode::isQuorum(
     SCPQuorumSetPtr delegate (ref const(SCPStatement)) qfun,
     bool delegate (ref const(SCPStatement)) filter)
 {
-    std::vector<NodeID> pNodes;
+    NodeID[] pNodes;
     for (auto const& it : map)
     {
         if (filter(it.second.statement))
@@ -252,7 +252,7 @@ LocalNode::isQuorum(
     do
     {
         count = pNodes.size();
-        std::vector<NodeID> fNodes(pNodes.size());
+        NodeID[] fNodes(pNodes.size());
         auto quorumFilter = [&](NodeID nodeID) -> bool {
             auto qSetPtr = qfun(map.find(nodeID)->second.statement);
             if (qSetPtr)
@@ -273,7 +273,7 @@ LocalNode::isQuorum(
     return isQuorumSlice(qSet, pNodes);
 }
 
-std::vector<NodeID>
+NodeID[]
 LocalNode::findClosestVBlocking(
     ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
     bool delegate (ref const(SCPStatement)) filter,
@@ -290,7 +290,7 @@ LocalNode::findClosestVBlocking(
     return findClosestVBlocking(qset, s, excluded);
 }
 
-std::vector<NodeID>
+NodeID[]
 LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
                                 std::set<NodeID> const& nodes,
                                 NodeID const* excluded)
@@ -298,7 +298,7 @@ LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
     size_t leftTillBlock =
         ((1 + qset.validators.size() + qset.innerSets.size()) - qset.threshold);
 
-    std::vector<NodeID> res;
+    NodeID[] res;
 
     // first, compute how many top level items need to be blocked
     for (auto const& validator : qset.validators)
@@ -312,7 +312,7 @@ LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
                 if (leftTillBlock == 0)
                 {
                     // already blocked
-                    return std::vector<NodeID>();
+                    return NodeID[]();
                 }
             }
             else
@@ -333,7 +333,7 @@ LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
         }
     };
 
-    std::multiset<std::vector<NodeID>, orderBySize> resInternals;
+    std::multiset<NodeID[], orderBySize> resInternals;
 
     for (auto const& inner : qset.innerSets)
     {
@@ -344,7 +344,7 @@ LocalNode::findClosestVBlocking(ref const(SCPQuorumSet) qset,
             if (leftTillBlock == 0)
             {
                 // already blocked
-                return std::vector<NodeID>();
+                return NodeID[]();
             }
         }
         else

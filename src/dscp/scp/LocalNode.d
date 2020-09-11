@@ -67,20 +67,19 @@ class LocalNode
     // included in V and we have quorum on V for qSetHash). `qfun` extracts the
     // SCPQuorumSetPtr from the SCPStatement for its associated node in map
     // (required for transitivity)
-    static bool
-    isQuorum(ref const(SCPQuorumSet) qSet, const(SCPEnvelope[NodeID]) map,
-             SCPQuorumSetPtr delegate (ref const(SCPStatement)) qfun,
-             bool delegate (ref const(SCPStatement)) filter =
-                 [](SCPStatement const&) { return true; });
+    static bool isQuorum (ref const(SCPQuorumSet) qSet,
+        const(SCPEnvelope[NodeID]) map,
+        SCPQuorumSetPtr delegate (ref const(SCPStatement)) qfun,
+        bool delegate (ref const(SCPStatement)) filter = (s) => true);
 
     // computes the distance to the set of v-blocking sets given
     // a set of nodes that agree (but can fail)
     // excluded, if set will be skipped altogether
-    static std::vector<NodeID>
+    static NodeID[]
     findClosestVBlocking(ref const(SCPQuorumSet) qset,
                          std::set<NodeID> const& nodes, NodeID const* excluded);
 
-    static std::vector<NodeID> findClosestVBlocking(
+    static NodeID[] findClosestVBlocking(
         ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
         bool delegate (ref const(SCPStatement)) filter =
             [](SCPStatement const&) { return true; },
