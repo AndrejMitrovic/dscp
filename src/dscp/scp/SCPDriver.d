@@ -25,7 +25,7 @@ alias SCPQuorumSetPtr = SCPQuorumSet*;
 abstract class SCPDriver
 {
     // Envelope signature
-    public void signEnvelope (ref SCPEnvelope envelope);
+    public abstract void signEnvelope (ref SCPEnvelope envelope);
 
     // Retrieves a quorum set from its hash
     //
@@ -37,7 +37,7 @@ abstract class SCPDriver
     //
     // `nullptr` is a valid return value which cause the statement to be
     // considered invalid.
-    public SCPQuorumSetPtr getQSet (ref const(Hash) qSetHash);
+    public abstract SCPQuorumSetPtr getQSet (ref const(Hash) qSetHash);
 
     // Users of the SCP library should inherit from SCPDriver and implement the
     // public methods which are called by the SCP implementation to
@@ -46,7 +46,17 @@ abstract class SCPDriver
 
     // Delegates the emission of an SCPEnvelope to the user of SCP. Envelopes
     // should be flooded to the network.
-    public void emitEnvelope (ref const(SCPEnvelope) envelope);
+    public abstract void emitEnvelope (ref const(SCPEnvelope) envelope);
+
+    // `combineCandidates` computes the composite value based off a list
+    // of candidate values.
+    public abstract Value combineCandidates (uint64 slotIndex,
+        ref const(set!Value) candidates);
+
+    // `setupTimer`: requests to trigger 'cb' after timeout
+    // if cb is nullptr, the timer is cancelled
+    public abstract void setupTimer (uint64 slotIndex, int timerID,
+        Duration timeout, void delegate () cb);
 
     // methods to hand over the validation and ordering of values and ballots.
 
@@ -101,16 +111,6 @@ abstract class SCPDriver
     public uint64 computeValueHash (uint64 slotIndex, ref const(Value) prev,
         int32_t roundNumber, ref const(Value) value);
 
-    // `combineCandidates` computes the composite value based off a list
-    // of candidate values.
-    public Value combineCandidates (uint64 slotIndex,
-        ref const(set!Value) candidates);
-
-    // `setupTimer`: requests to trigger 'cb' after timeout
-    // if cb is nullptr, the timer is cancelled
-    public void setupTimer (uint64 slotIndex, int timerID,
-        Duration timeout, void delegate () cb);
-
     // `computeTimeout` computes a timeout given a round number
     // it should be sufficiently large such that nodes in a
     // quorum can exchange 4 messages
@@ -126,7 +126,10 @@ abstract class SCPDriver
 
     // ``nominatingValue`` is called every time the local instance nominates
     // a new value.
-    public void nominatingValue (uint64 slotIndex, ref const(Value) value);
+    public void nominatingValue (uint64 slotIndex, ref const(Value) value)
+    {
+
+    }
 
     // the following methods are used for monitoring of the SCP subsystem
     // most implementation don't really need to do anything with these
