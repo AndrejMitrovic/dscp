@@ -5,9 +5,10 @@
 module dscp.scp.Slot;
 
 import dscp.scp.LocalNode;
-//import dscp.scp.BallotProtocol;
+import dscp.scp.BallotProtocol;
 //import dscp.scp.NominationProtocol;
 import dscp.scp.SCP;
+import dscp.scp.SCPDriver;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
