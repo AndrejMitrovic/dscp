@@ -1,35 +1,28 @@
-#pragma once
-
 // Copyright 2014 Stellar Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-#include "BallotProtocol.h"
-#include "LocalNode.h"
-#include "NominationProtocol.h"
-#include "lib/json/json-forwards.h"
-#include "scp/SCP.h"
-#include <functional>
-#include <memory>
-#include <set>
-#include <string>
-#include <utility>
+module dscp.scp.Slot;
 
-namespace stellar
-{
-class Node;
+import dscp.scp.LocalNode;
+//import dscp.scp.BallotProtocol;
+//import dscp.scp.NominationProtocol;
+import dscp.scp.SCP;
+import dscp.xdr.Stellar_SCP;
+import dscp.xdr.Stellar_types;
+
+import core.stdc.stdint;
+import core.stdc.time;
 
 /**
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-class Slot : public std::enable_shared_from_this<Slot>
+// todo: this used to be a shared_ptr to a struct
+class Slot
 {
-    // BPFK note: cannot be private as we require runtime layout checks
-  public:
-
     const uint64 mSlotIndex; // the index this slot is tracking
-    SCP& mSCP;
+    SCP mSCP;
 
     BallotProtocol mBallotProtocol;
     NominationProtocol mNominationProtocol;
@@ -43,13 +36,13 @@ class Slot : public std::enable_shared_from_this<Slot>
         bool mValidated;
     };
 
-    std::vector<HistoricalStatement> mStatementsHistory;
+    HistoricalStatement[] mStatementsHistory;
 
     // true if the Slot was fully validated
     bool mFullyValidated;
 
   public:
-    Slot(uint64 slotIndex, SCP& SCP);
+    this(uint64 slotIndex, SCP SCP);
 
     uint64
     getSlotIndex() const
@@ -57,57 +50,57 @@ class Slot : public std::enable_shared_from_this<Slot>
         return mSlotIndex;
     }
 
-    SCP&
+    SCP
     getSCP()
     {
         return mSCP;
     }
 
-    SCPDriver&
+    SCPDriver
     getSCPDriver()
     {
         return mSCP.getDriver();
     }
 
-    SCPDriver const&
+    const(SCPDriver)
     getSCPDriver() const
     {
         return mSCP.getDriver();
     }
 
-    BallotProtocol&
+    BallotProtocol
     getBallotProtocol()
     {
         return mBallotProtocol;
     }
 
-    Value const& getLatestCompositeCandidate();
+    const(Value) getLatestCompositeCandidate();
 
     // returns the latest messages the slot emitted
-    std::vector<SCPEnvelope> getLatestMessagesSend() const;
+    SCPEnvelope[] getLatestMessagesSend() const;
 
     // forces the state to match the one in the envelope
     // this is used when rebuilding the state after a crash for example
-    void setStateFromEnvelope(SCPEnvelope const& e);
+    void setStateFromEnvelope(ref const(SCPEnvelope) e);
 
     // returns the latest messages known for this slot
-    std::vector<SCPEnvelope> getCurrentState() const;
+    SCPEnvelope[] getCurrentState() const;
 
     // returns the latest message from a node
     // or null if not found
-    SCPEnvelope const* getLatestMessage(ref const(NodeID) id) const;
+    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const;
 
     // returns messages that helped this slot externalize
-    std::vector<SCPEnvelope> getExternalizingState() const;
+    SCPEnvelope[] getExternalizingState() const;
 
     // records the statement in the historical record for this slot
-    void recordStatement(SCPStatement const& st);
+    void recordStatement(ref const(SCPStatement) st);
 
     // Process a newly received envelope for this slot and update the state of
     // the slot accordingly.
     // self: set to true when node wants to record its own messages (potentially
     // triggering more transitions)
-    SCP::EnvelopeState processEnvelope(SCPEnvelope const& envelope, bool self);
+    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope, bool self);
 
     bool abandonBallot();
 
@@ -116,10 +109,10 @@ class Slot : public std::enable_shared_from_this<Slot>
     // otherwise, no-ops
     // force: when true, always bumps the value, otherwise only bumps
     // the state if no value was prepared
-    bool bumpState(Value const& value, bool force);
+    bool bumpState(const(Value) value, bool force);
 
     // attempts to nominate a value for consensus
-    bool nominate(Value const& value, Value const& previousValue,
+    bool nominate(const(Value) value, const(Value) previousValue,
                   bool timedout);
 
     void stopNomination();
@@ -138,29 +131,21 @@ class Slot : public std::enable_shared_from_this<Slot>
         return mStatementsHistory.size();
     }
 
-    // returns information about the local state in JSON format
-    // including historical statements if available
-    Json::Value getJsonInfo(bool fullKeys = false);
-
-    // returns information about the quorum for a given node
-    Json::Value getJsonQuorumInfo(ref const(NodeID) id, bool summary,
-                                  bool fullKeys = false);
-
     // returns the hash of the QuorumSet that should be downloaded
     // with the statement.
     // note: the companion hash for an EXTERNALIZE statement does
     // not match the hash of the QSet, but the hash of commitQuorumSetHash
-    static Hash getCompanionQuorumSetHashFromStatement(SCPStatement const& st);
+    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st);
 
     // returns the values associated with the statement
-    static std::vector<Value> getStatementValues(SCPStatement const& st);
+    static Value[] getStatementValues(ref const(SCPStatement) st);
 
     // returns the QuorumSet that should be used for a node given the
     // statement (singleton for externalize)
-    SCPQuorumSetPtr getQuorumSetFromStatement(SCPStatement const& st);
+    SCPQuorumSetPtr getQuorumSetFromStatement(ref const(SCPStatement) st);
 
     // wraps a statement in an envelope (sign it, etc)
-    SCPEnvelope createEnvelope(SCPStatement const& statement);
+    SCPEnvelope createEnvelope(ref const(SCPStatement) statement);
 
     // ** federated agreement helper functions
 
@@ -173,7 +158,7 @@ class Slot : public std::enable_shared_from_this<Slot>
     bool federatedRatify(StatementPredicate voted,
                          const(SCPEnvelope[NodeID]) envs);
 
-    std::shared_ptr<LocalNode> getLocalNode();
+    LocalNode getLocalNode();
 
     enum timerIDs
     {
@@ -182,7 +167,5 @@ class Slot : public std::enable_shared_from_this<Slot>
     };
 
   protected:
-    std::vector<SCPEnvelope> getEntireCurrentState();
-    friend class TestSCP;
-};
+    SCPEnvelope[] getEntireCurrentState();
 }

@@ -24,11 +24,11 @@ class LocalNode
     Hash gSingleQSetHash;                      // hash of the singleton qset
     SCPQuorumSet* mSingleQSet; // {{mNodeID}}
 
-    SCP* mSCP;
+    SCP mSCP;
 
   public:
     this (ref const(NodeID) nodeID, bool isValidator,
-        ref const(SCPQuorumSet) qSet, SCP* scp);
+        ref const(SCPQuorumSet) qSet, SCP scp);
 
     ref const(NodeID) getNodeID ();
 

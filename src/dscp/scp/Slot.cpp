@@ -20,7 +20,7 @@ namespace stellar
 {
 using namespace std::placeholders;
 
-Slot::Slot(uint64 slotIndex, SCP& scp)
+Slot::Slot(uint64 slotIndex, SCP scp)
     : mSlotIndex(slotIndex)
     , mSCP(scp)
     , mBallotProtocol(*this)

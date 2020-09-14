@@ -20,7 +20,7 @@
 namespace stellar
 {
 LocalNode::LocalNode(ref const(NodeID) nodeID, bool isValidator,
-                     ref const(SCPQuorumSet) qSet, SCP* scp)
+                     ref const(SCPQuorumSet) qSet, SCP scp)
     : mNodeID(nodeID), mIsValidator(isValidator), mQSet(qSet), mSCP(scp)
 {
     normalizeQSet(mQSet);
