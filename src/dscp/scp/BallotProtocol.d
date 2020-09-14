@@ -85,7 +85,7 @@ class BallotProtocol
     // c for EXTERNALIZE messages
     static SCPBallot getWorkingBallot(ref const(SCPStatement) st);
 
-    SCPEnvelope*
+    const(SCPEnvelope)*
     getLastMessageSend() const
     {
         return mLastEnvelopeEmit.get();

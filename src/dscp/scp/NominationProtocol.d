@@ -101,7 +101,7 @@ class NominationProtocol
         return mLatestCompositeCandidate;
     }
 
-    SCPEnvelope* getLastMessageSend() const
+    const(SCPEnvelope)* getLastMessageSend() const
     {
         return mLastEnvelope.get();
     }

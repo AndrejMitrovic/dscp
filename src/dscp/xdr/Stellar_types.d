@@ -14,6 +14,12 @@ alias int32 = int;
 alias uint64 = ulong;
 alias int64 = long;
 
+// workaround for shared_ptr.get()
+auto get (T)(T* val) { return val; }
+
+// workaround for std::vector.size()
+auto size (T)(T[] val) { return val.length; }
+
 /// std.set equivalent
 public alias set (V) = void[][V];
 
