@@ -63,7 +63,102 @@ class BallotProtocol
     // the slot accordingly.
     // self: set to true when node feeds its own statements in order to
     // trigger more potential state changes
-    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope, bool self);
+    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope,
+        bool self)
+    {
+        SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
+        assert(envelope.statement.slotIndex == mSlot.getSlotIndex());
+
+        auto statement = envelope.statement;
+        auto nodeID = statement.nodeID;
+
+        if (!isStatementSane(statement, self))
+        {
+            if (self)
+            {
+                //CLOG(ERROR, "SCP") << "not sane statement from self, skipping "
+                //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
+            }
+
+            return SCP.EnvelopeState.INVALID;
+        }
+
+        if (!isNewerStatement(nodeID, statement))
+        {
+            if (self)
+            {
+                //CLOG(ERROR, "SCP") << "stale statement from self, skipping "
+                //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
+            }
+            else
+            {
+                //CLOG(TRACE, "SCP") << "stale statement, skipping "
+                //                   << " i: " << mSlot.getSlotIndex();
+            }
+
+            return SCP.EnvelopeState.INVALID;
+        }
+
+        auto validationRes = validateValues(statement);
+        if (validationRes != ValidationLevel.kInvalidValue)
+        {
+            bool processed = false;
+
+            if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
+            {
+                if (validationRes == ValidationLevel.kMaybeValidValue)
+                {
+                    mSlot.setFullyValidated(false);
+                }
+
+                recordEnvelope(envelope);
+                processed = true;
+                advanceSlot(statement);
+                res = SCP.EnvelopeState.VALID;
+            }
+
+            if (!processed)
+            {
+                // note: this handles also our own messages
+                // in particular our final EXTERNALIZE message
+                if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE &&
+                    mCommit.value == getWorkingBallot(statement).value)
+                {
+                    recordEnvelope(envelope);
+                    res = SCP.EnvelopeState.VALID;
+                }
+                else
+                {
+                    if (self)
+                    {
+                        //CLOG(ERROR, "SCP")
+                        //    << "externalize statement with invalid value from "
+                        //       "self, skipping "
+                        //    << "  e: " << mSlot.getSCP().envToStr(envelope);
+                    }
+
+                    res = SCP.EnvelopeState.INVALID;
+                }
+            }
+        }
+        else
+        {
+            // If the value is not valid, we just ignore it.
+            if (self)
+            {
+                //CLOG(ERROR, "SCP") << "invalid value from self, skipping "
+                //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
+            }
+            else
+            {
+                //CLOG(TRACE, "SCP") << "invalid value "
+                //                   << " i: " << mSlot.getSlotIndex();
+            }
+
+            res = SCP.EnvelopeState.INVALID;
+        }
+        return res;
+    }
 
     void ballotProtocolTimerExpired();
     // abandon's current ballot, move to a new ballot
@@ -309,7 +404,12 @@ class BallotProtocol
     bool isStatementSane(ref const(SCPStatement) st, bool self);
 
     // records the statement in the state machine
-    void recordEnvelope(ref const(SCPEnvelope) env);
+    void recordEnvelope(ref const(SCPEnvelope) env)
+    {
+        const st = &env.statement;
+        mLatestEnvelopes[st.nodeID] = env;
+        mSlot.recordStatement(env.statement);
+    }
 
     // ** State related methods
 
