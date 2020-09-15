@@ -132,9 +132,8 @@ class Slot
     SCPEnvelope[] getCurrentState() const
     {
         SCPEnvelope[] res;
-        res = mNominationProtocol.getCurrentState();
-        auto r2 = mBallotProtocol.getCurrentState();
-        res.insert(res.end(), r2.begin(), r2.end());
+        res ~= mNominationProtocol.getCurrentState();
+        res ~= mBallotProtocol.getCurrentState();
         return res;
     }
 
