@@ -65,29 +65,66 @@ class SCP
             .nominate(value, previousValue, NotTimedOut);
     }
 
-    // stops nomination for a slot
-    void stopNomination (uint64 slotIndex);
+    // stops nomination for a slot if one is in progress
+    void stopNomination (uint64 slotIndex)
+    {
+        const bool DontCreateNew = false;
+        if (auto s = getSlot(slotIndex, DontCreateNew))
+            s.stopNomination();
+    }
 
     // Local QuorumSet interface (can be dynamically updated)
-    void updateLocalQuorumSet (ref const(SCPQuorumSet) qSet);
+    void updateLocalQuorumSet (ref const(SCPQuorumSet) qSet)
+    {
+        mLocalNode.updateQuorumSet(qSet);
+    }
 
-    ref const(SCPQuorumSet) getLocalQuorumSet ();
+    ref const(SCPQuorumSet) getLocalQuorumSet ()
+    {
+        return mLocalNode.getQuorumSet();
+    }
 
     // Local nodeID getter
-    ref const(NodeID) getLocalNodeID ();
+    ref const(NodeID) getLocalNodeID ()
+    {
+        return mLocalNode.getNodeID();
+    }
 
     // returns the local node descriptor
-    LocalNode getLocalNode ();
+    LocalNode getLocalNode ()
+    {
+        return mLocalNode;
+    }
 
     // Purges all data relative to all the slots whose slotIndex is smaller
     // than the specified `maxSlotIndex`.
-    void purgeSlots (uint64 maxSlotIndex);
+    void purgeSlots (uint64 maxSlotIndex)
+    {
+        // todo: optimize, or use red-black tree to keep order and quick lookup
+        uint64[] slots;
+        foreach (slot_idx; mKnownSlots.byKey())
+            if (slot_idx < maxSlotIndex)
+                slots ~= slot_idx;
+
+        foreach (slot_idx; slots)
+            mKnownSlots.remove(slot_idx);
+    }
 
     // Returns whether the local node is a validator.
-    bool isValidator ();
+    bool isValidator ()
+    {
+        return mLocalNode.isValidator();
+    }
 
     // returns the validation state of the given slot
-    bool isSlotFullyValidated (uint64 slotIndex);
+    bool isSlotFullyValidated (uint64 slotIndex)
+    {
+        const bool DontCreateNew = false;
+        if (auto slot = getSlot(slotIndex, DontCreateNew))
+            return slot.isFullyValidated();
+
+        return false;
+    }
 
     // Helpers for monitoring and reporting the internal memory-usage of the SCP
     // protocol to system metric reporters.
@@ -132,5 +169,11 @@ class SCP
     Slot[uint64] mKnownSlots;
 
     // Slot getter
-    Slot* getSlot (uint64 slotIndex, bool create);
+    Slot getSlot (uint64 slotIndex, bool create)
+    {
+        if (create)
+            return mKnownSlots.require(slotIndex, new Slot(slotIndex, this));
+        else
+            return mKnownSlots.get(slotIndex, null);
+    }
 }
