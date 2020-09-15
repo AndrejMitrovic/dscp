@@ -51,7 +51,10 @@ class LocalNode
         gSingleQSetHash = getHashOf(mSingleQSet);
     }
 
-    ref const(NodeID) getNodeID ();
+    ref const(NodeID) getNodeID ()
+    {
+        return mNodeID;
+    }
 
     void updateQuorumSet (ref SCPQuorumSet qSet)
     {
@@ -69,7 +72,10 @@ class LocalNode
         return mQSetHash;
     }
 
-    bool isValidator ();
+    bool isValidator ()
+    {
+        return mIsValidator;
+    }
 
     // returns the quorum set {{X}}
     static SCPQuorumSet getSingletonQSet (ref const(NodeID) nodeID)
