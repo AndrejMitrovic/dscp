@@ -248,11 +248,11 @@ BallotProtocol.isStatementSane(SCPStatement const& st, bool self)
 {
     auto qSet = mSlot.getQuorumSetFromStatement(st);
     const char* reason = null;
-    bool res = qSet != null && isQuorumSetSane(*qSet, false, &reason);
+    bool res = qSet !is null && isQuorumSetSane(*qSet, false, &reason);
     if (!res)
     {
         CLOG(DEBUG, "SCP") << "Invalid quorum set received";
-        if (reason != null)
+        if (reason !is null)
         {
             std.string msg(reason);
             CLOG(DEBUG, "SCP") << msg;
@@ -614,7 +614,7 @@ BallotProtocol.emitCurrentStateStatement()
     SCPStatement statement = createStatement(t);
     SCPEnvelope envelope = mSlot.createEnvelope(statement);
 
-    bool canEmit = (mCurrentBallot != null);
+    bool canEmit = (mCurrentBallot !is null);
 
     // if we generate the same envelope, don't process it again
     // this can occur when updating h in PREPARE phase
@@ -1625,7 +1625,7 @@ BallotProtocol.setPrepared(SCPBallot const& ballot)
         else if (comp > 0)
         {
             // check if we should update only p', this happens
-            // either p' was NULL
+            // either p' was null
             // or p' gets replaced by ballot
             //      (p' < ballot and ballot is incompatible with p)
             // note, the later check is here out of paranoia as this function is

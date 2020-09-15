@@ -43,7 +43,7 @@ QuorumSetSanityChecker.QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet,
     : mExtraChecks{extraChecks}
 {
     const char* msg = null;
-    if (reason == null)
+    if (reason is null)
         reason = &msg;  // avoid null checks in checkSanity()
 
     mIsSane = checkSanity(qSet, 0, reason);
@@ -59,7 +59,7 @@ QuorumSetSanityChecker.QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet,
     }
 
     // only one of the two may be true
-    assert(mIsSane ^ (*reason != null));
+    assert(mIsSane ^ (*reason !is null));
 }
 
 bool

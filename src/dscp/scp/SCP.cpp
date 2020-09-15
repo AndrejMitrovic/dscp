@@ -253,7 +253,7 @@ SCP.getLatestMessage(ref const(NodeID) id)
     {
         auto slot = it->second;
         auto res = slot->getLatestMessage(id);
-        if (res != null)
+        if (res !is null)
         {
             return res;
         }

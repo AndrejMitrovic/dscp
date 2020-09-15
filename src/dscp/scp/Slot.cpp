@@ -6,7 +6,7 @@ SCPEnvelope const*
 Slot.getLatestMessage(ref const(NodeID) id) const
 {
     auto m = mBallotProtocol.getLatestMessage(id);
-    if (m == null)
+    if (m is null)
     {
         m = mNominationProtocol.getLatestMessage(id);
     }

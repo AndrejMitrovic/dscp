@@ -94,7 +94,7 @@ SecretKey.sign(ByteSlice const& bin) const
     assert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
     Signature out;
-    if (crypto_sign_detached(out.data(), NULL, bin.data(), bin.size(),
+    if (crypto_sign_detached(out.data(), null, bin.data(), bin.size(),
                              mSecretKey.data()) != 0)
     {
         throw std.runtime_error("error while signing");

@@ -41,8 +41,8 @@ ubyte[]
 hexToBin(std.string const& hex)
 {
     ubyte[] bin(hex.size() / 2, 0);
-    if (sodium_hex2bin(bin.data(), bin.size(), hex.data(), hex.size(), NULL,
-                       NULL, NULL) != 0)
+    if (sodium_hex2bin(bin.data(), bin.size(), hex.data(), hex.size(), null,
+                       null, null) != 0)
     {
         throw std.runtime_error("error in stellar.hexToBin(std.string)");
     }
