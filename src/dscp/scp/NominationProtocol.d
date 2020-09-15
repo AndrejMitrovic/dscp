@@ -311,7 +311,119 @@ class NominationProtocol
         mNominationStarted = false;
     }
 
-    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope);
+    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope)
+    {
+        const st = &envelope.statement;
+        const nom = &st.pledges.nominate_;
+
+        SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
+
+        if (isNewerStatement(st.nodeID, *nom))
+        {
+            if (isSane(*st))
+            {
+                recordEnvelope(envelope);
+                res = SCP.EnvelopeState.VALID;
+
+                if (mNominationStarted)
+                {
+                    bool modified =
+                        false; // tracks if we should emit a new nomination message
+                    bool newCandidates = false;
+
+                    // attempts to promote some of the votes to accepted
+                    foreach (v; nom.votes)
+                    {
+                        if (v in mAccepted)
+                            continue;  // v is already accepted
+
+                        if (mSlot.federatedAccept(
+                                (ref const(SCPStatement) st) {
+                                    const nom = &st.pledges.nominate_;
+                                    return nom.votes.canFind(v);
+                                },
+                                (ref const(SCPStatement) st) => acceptPredicate(v, st),
+                                mLatestNominations))
+                        {
+                            auto vl = validateValue(v);
+                            if (vl == ValidationLevel.kFullyValidatedValue)
+                            {
+                                mAccepted[v] = [];
+                                mVotes[v] = [];
+                                modified = true;
+                            }
+                            else
+                            {
+                                // the value made it pretty far:
+                                // see if we can vote for a variation that
+                                // we consider valid
+                                Value toVote;
+                                toVote = extractValidValue(v);
+                                if (!toVote.empty())
+                                {
+                                    if (toVote in mVotes)
+                                        modified = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // attempts to promote accepted values to candidates
+                    foreach (a; mAccepted.byKey)
+                    {
+                        if (mCandidates.byKey.canFind(a))
+                            continue;
+
+                        if (mSlot.federatedRatify(
+                                (ref const(SCPStatement) st) => acceptPredicate(a, st),
+                                mLatestNominations))
+                        {
+                            mCandidates[a] = [];
+                            newCandidates = true;
+                        }
+                    }
+
+                    // only take round leader votes if we're still looking for
+                    // candidates
+                    if (mCandidates.empty() &&
+                        mRoundLeaders.byKey.canFind(st.nodeID))
+                    {
+                        Value newVote = getNewValueFromNomination(*nom);
+                        if (!newVote.empty())
+                        {
+                            mVotes[newVote.idup] = [];
+                            modified = true;
+                            mSlot.getSCPDriver().nominatingValue(
+                                mSlot.getSlotIndex(), newVote);
+                        }
+                    }
+
+                    if (modified)
+                    {
+                        emitNomination();
+                    }
+
+                    if (newCandidates)
+                    {
+                        mLatestCompositeCandidate =
+                            mSlot.getSCPDriver().combineCandidates(
+                                mSlot.getSlotIndex(), mCandidates);
+
+                        mSlot.getSCPDriver().updatedCandidateValue(
+                            mSlot.getSlotIndex(), mLatestCompositeCandidate);
+
+                        mSlot.bumpState(mLatestCompositeCandidate, false);
+                    }
+                }
+            }
+            else
+            {
+                //CLOG(TRACE, "SCP")
+                //    << "NominationProtocol: message didn't pass sanity check";
+            }
+        }
+        return res;
+    }
 
     static Value[] getStatementValues(ref const(SCPStatement) st);
 
