@@ -4,9 +4,11 @@
 
 module dscp.scp.NominationProtocol;
 
+import dscp.scp.LocalNode;
 import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
 import dscp.scp.Slot;
+import dscp.scp.QuorumSetUtils;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -152,14 +154,71 @@ class NominationProtocol
     }
 
     // returns true if v is in the accepted list from the statement
-    static bool acceptPredicate(ref const(Value) v, ref const(SCPStatement) st);
+    static bool acceptPredicate(ref const(Value) v, ref const(SCPStatement) st)
+    {
+        const nom = &st.pledges.nominate_;
+        return nom.accepted.canFind(v);
+    }
 
     // applies 'processor' to all values from the passed in nomination
     static void applyAll(ref const(SCPNomination) nom,
-                         void delegate(ref const(Value) processor));
+                         void delegate(ref const(Value)) processor)
+    {
+        foreach (v; nom.votes)
+            processor(v);
+
+        foreach (a; nom.accepted)
+            processor(a);
+    }
 
     // updates the set of nodes that have priority over the others
-    void updateRoundLeaders();
+    void updateRoundLeaders()
+    {
+        uint32 threshold;
+        PublicKey[] validators;
+        SCPQuorumSet[] innerSets;
+
+        const localQset = mSlot.getLocalNode().getQuorumSet();
+        SCPQuorumSet myQSet;
+        myQSet.threshold = localQset.threshold;
+        myQSet.validators = localQset.validators.dup;
+        myQSet.innerSets = (cast(SCPQuorumSet[])localQset.innerSets).dup;
+
+        // initialize priority with value derived from self
+        set!NodeID newRoundLeaders;
+        auto localID = mSlot.getLocalNode().getNodeID();
+        normalizeQSet(myQSet, &localID);
+
+        newRoundLeaders[localID] = [];
+        uint64 topPriority = getNodePriority(localID, myQSet);
+
+        LocalNode.forAllNodes(myQSet, (ref const(NodeID) cur) {
+            uint64 w = getNodePriority(cur, myQSet);
+            if (w > topPriority)
+            {
+                topPriority = w;
+                newRoundLeaders.clear();
+            }
+            if (w == topPriority && w > 0)
+            {
+                newRoundLeaders[cur] = [];
+            }
+        });
+        // expand mRoundLeaders with the newly computed leaders
+        foreach (new_leader; newRoundLeaders.byKey)
+            mRoundLeaders[new_leader] = [];
+
+        //if (Logging.logDebug("SCP"))
+        //{
+        //    CLOG(DEBUG, "SCP") << "updateRoundLeaders: " << newRoundLeaders.length
+        //                       << " . " << mRoundLeaders.length;
+        //    foreach (rl; mRoundLeaders)
+        //    {
+        //        CLOG(DEBUG, "SCP")
+        //            << "    leader " << mSlot.getSCPDriver().toShortString(rl);
+        //    }
+        //}
+    }
 
     // computes Gi(isPriority?P:N, prevValue, mRoundNumber, nodeID)
     // from the paper
