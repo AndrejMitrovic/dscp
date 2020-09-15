@@ -11,6 +11,8 @@ import dscp.util.numeric;
 import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
 
+import std.algorithm;
+
 /**
  * This is one Node in the stellar network
  */
