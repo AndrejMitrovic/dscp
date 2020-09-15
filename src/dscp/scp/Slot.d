@@ -282,7 +282,7 @@ class Slot
             h = st.pledges.nominate_.quorumSetHash;
             break;
         default:
-            dbgAbort();
+            assert(0);
         }
         return h;
     }

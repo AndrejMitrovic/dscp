@@ -314,7 +314,7 @@ BallotProtocol.isStatementSane(SCPStatement const& st, bool self)
     }
     break;
     default:
-        dbgAbort();
+        assert(0);
     }
 
     return res;
@@ -585,7 +585,7 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     }
     break;
     default:
-        dbgAbort();
+        assert(0);
     }
 
     return statement;
@@ -608,7 +608,7 @@ BallotProtocol.emitCurrentStateStatement()
         t = SCPStatementType.SCP_ST_EXTERNALIZE;
         break;
     default:
-        dbgAbort();
+        assert(0);
     }
 
     SCPStatement statement = createStatement(t);
@@ -679,7 +679,7 @@ BallotProtocol.checkInvariants()
         dbgAssert(mHighBallot);
         break;
     default:
-        dbgAbort();
+        assert(0);
     }
 }
 
@@ -870,7 +870,7 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
                 break;
                 default:
                     res = false;
-                    dbgAbort();
+                    assert(0);
                 }
 
                 return res;
@@ -1032,7 +1032,7 @@ BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
     }
     break;
     default:
-        dbgAbort();
+        assert(0);
     }
     return res;
 }
@@ -1167,7 +1167,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
         }
         break;
         default:
-            dbgAbort();
+            assert(0);
         }
     }
     return res;
@@ -1262,7 +1262,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
                 }
                 break;
                 default:
-                    dbgAbort();
+                    assert(0);
                 }
                 return res;
             },
@@ -1552,7 +1552,7 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
     break;
     default:
         res = false;
-        dbgAbort();
+        assert(0);
     }
 
     return res;
@@ -1574,7 +1574,7 @@ BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
         h = st.pledges.externalize_.commitQuorumSetHash;
         break;
     default:
-        dbgAbort();
+        assert(0);
     }
     return h;
 }
@@ -1598,7 +1598,7 @@ BallotProtocol.getWorkingBallot(SCPStatement const& st)
         res = st.pledges.externalize_.commit;
         break;
     default:
-        dbgAbort();
+        assert(0);
     }
     return res;
 }
@@ -1783,7 +1783,7 @@ BallotProtocol.setStateFromEnvelope(SCPEnvelope const& e)
     }
     break;
     default:
-        dbgAbort();
+        assert(0);
     }
 }
 
@@ -2020,7 +2020,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
             b = st.pledges.externalize_.commit;
             break;
         default:
-            dbgAbort();
+            assert(0);
         }
         // use the companion set here even for externalize to capture
         // the view of the quorum set during consensus

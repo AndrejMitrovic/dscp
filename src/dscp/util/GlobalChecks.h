@@ -8,7 +8,7 @@ namespace stellar
 {
 void assertThreadIsMain();
 
-static void dbgAbort() { int* ptr = 0; *ptr = 42; }
+static void assert(0) { int* ptr = 0; *ptr = 42; }
 
 #ifdef NDEBUG
 
@@ -16,7 +16,7 @@ static void dbgAbort() { int* ptr = 0; *ptr = 42; }
 
 #else
 
-#define dbgAssert(expression) (void)((!!(expression)) || (dbgAbort(), 0))
+#define dbgAssert(expression) (void)((!!(expression)) || (assert(0), 0))
 
 #endif
 }

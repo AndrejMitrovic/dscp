@@ -17,7 +17,7 @@ Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
         h = st.pledges.nominate_.quorumSetHash;
         break;
     default:
-        dbgAbort();
+        assert(0);
     }
     return h;
 }
@@ -64,7 +64,7 @@ Slot.getQuorumSetFromStatement(SCPStatement const& st)
         }
         else
         {
-            dbgAbort();
+            assert(0);
         }
         res = getSCPDriver().getQSet(h);
     }
