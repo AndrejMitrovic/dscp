@@ -264,7 +264,28 @@ class Slot
     // with the statement.
     // note: the companion hash for an EXTERNALIZE statement does
     // not match the hash of the QSet, but the hash of commitQuorumSetHash
-    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st);
+    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st)
+    {
+        Hash h;
+        switch (st.pledges.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+            h = st.pledges.prepare().quorumSetHash;
+            break;
+        case SCP_ST_CONFIRM:
+            h = st.pledges.confirm().quorumSetHash;
+            break;
+        case SCP_ST_EXTERNALIZE:
+            h = st.pledges.externalize().commitQuorumSetHash;
+            break;
+        case SCP_ST_NOMINATE:
+            h = st.pledges.nominate().quorumSetHash;
+            break;
+        default:
+            dbgAbort();
+        }
+        return h;
+    }
 
     // returns the values associated with the statement
     static Value[] getStatementValues(ref const(SCPStatement) st);
@@ -274,7 +295,19 @@ class Slot
     SCPQuorumSetPtr getQuorumSetFromStatement(ref const(SCPStatement) st);
 
     // wraps a statement in an envelope (sign it, etc)
-    SCPEnvelope createEnvelope(ref const(SCPStatement) statement);
+    SCPEnvelope createEnvelope(ref const(SCPStatement) statement)
+    {
+        SCPEnvelope envelope;
+
+        envelope.statement = statement;
+        auto mySt = &envelope.statement;
+        mySt.nodeID = getSCP().getLocalNodeID();
+        mySt.slotIndex = getSlotIndex();
+
+        mSCP.getDriver().signEnvelope(envelope);
+
+        return envelope;
+    }
 
     // ** federated agreement helper functions
 

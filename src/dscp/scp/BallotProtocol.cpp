@@ -599,7 +599,7 @@ BallotProtocol.emitCurrentStateStatement()
     switch (mPhase)
     {
     case SCP_PHASE_PREPARE:
-        t = SCP_ST_PREPARE;
+        t = SCPStatementType.SCP_ST_PREPARE;
         break;
     case SCP_PHASE_CONFIRM:
         t = SCP_ST_CONFIRM;
@@ -690,7 +690,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
 
     switch (hint.pledges.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
     {
         auto const& prep = hint.pledges.prepare();
         hintBallots.insert(prep.ballot);
@@ -737,7 +737,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
             SCPStatement const& st = e.second.statement;
             switch (st.pledges.type)
             {
-            case SCP_ST_PREPARE:
+            case SCPStatementType.SCP_ST_PREPARE:
             {
                 auto const& prep = st.pledges.prepare();
                 if (areBallotsLessAndCompatible(prep.ballot, topVote))
@@ -850,7 +850,7 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
 
                 switch (st.pledges.type)
                 {
-                case SCP_ST_PREPARE:
+                case SCPStatementType.SCP_ST_PREPARE:
                 {
                     auto const& p = st.pledges.prepare();
                     res = areBallotsLessAndCompatible(ballot, p.ballot);
@@ -1011,7 +1011,7 @@ BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
     auto const& pl = st.pledges;
     switch (pl.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
         break;
     case SCP_ST_CONFIRM:
     {
@@ -1132,7 +1132,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
         auto const& pl = env.second.statement.pledges;
         switch (pl.type)
         {
-        case SCP_ST_PREPARE:
+        case SCPStatementType.SCP_ST_PREPARE:
         {
             auto const& p = pl.prepare();
             if (areBallotsCompatible(ballot, p.ballot))
@@ -1231,7 +1231,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
                 auto const& pl = st.pledges;
                 switch (pl.type)
                 {
-                case SCP_ST_PREPARE:
+                case SCPStatementType.SCP_ST_PREPARE:
                 {
                     auto const& p = pl.prepare();
                     if (areBallotsCompatible(ballot, p.ballot))
@@ -1349,7 +1349,7 @@ statementBallotCounter(SCPStatement const& st)
 {
     switch (st.pledges.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
         return st.pledges.prepare().ballot.counter;
     case SCP_ST_CONFIRM:
         return st.pledges.confirm().ballot.counter;
@@ -1528,7 +1528,7 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
 
     switch (st.pledges.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
     {
         auto const& p = st.pledges.prepare();
         res =
@@ -1564,7 +1564,7 @@ BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
     Hash h;
     switch (st.pledges.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
         h = st.pledges.prepare().quorumSetHash;
         break;
     case SCP_ST_CONFIRM:
@@ -1585,7 +1585,7 @@ BallotProtocol.getWorkingBallot(SCPStatement const& st)
     SCPBallot res;
     switch (st.pledges.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
         res = st.pledges.prepare().ballot;
         break;
     case SCP_ST_CONFIRM:
@@ -2160,7 +2160,7 @@ BallotProtocol.checkHeardFromQuorum()
                 std.bind(&Slot.getQuorumSetFromStatement, &mSlot, _1),
                 [&](SCPStatement const& st) {
                     bool res;
-                    if (st.pledges.type == SCP_ST_PREPARE)
+                    if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
                     {
                         res = mCurrentBallot->counter <=
                               st.pledges.prepare().ballot.counter;

@@ -1,26 +1,10 @@
-
-SCPEnvelope
-Slot.createEnvelope(SCPStatement const& statement)
-{
-    SCPEnvelope envelope;
-
-    envelope.statement = statement;
-    auto mySt = &envelope.statement;
-    mySt.nodeID = getSCP().getLocalNodeID();
-    mySt.slotIndex = getSlotIndex();
-
-    mSCP.getDriver().signEnvelope(envelope);
-
-    return envelope;
-}
-
 Hash
 Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
 {
     Hash h;
     switch (st.pledges.type)
     {
-    case SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
         h = st.pledges.prepare().quorumSetHash;
         break;
     case SCP_ST_CONFIRM:
@@ -66,7 +50,7 @@ Slot.getQuorumSetFromStatement(SCPStatement const& st)
     else
     {
         Hash h;
-        if (t == SCP_ST_PREPARE)
+        if (t == SCPStatementType.SCP_ST_PREPARE)
         {
             h = st.pledges.prepare().quorumSetHash;
         }
