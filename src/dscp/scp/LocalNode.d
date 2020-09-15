@@ -48,7 +48,7 @@ class LocalNode
         gSingleQSetHash = getHashOf(mSingleQSet);
     }
 
-    public ref const(NodeID) getNodeID ()
+    public ref const(NodeID) getNodeID () inout
     {
         return mNodeID;
     }

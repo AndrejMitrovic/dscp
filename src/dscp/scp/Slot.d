@@ -59,7 +59,7 @@ class Slot
         return mSlotIndex;
     }
 
-    public SCP getSCP ()
+    public inout(SCP) getSCP () inout
     {
         return mSCP;
     }

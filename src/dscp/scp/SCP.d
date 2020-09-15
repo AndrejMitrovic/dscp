@@ -90,7 +90,7 @@ class SCP
     }
 
     // Local nodeID getter
-    public ref const(NodeID) getLocalNodeID ()
+    public ref const(NodeID) getLocalNodeID () inout
     {
         return mLocalNode.getNodeID();
     }

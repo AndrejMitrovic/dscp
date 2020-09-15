@@ -513,10 +513,16 @@ class NominationProtocol
     }
 
     // stops the nomination protocol
-    void stopNomination();
+    void stopNomination()
+    {
+        mNominationStarted = false;
+    }
 
     // return the current leaders
-    const(set!NodeID) getLeaders() const;
+    const(set!NodeID) getLeaders() const
+    {
+        return mRoundLeaders;
+    }
 
     ref const(Value)
     getLatestCompositeCandidate() const
@@ -529,11 +535,43 @@ class NominationProtocol
         return mLastEnvelope.get();
     }
 
-    void setStateFromEnvelope(ref const(SCPEnvelope) e);
+    void setStateFromEnvelope(ref const(SCPEnvelope) e)
+    {
+        if (mNominationStarted)
+            assert(0, "Cannot set state after nomination is started");
 
-    SCPEnvelope[] getCurrentState() const;
+        recordEnvelope(e);
+        const nom = &e.statement.pledges.nominate_;
+        foreach (a; nom.accepted)
+            mAccepted[a] = [];
+
+        foreach (v; nom.votes)
+            mVotes[v] = [];
+
+        mLastEnvelope = new SCPEnvelope();
+        mLastEnvelope.tupleof = e.tupleof;  // deep-dup
+    }
+
+    SCPEnvelope[] getCurrentState() const
+    {
+        SCPEnvelope[] res;
+        res.reserve(mLatestNominations.length);
+        foreach (node_id, env; mLatestNominations)
+        {
+            // only return messages for self if the slot is fully validated
+            if (node_id != mSlot.getSCP().getLocalNodeID() ||
+                mSlot.isFullyValidated())
+            {
+                res ~= env;
+            }
+        }
+        return res;
+    }
 
     // returns the latest message from a node
     // or null if not found
-    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const;
+    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const
+    {
+        return id in mLatestNominations;
+    }
 }
