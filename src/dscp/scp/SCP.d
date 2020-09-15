@@ -47,7 +47,10 @@ class SCP
     EnvelopeState receiveEnvelope (ref const(SCPEnvelope) envelope)
     {
         uint64 slotIndex = envelope.statement.slotIndex;
-        return getSlot(slotIndex, true).processEnvelope(envelope, false);
+        const bool CreateIfNew = true;
+        const bool NotFromSelf = false;
+        return getSlot(slotIndex, CreateIfNew)
+            .processEnvelope(envelope, NotFromSelf);
     }
 
     // Submit a value to consider for slotIndex
