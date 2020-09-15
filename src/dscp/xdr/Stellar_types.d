@@ -20,8 +20,13 @@ auto get (T)(T* val) { return val; }
 // workaround for std.vector.length
 auto size (T)(T[] val) { return val.length; }
 
+//void insert (E)(set!E the_set, E val)
+//{
+//    the_set[val] = [];
+//}
+
 /// std.set equivalent
-public alias set (V) = void[][V];
+public alias set (V) = void[][const(V)];
 
 enum CryptoKeyType
 {
