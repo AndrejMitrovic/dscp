@@ -16,46 +16,6 @@
 #include <ctime>
 #include <functional>
 
-namespace stellar
-{
-using namespace std::placeholders;
-
-Slot::Slot(uint64 slotIndex, SCP scp)
-    : mSlotIndex(slotIndex)
-    , mSCP(scp)
-    , mBallotProtocol(*this)
-    , mNominationProtocol(*this)
-    , mFullyValidated(scp.getLocalNode()->isValidator())
-{
-}
-
-Value const&
-Slot::getLatestCompositeCandidate()
-{
-    return mNominationProtocol.getLatestCompositeCandidate();
-}
-
-std::vector<SCPEnvelope>
-Slot::getLatestMessagesSend() const
-{
-    std::vector<SCPEnvelope> res;
-    if (mFullyValidated)
-    {
-        SCPEnvelope* e;
-        e = mNominationProtocol.getLastMessageSend();
-        if (e)
-        {
-            res.emplace_back(*e);
-        }
-        e = mBallotProtocol.getLastMessageSend();
-        if (e)
-        {
-            res.emplace_back(*e);
-        }
-    }
-    return res;
-}
-
 void
 Slot::setStateFromEnvelope(SCPEnvelope const& e)
 {
@@ -314,7 +274,7 @@ Slot::getJsonInfo(bool fullKeys)
     auto& qSets = ret["quorum_sets"];
     for (auto const& q : qSetsUsed)
     {
-        qSets[hexAbbrev(q.first)] = getLocalNode()->toJson(*q.second, fullKeys);
+        qSets[hexAbbrev(q.first)] = getLocalNode().toJson(*q.second, fullKeys);
     }
 
     ret["validated"] = mFullyValidated;
@@ -328,7 +288,7 @@ Json::Value
 Slot::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys)
 {
     Json::Value ret = mBallotProtocol.getJsonQuorumInfo(id, summary, fullKeys);
-    if (getLocalNode()->isValidator())
+    if (getLocalNode().isValidator())
     {
         ret["validated"] = isFullyValidated();
     }
@@ -341,7 +301,7 @@ Slot::federatedAccept(StatementPredicate voted, StatementPredicate accepted,
 {
     // Checks if the nodes that claimed to accept the statement form a
     // v-blocking set
-    if (LocalNode::isVBlocking(getLocalNode()->getQuorumSet(), envs, accepted))
+    if (LocalNode::isVBlocking(getLocalNode().getQuorumSet(), envs, accepted))
     {
         return true;
     }
@@ -355,7 +315,7 @@ Slot::federatedAccept(StatementPredicate voted, StatementPredicate accepted,
     };
 
     if (LocalNode::isQuorum(
-            getLocalNode()->getQuorumSet(), envs,
+            getLocalNode().getQuorumSet(), envs,
             std::bind(&Slot::getQuorumSetFromStatement, this, _1),
             ratifyFilter))
     {
@@ -370,7 +330,7 @@ Slot::federatedRatify(StatementPredicate voted,
                       const(SCPEnvelope[NodeID]) envs)
 {
     return LocalNode::isQuorum(
-        getLocalNode()->getQuorumSet(), envs,
+        getLocalNode().getQuorumSet(), envs,
         std::bind(&Slot::getQuorumSetFromStatement, this, _1), voted);
 }
 

@@ -43,7 +43,14 @@ class Slot
     bool mFullyValidated;
 
   public:
-    this(uint64 slotIndex, SCP SCP);
+    this(uint64 slotIndex, SCP scp)
+    {
+        mSlotIndex = slotIndex;
+        mSCP = scp;
+        mBallotProtocol = new BallotProtocol(this);
+        mNominationProtocol = new NominationProtocol(this);
+        mFullyValidated = scp.getLocalNode().isValidator();
+    }
 
     uint64
     getSlotIndex() const
@@ -75,10 +82,26 @@ class Slot
         return mBallotProtocol;
     }
 
-    const(Value) getLatestCompositeCandidate();
+    const(Value) getLatestCompositeCandidate()
+    {
+        return mNominationProtocol.getLatestCompositeCandidate();
+    }
 
     // returns the latest messages the slot emitted
-    SCPEnvelope[] getLatestMessagesSend() const;
+    SCPEnvelope[] getLatestMessagesSend() const
+    {
+        if (!mFullyValidated)
+            return null;
+
+        SCPEnvelope[] res;
+        if (auto e = mNominationProtocol.getLastMessageSend())
+            res ~= *e;
+
+        if (auto e = mBallotProtocol.getLastMessageSend())
+            res ~= *e;
+
+        return res;
+    }
 
     // forces the state to match the one in the envelope
     // this is used when rebuilding the state after a crash for example
