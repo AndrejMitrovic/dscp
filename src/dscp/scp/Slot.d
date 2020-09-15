@@ -22,12 +22,6 @@ import core.stdc.time;
 // todo: this used to be a shared_ptr to a struct
 class Slot
 {
-    const uint64 mSlotIndex; // the index this slot is tracking
-    SCP mSCP;
-
-    BallotProtocol mBallotProtocol;
-    NominationProtocol mNominationProtocol;
-
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
     struct HistoricalStatement
@@ -35,15 +29,16 @@ class Slot
         time_t mWhen;
         SCPStatement mStatement;
         bool mValidated;
-    };
+    }
 
+    const uint64 mSlotIndex;  // the index this slot is tracking
+    SCP mSCP;
+    BallotProtocol mBallotProtocol;
+    NominationProtocol mNominationProtocol;
     HistoricalStatement[] mStatementsHistory;
+    bool mFullyValidated;  // true if the Slot was fully validated
 
-    // true if the Slot was fully validated
-    bool mFullyValidated;
-
-  public:
-    this(uint64 slotIndex, SCP scp)
+    public this (uint64 slotIndex, SCP scp)
     {
         mSlotIndex = slotIndex;
         mSCP = scp;
@@ -52,43 +47,38 @@ class Slot
         mFullyValidated = scp.getLocalNode().isValidator();
     }
 
-    uint64
-    getSlotIndex() const
+    public uint64 getSlotIndex () const
     {
         return mSlotIndex;
     }
 
-    SCP
-    getSCP()
+    public SCP getSCP ()
     {
         return mSCP;
     }
 
-    SCPDriver
-    getSCPDriver()
+    public SCPDriver getSCPDriver ()
     {
         return mSCP.getDriver();
     }
 
-    const(SCPDriver)
-    getSCPDriver() const
+    public const(SCPDriver) getSCPDriver () const
     {
         return mSCP.getDriver();
     }
 
-    BallotProtocol
-    getBallotProtocol()
+    public BallotProtocol getBallotProtocol ()
     {
         return mBallotProtocol;
     }
 
-    const(Value) getLatestCompositeCandidate()
+    public const(Value) getLatestCompositeCandidate ()
     {
         return mNominationProtocol.getLatestCompositeCandidate();
     }
 
     // returns the latest messages the slot emitted
-    SCPEnvelope[] getLatestMessagesSend() const
+    public SCPEnvelope[] getLatestMessagesSend () const
     {
         if (!mFullyValidated)
             return null;
@@ -105,19 +95,15 @@ class Slot
 
     // forces the state to match the one in the envelope
     // this is used when rebuilding the state after a crash for example
-    void setStateFromEnvelope(ref const(SCPEnvelope) e)
+    public void setStateFromEnvelope (ref const(SCPEnvelope) e)
     {
         if (e.statement.nodeID == getSCP().getLocalNodeID() &&
             e.statement.slotIndex == mSlotIndex)
         {
             if (e.statement.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
-            {
                 mNominationProtocol.setStateFromEnvelope(e);
-            }
             else
-            {
                 mBallotProtocol.setStateFromEnvelope(e);
-            }
         }
         else
         {
@@ -129,7 +115,7 @@ class Slot
     }
 
     // returns the latest messages known for this slot
-    SCPEnvelope[] getCurrentState() const
+    public SCPEnvelope[] getCurrentState () const
     {
         SCPEnvelope[] res;
         res ~= mNominationProtocol.getCurrentState();
@@ -140,7 +126,7 @@ class Slot
     // returns the latest message from a node
     // prefering ballots over nominations,
     // or null if not found
-    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const
+    public const(SCPEnvelope)* getLatestMessage (ref const(NodeID) id) const
     {
         if (auto m = mBallotProtocol.getLatestMessage(id))
             return m;
@@ -149,13 +135,13 @@ class Slot
     }
 
     // returns messages that helped this slot externalize
-    SCPEnvelope[] getExternalizingState() const
+    public SCPEnvelope[] getExternalizingState () const
     {
         return mBallotProtocol.getExternalizingState();
     }
 
     // records the statement in the historical record for this slot
-    void recordStatement(ref const(SCPStatement) st)
+    public void recordStatement (ref const(SCPStatement) st)
     {
         mStatementsHistory ~=
             HistoricalStatement(time(null), st, mFullyValidated);
@@ -170,7 +156,8 @@ class Slot
     // the slot accordingly.
     // self: set to true when node wants to record its own messages (potentially
     // triggering more transitions)
-    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope, bool self)
+    public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope,
+        bool self)
     {
         assert(envelope.statement.slotIndex == mSlotIndex);
 
@@ -209,7 +196,7 @@ class Slot
         return res;
     }
 
-    bool abandonBallot()
+    public bool abandonBallot ()
     {
         return mBallotProtocol.abandonBallot(0);
     }
@@ -219,43 +206,42 @@ class Slot
     // otherwise, no-ops
     // force: when true, always bumps the value, otherwise only bumps
     // the state if no value was prepared
-    bool bumpState(const(Value) value, bool force)
+    public bool bumpState (const(Value) value, bool force)
     {
         return mBallotProtocol.bumpState(value, force);
     }
 
     // attempts to nominate a value for consensus
-    bool nominate(const(Value) value, const(Value) previousValue,
-                  bool timedout)
+    public bool nominate (const(Value) value, const(Value) previousValue,
+        bool timedout)
     {
         return mNominationProtocol.nominate(value, previousValue, timedout);
     }
 
-    void stopNomination()
+    public void stopNomination ()
     {
         mNominationProtocol.stopNomination();
     }
 
     // returns the current nomination leaders
-    const(set!NodeID) getNominationLeaders() const
+    public const(set!NodeID) getNominationLeaders() const
     {
         return mNominationProtocol.getLeaders();
     }
 
-    bool isFullyValidated() const
+    public bool isFullyValidated () const
     {
         return mFullyValidated;
     }
 
-    void setFullyValidated(bool fullyValidated)
+    public void setFullyValidated (bool fullyValidated)
     {
         mFullyValidated = fullyValidated;
     }
 
-    // ** status methods
+    /* status methods */
 
-    size_t
-    getStatementCount() const
+    public size_t getStatementCount () const
     {
         return mStatementsHistory.size();
     }
@@ -264,31 +250,30 @@ class Slot
     // with the statement.
     // note: the companion hash for an EXTERNALIZE statement does
     // not match the hash of the QSet, but the hash of commitQuorumSetHash
-    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st)
+    public static Hash getCompanionQuorumSetHashFromStatement (
+        ref const(SCPStatement) st)
     {
-        Hash h;
         switch (st.pledges.type)
         {
-        case SCPStatementType.SCP_ST_PREPARE:
-            h = st.pledges.prepare_.quorumSetHash;
-            break;
-        case SCPStatementType.SCP_ST_CONFIRM:
-            h = st.pledges.confirm_.quorumSetHash;
-            break;
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-            h = st.pledges.externalize_.commitQuorumSetHash;
-            break;
-        case SCPStatementType.SCP_ST_NOMINATE:
-            h = st.pledges.nominate_.quorumSetHash;
-            break;
-        default:
-            assert(0);
+            case SCPStatementType.SCP_ST_PREPARE:
+                return st.pledges.prepare_.quorumSetHash;
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+                return st.pledges.confirm_.quorumSetHash;
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+                return st.pledges.externalize_.commitQuorumSetHash;
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+                return st.pledges.nominate_.quorumSetHash;
+
+            default:
+                assert(0);
         }
-        return h;
     }
 
     // returns the values associated with the statement
-    static Value[] getStatementValues(ref const(SCPStatement) st)
+    public static Value[] getStatementValues (ref const(SCPStatement) st)
     {
         if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
             return NominationProtocol.getStatementValues(st);
@@ -298,7 +283,8 @@ class Slot
 
     // returns the QuorumSet that should be used for a node given the
     // statement (singleton for externalize)
-    SCPQuorumSetPtr getQuorumSetFromStatement(ref const(SCPStatement) st)
+    public SCPQuorumSetPtr getQuorumSetFromStatement (
+        ref const(SCPStatement) st)
     {
         SCPStatementType t = st.pledges.type;
         if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
@@ -318,7 +304,7 @@ class Slot
     }
 
     // wraps a statement in an envelope (sign it, etc)
-    SCPEnvelope createEnvelope(ref const(SCPStatement) statement)
+    public SCPEnvelope createEnvelope (ref const(SCPStatement) statement)
     {
         SCPEnvelope envelope;
 
@@ -332,12 +318,12 @@ class Slot
         return envelope;
     }
 
-    // ** federated agreement helper functions
+    /* federated agreement helper functions */
 
     // returns true if the statement defined by voted and accepted
     // should be accepted
-    bool federatedAccept(StatementPredicate voted, StatementPredicate accepted,
-                         const(SCPEnvelope[NodeID]) envs)
+    public bool federatedAccept (StatementPredicate voted,
+        StatementPredicate accepted, const(SCPEnvelope[NodeID]) envs)
     {
         // Checks if the nodes that claimed to accept the statement form a
         // v-blocking set
@@ -352,40 +338,34 @@ class Slot
             return res;
         };
 
-        if (LocalNode.isQuorum(
+        return LocalNode.isQuorum(
             getLocalNode().getQuorumSet(), envs,
             &this.getQuorumSetFromStatement,
-            ratifyFilter))
-        {
-            return true;
-        }
-
-        return false;
+            ratifyFilter);
     }
 
     // returns true if the statement defined by voted
     // is ratified
-    bool federatedRatify(StatementPredicate voted,
-                         const(SCPEnvelope[NodeID]) envs)
+    public bool federatedRatify (StatementPredicate voted,
+        const(SCPEnvelope[NodeID]) envs)
     {
         return LocalNode.isQuorum(
             getLocalNode().getQuorumSet(), envs,
             &this.getQuorumSetFromStatement, voted);
     }
 
-    LocalNode getLocalNode()
+    public LocalNode getLocalNode ()
     {
         return mSCP.getLocalNode();
     }
 
-    enum timerIDs
+    public enum timerIDs
     {
         NOMINATION_TIMER = 0,
         BALLOT_PROTOCOL_TIMER = 1
-    };
+    }
 
-  protected:
-    SCPEnvelope[] getEntireCurrentState()
+    protected SCPEnvelope[] getEntireCurrentState ()
     {
         bool old = mFullyValidated;
         // fake fully validated to force returning all envelopes
