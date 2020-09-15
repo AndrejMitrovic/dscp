@@ -13,6 +13,7 @@ import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
 
 import std.algorithm;
+import std.range;
 
 /**
  * This is one Node in the stellar network
@@ -202,13 +203,87 @@ class LocalNode
     // excluded, if set will be skipped altogether
     static NodeID[]
     findClosestVBlocking(ref const(SCPQuorumSet) qset,
-                         const(set!NodeID) nodes, const(NodeID)* excluded);
+                         const(set!NodeID) nodes, const(NodeID)* excluded)
+    {
+        size_t leftTillBlock =
+            ((1 + qset.validators.length + qset.innerSets.length) - qset.threshold);
+
+        NodeID[] res;
+
+        // first, compute how many top level items need to be blocked
+        foreach (validator; qset.validators)
+        {
+            if (!excluded || !(validator == *excluded))
+            {
+                // save this for later
+                if (validator in nodes)
+                {
+                    res ~= validator;
+                }
+                else
+                {
+                    leftTillBlock--;
+                    if (leftTillBlock == 0)
+                    {
+                        // already blocked
+                        return null;
+                    }
+                }
+            }
+        }
+
+        NodeID[][] resInternals;
+        foreach (inner; qset.innerSets)
+        {
+            auto v = findClosestVBlocking(inner, nodes, excluded);
+            if (v.length == 0)
+            {
+                leftTillBlock--;
+                if (leftTillBlock == 0)
+                {
+                    // already blocked
+                    return null;
+                }
+            }
+            else
+            {
+                resInternals ~= v;
+                sort!((a, b) => a.length < b.length)(resInternals);
+            }
+        }
+
+        // use the top level validators to get closer
+        if (res.length > leftTillBlock)
+            res.length = leftTillBlock;
+        leftTillBlock -= res.length;
+
+        // use subsets to get closer, using the smallest ones first
+        while (leftTillBlock != 0 && !resInternals.empty)
+        {
+            auto vnodes = resInternals.front;
+            res ~= vnodes;
+            leftTillBlock--;
+            resInternals.popFront();
+        }
+
+        return res;
+    }
 
     static NodeID[] findClosestVBlocking(
         ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
         bool delegate (ref const(SCPStatement)) filter,
         //= (ref const s) => true  // todo: can't use context here
-        const(NodeID)* excluded = null);
+        const(NodeID)* excluded = null)
+    {
+        set!NodeID s;
+        foreach (node_id, env; map)
+        {
+            if (filter(env.statement))
+                s[node_id] = [];
+        }
+
+        return findClosestVBlocking(qset, s, excluded);
+    }
 
     string to_string(ref const(SCPQuorumSet) qSet) const;
 
