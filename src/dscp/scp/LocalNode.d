@@ -118,7 +118,14 @@ class LocalNode
 
     // Tests this node against nodeSet for the specified qSethash.
     static bool isQuorumSlice(ref const(SCPQuorumSet) qSet,
-                              const(NodeID)[] nodeSet);
+                              const(NodeID)[] nodeSet)
+    {
+        // CLOG(TRACE, "SCP") << "LocalNode.isQuorumSlice"
+        //                    << " nodeSet.size: " << nodeSet.length;
+
+        return isQuorumSliceInternal(qSet, nodeSet);
+    }
+
     static bool isVBlocking(ref const(SCPQuorumSet) qSet,
                             const(NodeID)[] nodeSet);
 
@@ -207,6 +214,38 @@ class LocalNode
         return false;
     }
 
+    // called recursively
     static bool isVBlockingInternal(ref const(SCPQuorumSet) qset,
-                                    const(NodeID)[] nodeSet);
+                                    const(NodeID)[] nodeSet)
+    {
+        // There is no v-blocking set for {\empty}
+        if (qset.threshold == 0)
+            return false;
+
+        int leftTillBlock =
+            cast(int)((1 + qset.validators.length + qset.innerSets.length) -
+                       qset.threshold);
+
+        foreach (validator; qset.validators)
+        {
+            if (nodeSet.canFind(validator))
+            {
+                leftTillBlock--;
+                if (leftTillBlock <= 0)
+                    return true;
+            }
+        }
+
+        foreach (inner; qset.innerSets)
+        {
+            if (isVBlockingInternal(inner, nodeSet))
+            {
+                leftTillBlock--;
+                if (leftTillBlock <= 0)
+                    return true;
+            }
+        }
+
+        return false;
+    }
 }
