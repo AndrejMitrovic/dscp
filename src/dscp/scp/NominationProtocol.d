@@ -112,5 +112,5 @@ class NominationProtocol
 
     // returns the latest message from a node
     // or null if not found
-    ref const(SCPEnvelope) getLatestMessage(ref const(NodeID) id) const;
+    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const;
 }

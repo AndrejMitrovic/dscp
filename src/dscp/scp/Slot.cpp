@@ -2,16 +2,6 @@
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-SCPEnvelope const*
-Slot.getLatestMessage(ref const(NodeID) id) const
-{
-    auto m = mBallotProtocol.getLatestMessage(id);
-    if (m is null)
-    {
-        m = mNominationProtocol.getLatestMessage(id);
-    }
-    return m;
-}
 
 SCPEnvelope[]
 Slot.getExternalizingState() const

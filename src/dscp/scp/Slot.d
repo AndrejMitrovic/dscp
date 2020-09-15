@@ -138,8 +138,15 @@ class Slot
     }
 
     // returns the latest message from a node
+    // prefering ballots over nominations,
     // or null if not found
-    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const;
+    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const
+    {
+        if (auto m = mBallotProtocol.getLatestMessage(id))
+            return m;
+
+        return mNominationProtocol.getLatestMessage(id);
+    }
 
     // returns messages that helped this slot externalize
     SCPEnvelope[] getExternalizingState() const;
