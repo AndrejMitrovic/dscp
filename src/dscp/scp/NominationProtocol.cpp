@@ -105,7 +105,7 @@ NominationProtocol.isNewerStatement(SCPNomination const& oldst,
 bool
 NominationProtocol.isSane(ref const(SCPStatement) st)
 {
-    auto const& nom = st.pledges.nominate_;
+    const nom = &st.pledges.nominate_;
     bool res = (nom.votes.length + nom.accepted.length) != 0;
 
     res = res && (std.adjacent_find(
@@ -127,7 +127,7 @@ NominationProtocol.isSane(ref const(SCPStatement) st)
 void
 NominationProtocol.recordEnvelope(SCPEnvelope const& env)
 {
-    auto const& st = env.statement;
+    const st = &env.statement;
     auto oldp = mLatestNominations.find(st.nodeID);
     if (oldp == mLatestNominations.end())
     {
@@ -150,11 +150,11 @@ NominationProtocol.emitNomination()
 
     nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
 
-    for (auto const& v : mVotes)
-        nom.votes ~= v;
+    for (const v : mVotes)
+        nom.votes ~= &v;
 
-    for (auto const& a : mAccepted)
-        nom.accepted ~= a;
+    for (const a : mAccepted)
+        nom.accepted ~= &a;
 
     SCPEnvelope envelope = mSlot.createEnvelope(st);
 
@@ -182,7 +182,7 @@ NominationProtocol.emitNomination()
 bool
 NominationProtocol.acceptPredicate(Value const& v, ref const(SCPStatement) st)
 {
-    auto const& nom = st.pledges.nominate_;
+    const nom = &st.pledges.nominate_;
     bool res;
     res = (std.find(nom.accepted.begin(), nom.accepted.end(), v) !=
            nom.accepted.end());
@@ -193,7 +193,7 @@ void
 NominationProtocol.applyAll(SCPNomination const& nom,
                              std.function<void(Value const&)> processor)
 {
-    for (auto const& v : nom.votes)
+    for (const v : nom.votes)
     {
         processor(v);
     }
@@ -206,7 +206,7 @@ NominationProtocol.applyAll(SCPNomination const& nom,
 void
 NominationProtocol.updateRoundLeaders()
 {
-    SCPQuorumSet myQSet = mSlot.getLocalNode().getQuorumSet();
+    SCPQuorumSet myQSet = &mSlot.getLocalNode().getQuorumSet();
 
     // initialize priority with value derived from self
     set!NodeID newRoundLeaders;
@@ -326,8 +326,8 @@ NominationProtocol.getNewValueFromNomination(SCPNomination const& nom)
 SCP.EnvelopeState
 NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
 {
-    auto const& st = envelope.statement;
-    auto const& nom = st.pledges.nominate_;
+    const st = &envelope.statement;
+    const nom = &st.pledges.nominate_;
 
     SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
 
@@ -345,15 +345,15 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                 bool newCandidates = false;
 
                 // attempts to promote some of the votes to accepted
-                for (auto const& v : nom.votes)
+                for (const v : nom.votes)
                 {
-                    if (mAccepted.find(v) != mAccepted.end())
+                    if (mAccepted.find(v) != &mAccepted.end())
                     { // v is already accepted
                         continue;
                     }
                     if (mSlot.federatedAccept(
                             [&v](ref const(SCPStatement) st) . bool {
-                                auto const& nom = st.pledges.nominate_;
+                                const nom = &st.pledges.nominate_;
                                 bool res;
                                 res = (std.find(nom.votes.begin(),
                                                  nom.votes.end(),
@@ -388,9 +388,9 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                     }
                 }
                 // attempts to promote accepted values to candidates
-                for (auto const& a : mAccepted)
+                for (const a : mAccepted)
                 {
-                    if (mCandidates.find(a) != mCandidates.end())
+                    if (mCandidates.find(a) != &mCandidates.end())
                     {
                         continue;
                     }
@@ -492,9 +492,9 @@ NominationProtocol.nominate(Value const& value, Value const& previousValue,
         nominatingValue = value;
     }
     // add a few more values from other leaders
-    for (auto const& leader : mRoundLeaders)
+    for (const leader : mRoundLeaders)
     {
-        auto it = mLatestNominations.find(leader);
+        auto it = &mLatestNominations.find(leader);
         if (it != mLatestNominations.end())
         {
             nominatingValue = getNewValueFromNomination(
@@ -554,23 +554,23 @@ NominationProtocol.getJsonInfo()
     ret["started"] = mNominationStarted;
 
     int counter = 0;
-    for (auto const& v : mVotes)
+    for (const v : mVotes)
     {
-        ret["X"][counter] = mSlot.getSCP().getValueString(v);
+        ret["X"][counter] = &mSlot.getSCP().getValueString(v);
         counter++;
     }
 
     counter = 0;
-    for (auto const& v : mAccepted)
+    for (const v : mAccepted)
     {
-        ret["Y"][counter] = mSlot.getSCP().getValueString(v);
+        ret["Y"][counter] = &mSlot.getSCP().getValueString(v);
         counter++;
     }
 
     counter = 0;
-    for (auto const& v : mCandidates)
+    for (const v : mCandidates)
     {
-        ret["Z"][counter] = mSlot.getSCP().getValueString(v);
+        ret["Z"][counter] = &mSlot.getSCP().getValueString(v);
         counter++;
     }
 
@@ -586,8 +586,8 @@ NominationProtocol.setStateFromEnvelope(SCPEnvelope const& e)
             "Cannot set state after nomination is started");
     }
     recordEnvelope(e);
-    auto const& nom = e.statement.pledges.nominate_;
-    for (auto const& a : nom.accepted)
+    const nom = &e.statement.pledges.nominate_;
+    for (const a : nom.accepted)
     {
         mAccepted.emplace(a);
     }
@@ -596,7 +596,7 @@ NominationProtocol.setStateFromEnvelope(SCPEnvelope const& e)
         mVotes.emplace(v);
     }
 
-    mLastEnvelope = std.make_unique<SCPEnvelope>(e);
+    mLastEnvelope = &std.make_unique<SCPEnvelope>(e);
 }
 
 SCPEnvelope[]

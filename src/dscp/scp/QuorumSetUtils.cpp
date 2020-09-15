@@ -98,9 +98,9 @@ QuorumSetSanityChecker.checkSanity(ref const(SCPQuorumSet) qSet, int depth,
         return false;
     }
 
-    for (auto const& n : v)
+    for (const n : v)
     {
-        auto r = mKnownNodes.insert(n);
+        auto r = &mKnownNodes.insert(n);
         if (!r.second)
         {
             *reason = "A duplicate node was configured within another quorum";
@@ -234,8 +234,8 @@ qSetCompareInt(ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r)
     }
 
     // then compare by inner sets
-    auto const& li = l.innerSets;
-    auto const& ri = r.innerSets;
+    const li = &l.innerSets;
+    const ri = &r.innerSets;
     res = intLexicographicalCompare(li.begin(), li.end(), ri.begin(), ri.end(),
                                     qSetCompareInt);
     if (res != 0)

@@ -248,7 +248,80 @@ class SCP
         return envToStr(envelope.statement, fullKeys);
     }
 
-    string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const;
+    string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const
+    {
+        ref const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
+        string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
+
+        string res = format("{ENV@%s | i: %s", nodeI, st.slotIndex);
+        switch (st.pledges.type)
+        {
+            case SCPStatementType.SCP_ST_PREPARE:
+            {
+                const p = &st.pledges.prepare_;
+                res ~= " | PREPARE"
+                    ~ " | D: " ~ hexAbbrev(qSetHash)
+                    ~ " | b: " ~ ballotToStr(p.ballot)
+                    ~ " | p: " ~ ballotToStr(p.prepared)
+                    ~ " | p': " ~ ballotToStr(p.preparedPrime) ~ " | c.n: " ~ p.nC
+                    ~ " | h.n: " ~ p.nH;
+            }
+            break;
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+            {
+                const c = &st.pledges.confirm_;
+                res ~= " | CONFIRM"
+                    ~ " | D: " ~ hexAbbrev(qSetHash)
+                    ~ " | b: " ~ ballotToStr(c.ballot) ~ " | p.n: " ~ c.nPrepared
+                    ~ " | c.n: " ~ c.nCommit ~ " | h.n: " ~ c.nH;
+            }
+            break;
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+            {
+                const ex = &st.pledges.externalize_;
+                res ~= " | EXTERNALIZE"
+                    ~ " | c: " ~ ballotToStr(ex.commit) ~ " | h.n: " ~ ex.nH
+                    ~ " | (lastD): " ~ hexAbbrev(qSetHash);
+            }
+            break;
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+            {
+                const nom = &st.pledges.nominate_;
+                res ~= " | NOMINATE"
+                    ~ " | D: " ~ hexAbbrev(qSetHash) ~ " | X: {";
+                bool first = true;
+                for (const v : nom.votes)
+                {
+                    if (!first)
+                    {
+                        res ~ " ,";
+                    }
+                    res ~ "'" ~ getValueString(v) ~ "'";
+                    first = &false;
+                }
+                res ~= "}"
+                    ~ " | Y: {";
+                first = true;
+                for (const a : nom.accepted)
+                {
+                    if (!first)
+                        res ~= &" ,";
+                    res ~= "'" ~ getValueString(a) ~ "'";
+                    first = false;
+                }
+                res ~ "}";
+            }
+
+            default:
+                assert(0);
+        }
+
+        res ~= " }";
+        return res;
+    }
 
   protected:
     LocalNode mLocalNode;
