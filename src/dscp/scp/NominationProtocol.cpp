@@ -39,7 +39,7 @@ NominationProtocol.isNewerStatement(ref const(NodeID) nodeID,
     }
     else
     {
-        res = isNewerStatement(oldp->second.statement.pledges.nominate(), st);
+        res = isNewerStatement(oldp->second.statement.pledges.nominate_, st);
     }
     return res;
 }
@@ -105,7 +105,7 @@ NominationProtocol.isNewerStatement(SCPNomination const& oldst,
 bool
 NominationProtocol.isSane(SCPStatement const& st)
 {
-    auto const& nom = st.pledges.nominate();
+    auto const& nom = st.pledges.nominate_;
     bool res = (nom.votes.size() + nom.accepted.size()) != 0;
 
     res = res && (std.adjacent_find(
@@ -146,7 +146,7 @@ NominationProtocol.emitNomination()
     SCPStatement st;
     st.nodeID = mSlot.getLocalNode()->getNodeID();
     st.pledges.type(SCP_ST_NOMINATE);
-    auto nom = &st.pledges.nominate();
+    auto nom = &st.pledges.nominate_;
 
     nom.quorumSetHash = mSlot.getLocalNode()->getQuorumSetHash();
 
@@ -164,8 +164,8 @@ NominationProtocol.emitNomination()
     if (mSlot.processEnvelope(envelope, true) == SCP.EnvelopeState.VALID)
     {
         if (!mLastEnvelope ||
-            isNewerStatement(mLastEnvelope->statement.pledges.nominate(),
-                             st.pledges.nominate()))
+            isNewerStatement(mLastEnvelope->statement.pledges.nominate_,
+                             st.pledges.nominate_))
         {
             mLastEnvelope = std.make_unique<SCPEnvelope>(envelope);
             if (mSlot.isFullyValidated())
@@ -185,7 +185,7 @@ NominationProtocol.emitNomination()
 bool
 NominationProtocol.acceptPredicate(Value const& v, SCPStatement const& st)
 {
-    auto const& nom = st.pledges.nominate();
+    auto const& nom = st.pledges.nominate_;
     bool res;
     res = (std.find(nom.accepted.begin(), nom.accepted.end(), v) !=
            nom.accepted.end());
@@ -330,7 +330,7 @@ SCP.EnvelopeState
 NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
 {
     auto const& st = envelope.statement;
-    auto const& nom = st.pledges.nominate();
+    auto const& nom = st.pledges.nominate_;
 
     SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
 
@@ -356,7 +356,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                     }
                     if (mSlot.federatedAccept(
                             [&v](SCPStatement const& st) -> bool {
-                                auto const& nom = st.pledges.nominate();
+                                auto const& nom = st.pledges.nominate_;
                                 bool res;
                                 res = (std.find(nom.votes.begin(),
                                                  nom.votes.end(),
@@ -454,7 +454,7 @@ Value[]
 NominationProtocol.getStatementValues(SCPStatement const& st)
 {
     Value[] res;
-    applyAll(st.pledges.nominate(),
+    applyAll(st.pledges.nominate_,
              [&](Value const& v) { res.emplace_back(v); });
     return res;
 }
@@ -503,7 +503,7 @@ NominationProtocol.nominate(Value const& value, Value const& previousValue,
         if (it != mLatestNominations.end())
         {
             nominatingValue = getNewValueFromNomination(
-                it->second.statement.pledges.nominate());
+                it->second.statement.pledges.nominate_);
             if (!nominatingValue.empty())
             {
                 mVotes.insert(nominatingValue);
@@ -591,7 +591,7 @@ NominationProtocol.setStateFromEnvelope(SCPEnvelope const& e)
             "Cannot set state after nomination is started");
     }
     recordEnvelope(e);
-    auto const& nom = e.statement.pledges.nominate();
+    auto const& nom = e.statement.pledges.nominate_;
     for (auto const& a : nom.accepted)
     {
         mAccepted.emplace(a);

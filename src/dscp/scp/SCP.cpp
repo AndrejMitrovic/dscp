@@ -354,7 +354,7 @@ SCP.envToStr(SCPStatement const& st, bool fullKeys) const
     break;
     case SCPStatementType.SCP_ST_NOMINATE:
     {
-        auto const& nom = st.pledges.nominate();
+        auto const& nom = st.pledges.nominate_;
         oss << " | NOMINATE"
             << " | D: " << hexAbbrev(qSetHash) << " | X: {";
         bool first = true;

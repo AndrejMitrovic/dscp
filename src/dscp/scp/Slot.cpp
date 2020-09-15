@@ -14,7 +14,7 @@ Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
         h = st.pledges.externalize_.commitQuorumSetHash;
         break;
     case SCPStatementType.SCP_ST_NOMINATE:
-        h = st.pledges.nominate().quorumSetHash;
+        h = st.pledges.nominate_.quorumSetHash;
         break;
     default:
         dbgAbort();
@@ -60,7 +60,7 @@ Slot.getQuorumSetFromStatement(SCPStatement const& st)
         }
         else if (t == SCPStatementType.SCP_ST_NOMINATE)
         {
-            h = st.pledges.nominate().quorumSetHash;
+            h = st.pledges.nominate_.quorumSetHash;
         }
         else
         {
