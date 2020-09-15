@@ -270,7 +270,7 @@ class Slot
         switch (st.pledges.type)
         {
         case SCPStatementType.SCP_ST_PREPARE:
-            h = st.pledges.prepare().quorumSetHash;
+            h = st.pledges.prepare_.quorumSetHash;
             break;
         case SCPStatementType.SCP_ST_CONFIRM:
             h = st.pledges.confirm().quorumSetHash;

@@ -95,8 +95,8 @@ BallotProtocol.isNewerStatement(SCPStatement const& oldst,
         {
             // Lexicographical order between PREPARE statements:
             // (b, p, p', h)
-            auto const& oldPrep = oldst.pledges.prepare();
-            auto const& prep = st.pledges.prepare();
+            auto const& oldPrep = oldst.pledges.prepare_;
+            auto const& prep = st.pledges.prepare_;
 
             int compBallot = compareBallots(oldPrep.ballot, prep.ballot);
             if (compBallot < 0)
@@ -265,7 +265,7 @@ BallotProtocol.isStatementSane(SCPStatement const& st, bool self)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& p = st.pledges.prepare();
+        auto const& p = st.pledges.prepare_;
         // self is allowed to have b = 0 (as long as it never gets emitted)
         bool isOK = self || p.ballot.counter > 0;
 
@@ -542,7 +542,7 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto p = &statement.pledges.prepare();
+        auto p = &statement.pledges.prepare_;
         p.quorumSetHash = getLocalNode()->getQuorumSetHash();
         if (mCurrentBallot)
         {
@@ -692,7 +692,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& prep = hint.pledges.prepare();
+        auto const& prep = hint.pledges.prepare_;
         hintBallots.insert(prep.ballot);
         if (prep.prepared)
         {
@@ -739,7 +739,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
             {
             case SCPStatementType.SCP_ST_PREPARE:
             {
-                auto const& prep = st.pledges.prepare();
+                auto const& prep = st.pledges.prepare_;
                 if (areBallotsLessAndCompatible(prep.ballot, topVote))
                 {
                     candidates.insert(prep.ballot);
@@ -852,7 +852,7 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
                 {
                 case SCPStatementType.SCP_ST_PREPARE:
                 {
-                    auto const& p = st.pledges.prepare();
+                    auto const& p = st.pledges.prepare_;
                     res = areBallotsLessAndCompatible(ballot, p.ballot);
                 }
                 break;
@@ -1134,7 +1134,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
         {
         case SCPStatementType.SCP_ST_PREPARE:
         {
-            auto const& p = pl.prepare();
+            auto const& p = pl.prepare_;
             if (areBallotsCompatible(ballot, p.ballot))
             {
                 if (p.nC)
@@ -1189,7 +1189,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& prep = hint.pledges.prepare();
+        auto const& prep = hint.pledges.prepare_;
         if (prep.nC != 0)
         {
             ballot = SCPBallot(prep.nH, prep.ballot.value);
@@ -1233,7 +1233,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
                 {
                 case SCPStatementType.SCP_ST_PREPARE:
                 {
-                    auto const& p = pl.prepare();
+                    auto const& p = pl.prepare_;
                     if (areBallotsCompatible(ballot, p.ballot))
                     {
                         if (p.nC != 0)
@@ -1350,7 +1350,7 @@ statementBallotCounter(SCPStatement const& st)
     switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
-        return st.pledges.prepare().ballot.counter;
+        return st.pledges.prepare_.ballot.counter;
     case SCPStatementType.SCP_ST_CONFIRM:
         return st.pledges.confirm().ballot.counter;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
@@ -1530,7 +1530,7 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& p = st.pledges.prepare();
+        auto const& p = st.pledges.prepare_;
         res =
             (p.prepared && areBallotsLessAndCompatible(ballot, *p.prepared)) ||
             (p.preparedPrime &&
@@ -1565,7 +1565,7 @@ BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
     switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
-        h = st.pledges.prepare().quorumSetHash;
+        h = st.pledges.prepare_.quorumSetHash;
         break;
     case SCPStatementType.SCP_ST_CONFIRM:
         h = st.pledges.confirm().quorumSetHash;
@@ -1586,7 +1586,7 @@ BallotProtocol.getWorkingBallot(SCPStatement const& st)
     switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
-        res = st.pledges.prepare().ballot;
+        res = st.pledges.prepare_.ballot;
         break;
     case SCPStatementType.SCP_ST_CONFIRM:
     {
@@ -1738,7 +1738,7 @@ BallotProtocol.setStateFromEnvelope(SCPEnvelope const& e)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& prep = pl.prepare();
+        auto const& prep = pl.prepare_;
         auto const& b = prep.ballot;
         bumpToBallot(b, true);
         if (prep.prepared)
@@ -1911,7 +1911,7 @@ BallotProtocol.validateValues(SCPStatement const& st)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& prep = st.pledges.prepare();
+        auto const& prep = st.pledges.prepare_;
         auto const& b = prep.ballot;
         if (b.counter != 0)
         {
@@ -2009,7 +2009,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
         {
         case SCPStatementType.SCP_ST_PREPARE:
             phase = "PREPARE";
-            b = st.pledges.prepare().ballot;
+            b = st.pledges.prepare_.ballot;
             break;
         case SCPStatementType.SCP_ST_CONFIRM:
             phase = "CONFIRM";
@@ -2163,7 +2163,7 @@ BallotProtocol.checkHeardFromQuorum()
                     if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
                     {
                         res = mCurrentBallot->counter <=
-                              st.pledges.prepare().ballot.counter;
+                              st.pledges.prepare_.ballot.counter;
                     }
                     else
                     {

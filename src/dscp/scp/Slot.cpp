@@ -5,7 +5,7 @@ Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
     switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
-        h = st.pledges.prepare().quorumSetHash;
+        h = st.pledges.prepare_.quorumSetHash;
         break;
     case SCPStatementType.SCP_ST_CONFIRM:
         h = st.pledges.confirm().quorumSetHash;
@@ -52,7 +52,7 @@ Slot.getQuorumSetFromStatement(SCPStatement const& st)
         Hash h;
         if (t == SCPStatementType.SCP_ST_PREPARE)
         {
-            h = st.pledges.prepare().quorumSetHash;
+            h = st.pledges.prepare_.quorumSetHash;
         }
         else if (t == SCPStatementType.SCP_ST_CONFIRM)
         {

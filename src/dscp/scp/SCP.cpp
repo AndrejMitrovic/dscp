@@ -326,7 +326,7 @@ SCP.envToStr(SCPStatement const& st, bool fullKeys) const
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto const& p = st.pledges.prepare();
+        auto const& p = st.pledges.prepare_;
         oss << " | PREPARE"
             << " | D: " << hexAbbrev(qSetHash)
             << " | b: " << ballotToStr(p.ballot)
