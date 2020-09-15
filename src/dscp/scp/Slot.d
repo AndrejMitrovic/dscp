@@ -149,10 +149,22 @@ class Slot
     }
 
     // returns messages that helped this slot externalize
-    SCPEnvelope[] getExternalizingState() const;
+    SCPEnvelope[] getExternalizingState() const
+    {
+        return mBallotProtocol.getExternalizingState();
+    }
 
     // records the statement in the historical record for this slot
-    void recordStatement(ref const(SCPStatement) st);
+    void recordStatement(ref const(SCPStatement) st)
+    {
+        mStatementsHistory ~=
+            HistoricalStatement(time(null), st, mFullyValidated);
+
+        //CLOG(DEBUG, "SCP") << "new statement: "
+        //                   << " i: " << getSlotIndex()
+        //                   << " st: " << mSCP.envToStr(st, false) << " validated: "
+        //                   << (mFullyValidated ? "true" : "false");
+    }
 
     // Process a newly received envelope for this slot and update the state of
     // the slot accordingly.
