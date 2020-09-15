@@ -35,7 +35,7 @@ class SCP
         return mDriver;
     }
 
-    public const(SCPDriver) getDriver() const
+    public const(SCPDriver) getDriver () const
     {
         return mDriver;
     }
@@ -78,7 +78,7 @@ class SCP
             s.stopNomination();
     }
 
-    // Local QuorumSet interface (can be dynamically updated)
+    // Update the quorum set of this node
     public void updateLocalQuorumSet (ref const(SCPQuorumSet) qSet)
     {
         mLocalNode.updateQuorumSet(qSet);
@@ -140,10 +140,10 @@ class SCP
 
     public size_t getCumulativeStatemtCount () const
     {
-        size_t c;
+        size_t count;
         foreach (slot; mKnownSlots.byValue())  // order is not important
-            c += slot.getStatementCount();
-        return c;
+            count += slot.getStatementCount();
+        return count;
     }
 
     // returns the latest messages sent for the given slot
@@ -224,8 +224,8 @@ class SCP
         return null;
     }
 
-    // returns messages that contributed to externalizing the slot
-    // (or empty if the slot didn't externalize)
+    // returns messages that contributed to externalizing the given slot index
+    // (or null if the slot didn't externalize)
     public SCPEnvelope[] getExternalizingState (uint64 slotIndex)
     {
         const bool DontCreateNew = false;
