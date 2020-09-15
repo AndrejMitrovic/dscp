@@ -4,12 +4,14 @@
 
 module dscp.scp.SCP;
 
+import dscp.crypto.Hex;
 import dscp.scp.LocalNode;
 import dscp.scp.SCPDriver;
 import dscp.scp.Slot;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
+import std.conv ;
 import std.format;
 
 // todo: was shared_ptr. could be RefCounted
@@ -250,10 +252,10 @@ class SCP
 
     string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const
     {
-        ref const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
+        const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
         string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
 
-        string res = format("{ENV@%s | i: %s", nodeI, st.slotIndex);
+        string res = format("{ENV@%s | i: %s", nodeId, st.slotIndex);
         switch (st.pledges.type)
         {
             case SCPStatementType.SCP_ST_PREPARE:
@@ -262,9 +264,9 @@ class SCP
                 res ~= " | PREPARE"
                     ~ " | D: " ~ hexAbbrev(qSetHash)
                     ~ " | b: " ~ ballotToStr(p.ballot)
-                    ~ " | p: " ~ ballotToStr(p.prepared)
-                    ~ " | p': " ~ ballotToStr(p.preparedPrime) ~ " | c.n: " ~ p.nC
-                    ~ " | h.n: " ~ p.nH;
+                    ~ " | p: " ~ ballotToStr(*p.prepared)
+                    ~ " | p': " ~ ballotToStr(*p.preparedPrime) ~ " | c.n: " ~ p.nC.to!string
+                    ~ " | h.n: " ~ p.nH.to!string;
             }
             break;
 
@@ -273,8 +275,8 @@ class SCP
                 const c = &st.pledges.confirm_;
                 res ~= " | CONFIRM"
                     ~ " | D: " ~ hexAbbrev(qSetHash)
-                    ~ " | b: " ~ ballotToStr(c.ballot) ~ " | p.n: " ~ c.nPrepared
-                    ~ " | c.n: " ~ c.nCommit ~ " | h.n: " ~ c.nH;
+                    ~ " | b: " ~ ballotToStr(c.ballot) ~ " | p.n: " ~ c.nPrepared.to!string
+                    ~ " | c.n: " ~ c.nCommit.to!string ~ " | h.n: " ~ c.nH.to!string;
             }
             break;
 
@@ -282,7 +284,7 @@ class SCP
             {
                 const ex = &st.pledges.externalize_;
                 res ~= " | EXTERNALIZE"
-                    ~ " | c: " ~ ballotToStr(ex.commit) ~ " | h.n: " ~ ex.nH
+                    ~ " | c: " ~ ballotToStr(ex.commit) ~ " | h.n: " ~ ex.nH.to!string
                     ~ " | (lastD): " ~ hexAbbrev(qSetHash);
             }
             break;
@@ -293,27 +295,26 @@ class SCP
                 res ~= " | NOMINATE"
                     ~ " | D: " ~ hexAbbrev(qSetHash) ~ " | X: {";
                 bool first = true;
-                for (const v : nom.votes)
+                foreach (const v; nom.votes)
                 {
                     if (!first)
-                    {
-                        res ~ " ,";
-                    }
-                    res ~ "'" ~ getValueString(v) ~ "'";
-                    first = &false;
+                        res ~= " ,";
+                    res ~= "'" ~ getValueString(v) ~ "'";
+                    first = false;
                 }
                 res ~= "}"
                     ~ " | Y: {";
                 first = true;
-                for (const a : nom.accepted)
+                foreach (const a; nom.accepted)
                 {
                     if (!first)
-                        res ~= &" ,";
+                        res ~= " ,";
                     res ~= "'" ~ getValueString(a) ~ "'";
                     first = false;
                 }
-                res ~ "}";
+                res ~= "}";
             }
+            break;
 
             default:
                 assert(0);
