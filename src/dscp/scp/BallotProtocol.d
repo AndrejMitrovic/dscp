@@ -574,7 +574,63 @@ class BallotProtocol
     // switch the local node to the given ballot's value
     // with the assumption that the ballot is more recent than the one
     // we have.
-    bool updateCurrentValue(ref const(SCPBallot) ballot);
+    // updates the local state based to the specified ballot
+    // (that could be a prepared ballot) enforcing invariants
+    bool updateCurrentValue(ref const(SCPBallot) ballot)
+    {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        {
+            return false;
+        }
+
+        bool updated = false;
+        if (!mCurrentBallot)
+        {
+            bumpToBallot(ballot, true);
+            updated = true;
+        }
+        else
+        {
+            assert(compareBallots(*mCurrentBallot, ballot) <= 0);
+
+            if (mCommit && !areBallotsCompatible(*mCommit, ballot))
+            {
+                return false;
+            }
+
+            int comp = compareBallots(*mCurrentBallot, ballot);
+            if (comp < 0)
+            {
+                bumpToBallot(ballot, true);
+                updated = true;
+            }
+            else if (comp > 0)
+            {
+                // this code probably changes with the final version
+                // of the conciliator
+
+                // this case may happen if the other nodes are not
+                // following the protocol (and we end up with a smaller value)
+                // not sure what is the best way to deal
+                // with this situation
+                //CLOG(ERROR, "SCP")
+                //    << "BallotProtocol.updateCurrentValue attempt to bump to "
+                //       "a smaller value";
+                // can't just bump to the value as we may already have
+                // statements at counter+1
+                return false;
+            }
+        }
+
+        if (updated)
+        {
+            //CLOG(TRACE, "SCP") << "BallotProtocol.updateCurrentValue updated";
+        }
+
+        checkInvariants();
+
+        return updated;
+    }
 
     // emits a statement reflecting the nodes' current state
     // and attempts to make progress
