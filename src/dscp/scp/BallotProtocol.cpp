@@ -602,10 +602,10 @@ BallotProtocol.emitCurrentStateStatement()
         t = SCPStatementType.SCP_ST_PREPARE;
         break;
     case SCP_PHASE_CONFIRM:
-        t = SCP_ST_CONFIRM;
+        t = SCPStatementType.SCP_ST_CONFIRM;
         break;
     case SCP_PHASE_EXTERNALIZE:
-        t = SCP_ST_EXTERNALIZE;
+        t = SCPStatementType.SCP_ST_EXTERNALIZE;
         break;
     default:
         dbgAbort();
@@ -704,14 +704,14 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
         }
     }
     break;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
     {
         auto const& con = hint.pledges.confirm();
         hintBallots.insert(SCPBallot(con.nPrepared, con.ballot.value));
         hintBallots.insert(SCPBallot(UINT32_MAX, con.ballot.value));
     }
     break;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
         auto const& ext = hint.pledges.externalize();
         hintBallots.insert(SCPBallot(UINT32_MAX, ext.commit.value));
@@ -756,7 +756,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
                 }
             }
             break;
-            case SCP_ST_CONFIRM:
+            case SCPStatementType.SCP_ST_CONFIRM:
             {
                 auto const& con = st.pledges.confirm();
                 if (areBallotsCompatible(topVote, con.ballot))
@@ -769,7 +769,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
                 }
             }
             break;
-            case SCP_ST_EXTERNALIZE:
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
                 auto const& ext = st.pledges.externalize();
                 if (areBallotsCompatible(topVote, ext.commit))
@@ -856,13 +856,13 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
                     res = areBallotsLessAndCompatible(ballot, p.ballot);
                 }
                 break;
-                case SCP_ST_CONFIRM:
+                case SCPStatementType.SCP_ST_CONFIRM:
                 {
                     auto const& c = st.pledges.confirm();
                     res = areBallotsCompatible(ballot, c.ballot);
                 }
                 break;
-                case SCP_ST_EXTERNALIZE:
+                case SCPStatementType.SCP_ST_EXTERNALIZE:
                 {
                     auto const& e = st.pledges.externalize();
                     res = areBallotsCompatible(ballot, e.commit);
@@ -1013,7 +1013,7 @@ BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
     {
     case SCPStatementType.SCP_ST_PREPARE:
         break;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
     {
         auto const& c = pl.confirm();
         if (areBallotsCompatible(ballot, c.ballot))
@@ -1022,7 +1022,7 @@ BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
         }
     }
     break;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
         auto const& e = pl.externalize();
         if (areBallotsCompatible(ballot, e.commit))
@@ -1145,7 +1145,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
             }
         }
         break;
-        case SCP_ST_CONFIRM:
+        case SCPStatementType.SCP_ST_CONFIRM:
         {
             auto const& c = pl.confirm();
             if (areBallotsCompatible(ballot, c.ballot))
@@ -1155,7 +1155,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
             }
         }
         break;
-        case SCP_ST_EXTERNALIZE:
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
         {
             auto const& e = pl.externalize();
             if (areBallotsCompatible(ballot, e.commit))
@@ -1243,7 +1243,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
                     }
                 }
                 break;
-                case SCP_ST_CONFIRM:
+                case SCPStatementType.SCP_ST_CONFIRM:
                 {
                     auto const& c = pl.confirm();
                     if (areBallotsCompatible(ballot, c.ballot))
@@ -1252,7 +1252,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
                     }
                 }
                 break;
-                case SCP_ST_EXTERNALIZE:
+                case SCPStatementType.SCP_ST_EXTERNALIZE:
                 {
                     auto const& e = pl.externalize();
                     if (areBallotsCompatible(ballot, e.commit))
@@ -1351,12 +1351,12 @@ statementBallotCounter(SCPStatement const& st)
     {
     case SCPStatementType.SCP_ST_PREPARE:
         return st.pledges.prepare().ballot.counter;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
         return st.pledges.confirm().ballot.counter;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
         return UINT32_MAX;
     default:
-        // Should never be called with SCP_ST_NOMINATE.
+        // Should never be called with SCPStatementType.SCP_ST_NOMINATE.
         abort();
     }
 }
@@ -1537,14 +1537,14 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
              areBallotsLessAndCompatible(ballot, *p.preparedPrime));
     }
     break;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
     {
         auto const& c = st.pledges.confirm();
         SCPBallot prepared(c.nPrepared, c.ballot.value);
         res = areBallotsLessAndCompatible(ballot, prepared);
     }
     break;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
         auto const& e = st.pledges.externalize();
         res = areBallotsCompatible(ballot, e.commit);
@@ -1567,10 +1567,10 @@ BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
     case SCPStatementType.SCP_ST_PREPARE:
         h = st.pledges.prepare().quorumSetHash;
         break;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
         h = st.pledges.confirm().quorumSetHash;
         break;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
         h = st.pledges.externalize().commitQuorumSetHash;
         break;
     default:
@@ -1588,13 +1588,13 @@ BallotProtocol.getWorkingBallot(SCPStatement const& st)
     case SCPStatementType.SCP_ST_PREPARE:
         res = st.pledges.prepare().ballot;
         break;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
     {
         auto const& con = st.pledges.confirm();
         res = SCPBallot(con.nCommit, con.ballot.value);
     }
     break;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
         res = st.pledges.externalize().commit;
         break;
     default:

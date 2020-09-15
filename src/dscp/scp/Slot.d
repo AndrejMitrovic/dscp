@@ -272,13 +272,13 @@ class Slot
         case SCPStatementType.SCP_ST_PREPARE:
             h = st.pledges.prepare().quorumSetHash;
             break;
-        case SCP_ST_CONFIRM:
+        case SCPStatementType.SCP_ST_CONFIRM:
             h = st.pledges.confirm().quorumSetHash;
             break;
-        case SCP_ST_EXTERNALIZE:
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
             h = st.pledges.externalize().commitQuorumSetHash;
             break;
-        case SCP_ST_NOMINATE:
+        case SCPStatementType.SCP_ST_NOMINATE:
             h = st.pledges.nominate().quorumSetHash;
             break;
         default:

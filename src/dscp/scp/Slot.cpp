@@ -7,13 +7,13 @@ Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
     case SCPStatementType.SCP_ST_PREPARE:
         h = st.pledges.prepare().quorumSetHash;
         break;
-    case SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
         h = st.pledges.confirm().quorumSetHash;
         break;
-    case SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
         h = st.pledges.externalize().commitQuorumSetHash;
         break;
-    case SCP_ST_NOMINATE:
+    case SCPStatementType.SCP_ST_NOMINATE:
         h = st.pledges.nominate().quorumSetHash;
         break;
     default:
@@ -26,7 +26,7 @@ Value[]
 Slot.getStatementValues(SCPStatement const& st)
 {
     Value[] res;
-    if (st.pledges.type == SCP_ST_NOMINATE)
+    if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
     {
         res = NominationProtocol.getStatementValues(st);
     }
@@ -43,7 +43,7 @@ Slot.getQuorumSetFromStatement(SCPStatement const& st)
     SCPQuorumSetPtr res;
     SCPStatementType t = st.pledges.type;
 
-    if (t == SCP_ST_EXTERNALIZE)
+    if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
     {
         res = LocalNode.getSingletonQSet(st.nodeID);
     }
@@ -54,11 +54,11 @@ Slot.getQuorumSetFromStatement(SCPStatement const& st)
         {
             h = st.pledges.prepare().quorumSetHash;
         }
-        else if (t == SCP_ST_CONFIRM)
+        else if (t == SCPStatementType.SCP_ST_CONFIRM)
         {
             h = st.pledges.confirm().quorumSetHash;
         }
-        else if (t == SCP_ST_NOMINATE)
+        else if (t == SCPStatementType.SCP_ST_NOMINATE)
         {
             h = st.pledges.nominate().quorumSetHash;
         }
