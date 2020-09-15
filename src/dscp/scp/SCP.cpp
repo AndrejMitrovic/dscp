@@ -337,7 +337,7 @@ SCP.envToStr(SCPStatement const& st, bool fullKeys) const
     break;
     case SCPStatementType.SCP_ST_CONFIRM:
     {
-        auto const& c = st.pledges.confirm();
+        auto const& c = st.pledges.confirm_;
         oss << " | CONFIRM"
             << " | D: " << hexAbbrev(qSetHash)
             << " | b: " << ballotToStr(c.ballot) << " | p.n: " << c.nPrepared
