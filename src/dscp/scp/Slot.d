@@ -275,7 +275,7 @@ class Slot
 
     // returns the QuorumSet that should be used for a node given the
     // statement (singleton for externalize)
-    public SCPQuorumSetPtr getQuorumSetFromStatement (
+    public SCPQuorumSet getQuorumSetFromStatement (
         ref const(SCPStatement) st)
     {
         SCPStatementType t = st.pledges.type;

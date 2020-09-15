@@ -50,7 +50,7 @@ abstract class SCPDriver
     //
     // `null` is a valid return value which cause the statement to be
     // considered invalid.
-    public abstract SCPQuorumSetPtr getQSet (ref const(Hash) qSetHash);
+    public abstract SCPQuorumSet getQSet (ref const(Hash) qSetHash);
 
     // Users of the SCP library should inherit from SCPDriver and implement the
     // public methods which are called by the SCP implementation to

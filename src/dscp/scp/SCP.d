@@ -79,7 +79,7 @@ class SCP
     }
 
     // Update the quorum set of this node
-    public void updateLocalQuorumSet (ref const(SCPQuorumSet) qSet)
+    public void updateLocalQuorumSet (ref SCPQuorumSet qSet)
     {
         mLocalNode.updateQuorumSet(qSet);
     }
