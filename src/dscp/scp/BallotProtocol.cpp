@@ -1126,7 +1126,7 @@ std.set<uint32>
 BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
 {
     std.set<uint32> res;
-    for (const env : mLatestEnvelopes)
+    for (auto const& env : mLatestEnvelopes)
     {
         auto const& pl = &env.second.statement.pledges;
         switch (pl.type)
@@ -1406,7 +1406,7 @@ BallotProtocol.attemptBump()
 
         // Collect all possible counters we might need to advance to.
         std.set<uint32> allCounters;
-        for (const e : mLatestEnvelopes)
+        for (auto const& e : mLatestEnvelopes)
         {
             uint32_t c = &statementBallotCounter(e.second.statement);
             if (c > localCounter)
@@ -2099,7 +2099,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
     if (!summary)
     {
         auto f_ex = &ret["fail_with"];
-        for (const n : f)
+        for (auto const& n : f)
         {
             f_ex.append(mSlot.getSCPDriver().toStrKey(n, fullKeys));
         }

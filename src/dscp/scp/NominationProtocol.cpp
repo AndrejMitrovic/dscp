@@ -150,11 +150,11 @@ NominationProtocol.emitNomination()
 
     nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
 
-    for (const v : mVotes)
-        nom.votes ~= &v;
+    for (auto const& v : mVotes)
+        nom.votes ~= v;
 
-    for (const a : mAccepted)
-        nom.accepted ~= &a;
+    for (auto const& a : mAccepted)
+        nom.accepted ~= a;
 
     SCPEnvelope envelope = mSlot.createEnvelope(st);
 
@@ -193,7 +193,7 @@ void
 NominationProtocol.applyAll(SCPNomination const& nom,
                              std.function<void(Value const&)> processor)
 {
-    for (const v : nom.votes)
+    for (auto const& v : nom.votes)
     {
         processor(v);
     }
@@ -206,7 +206,7 @@ NominationProtocol.applyAll(SCPNomination const& nom,
 void
 NominationProtocol.updateRoundLeaders()
 {
-    SCPQuorumSet myQSet = &mSlot.getLocalNode().getQuorumSet();
+    SCPQuorumSet myQSet = mSlot.getLocalNode().getQuorumSet();
 
     // initialize priority with value derived from self
     set!NodeID newRoundLeaders;
@@ -345,9 +345,9 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                 bool newCandidates = false;
 
                 // attempts to promote some of the votes to accepted
-                for (const v : nom.votes)
+                for (auto const& v : nom.votes)
                 {
-                    if (mAccepted.find(v) != &mAccepted.end())
+                    if (mAccepted.find(v) != mAccepted.end())
                     { // v is already accepted
                         continue;
                     }
@@ -388,9 +388,9 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                     }
                 }
                 // attempts to promote accepted values to candidates
-                for (const a : mAccepted)
+                for (auto const& a : mAccepted)
                 {
-                    if (mCandidates.find(a) != &mCandidates.end())
+                    if (mCandidates.find(a) != mCandidates.end())
                     {
                         continue;
                     }
@@ -492,9 +492,9 @@ NominationProtocol.nominate(Value const& value, Value const& previousValue,
         nominatingValue = value;
     }
     // add a few more values from other leaders
-    for (const leader : mRoundLeaders)
+    for (auto const& leader : mRoundLeaders)
     {
-        auto it = &mLatestNominations.find(leader);
+        auto it = mLatestNominations.find(leader);
         if (it != mLatestNominations.end())
         {
             nominatingValue = getNewValueFromNomination(
@@ -554,23 +554,23 @@ NominationProtocol.getJsonInfo()
     ret["started"] = mNominationStarted;
 
     int counter = 0;
-    for (const v : mVotes)
+    for (auto const& v : mVotes)
     {
-        ret["X"][counter] = &mSlot.getSCP().getValueString(v);
+        ret["X"][counter] = mSlot.getSCP().getValueString(v);
         counter++;
     }
 
     counter = 0;
-    for (const v : mAccepted)
+    for (auto const& v : mAccepted)
     {
-        ret["Y"][counter] = &mSlot.getSCP().getValueString(v);
+        ret["Y"][counter] = mSlot.getSCP().getValueString(v);
         counter++;
     }
 
     counter = 0;
-    for (const v : mCandidates)
+    for (auto const& v : mCandidates)
     {
-        ret["Z"][counter] = &mSlot.getSCP().getValueString(v);
+        ret["Z"][counter] = mSlot.getSCP().getValueString(v);
         counter++;
     }
 
@@ -587,7 +587,7 @@ NominationProtocol.setStateFromEnvelope(SCPEnvelope const& e)
     }
     recordEnvelope(e);
     const nom = &e.statement.pledges.nominate_;
-    for (const a : nom.accepted)
+    for (auto const& a : nom.accepted)
     {
         mAccepted.emplace(a);
     }
@@ -596,7 +596,7 @@ NominationProtocol.setStateFromEnvelope(SCPEnvelope const& e)
         mVotes.emplace(v);
     }
 
-    mLastEnvelope = &std.make_unique<SCPEnvelope>(e);
+    mLastEnvelope = std.make_unique<SCPEnvelope>(e);
 }
 
 SCPEnvelope[]

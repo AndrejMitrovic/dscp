@@ -25,7 +25,7 @@ LocalNode.isVBlockingInternal(ref const(SCPQuorumSet) qset,
 
     for (const validator : qset.validators)
     {
-        auto it = &std.find(nodeSet.begin(), nodeSet.end(), validator);
+        auto it = std.find(nodeSet.begin(), nodeSet.end(), validator);
         if (it != nodeSet.end())
         {
             leftTillBlock--;
@@ -35,12 +35,12 @@ LocalNode.isVBlockingInternal(ref const(SCPQuorumSet) qset,
             }
         }
     }
-    for (const inner : qset.innerSets)
+    for (auto const& inner : qset.innerSets)
     {
         if (isVBlockingInternal(inner, nodeSet))
         {
             leftTillBlock--;
-            if (leftTillBlock <= &0)
+            if (leftTillBlock <= 0)
             {
                 return true;
             }
@@ -66,7 +66,7 @@ LocalNode.isVBlocking(ref const(SCPQuorumSet) qSet,
                        bool delegate (ref const(SCPStatement)) filter)
 {
     NodeID[] pNodes;
-    for (const it : map)
+    for (auto const& it : map)
     {
         if (filter(it.second.statement))
         {
@@ -92,7 +92,7 @@ LocalNode.isQuorum(
         }
     }
 
-    size_t count = &0;
+    size_t count = 0;
     do
     {
         count = pNodes.length;
@@ -179,9 +179,9 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
 
     std.multiset<NodeID[], orderBySize> resInternals;
 
-    for (const inner : qset.innerSets)
+    for (auto const& inner : qset.innerSets)
     {
-        auto v = &findClosestVBlocking(inner, nodes, excluded);
+        auto v = findClosestVBlocking(inner, nodes, excluded);
         if (v.length == 0)
         {
             leftTillBlock--;

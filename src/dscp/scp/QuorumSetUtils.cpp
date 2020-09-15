@@ -98,9 +98,9 @@ QuorumSetSanityChecker.checkSanity(ref const(SCPQuorumSet) qSet, int depth,
         return false;
     }
 
-    for (const n : v)
+    for (auto const& n : v)
     {
-        auto r = &mKnownNodes.insert(n);
+        auto r = mKnownNodes.insert(n);
         if (!r.second)
         {
             *reason = "A duplicate node was configured within another quorum";
