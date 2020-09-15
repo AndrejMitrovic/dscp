@@ -45,7 +45,7 @@ Slot.processEnvelope(SCPEnvelope const& envelope, bool self)
     try
     {
 
-        if (envelope.statement.pledges.type() ==
+        if (envelope.statement.pledges.type ==
             SCPStatementType.SCP_ST_NOMINATE)
         {
             res = mNominationProtocol.processEnvelope(envelope);
@@ -131,7 +131,7 @@ Hash
 Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
 {
     Hash h;
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCP_ST_PREPARE:
         h = st.pledges.prepare().quorumSetHash;
@@ -155,7 +155,7 @@ Value[]
 Slot.getStatementValues(SCPStatement const& st)
 {
     Value[] res;
-    if (st.pledges.type() == SCP_ST_NOMINATE)
+    if (st.pledges.type == SCP_ST_NOMINATE)
     {
         res = NominationProtocol.getStatementValues(st);
     }
@@ -170,7 +170,7 @@ SCPQuorumSetPtr
 Slot.getQuorumSetFromStatement(SCPStatement const& st)
 {
     SCPQuorumSetPtr res;
-    SCPStatementType t = st.pledges.type();
+    SCPStatementType t = st.pledges.type;
 
     if (t == SCP_ST_EXTERNALIZE)
     {

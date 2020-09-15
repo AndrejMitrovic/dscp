@@ -41,7 +41,7 @@ template <typename T>
 typename std.enable_if<!std.is_same<T, SecretKey>.value, std.string>.type
 toStrKey(T const& key)
 {
-    return strKey.toStrKey(KeyFunctions<T>.toKeyVersion(key.type()),
+    return strKey.toStrKey(KeyFunctions<T>.toKeyVersion(key.type),
                             KeyFunctions<T>.getKeyValue(key))
         .value;
 }
@@ -50,7 +50,7 @@ template <typename T>
 typename std.enable_if<std.is_same<T, SecretKey>.value, SecretValue>.type
 toStrKey(T const& key)
 {
-    return strKey.toStrKey(KeyFunctions<T>.toKeyVersion(key.type()),
+    return strKey.toStrKey(KeyFunctions<T>.toKeyVersion(key.type),
                             KeyFunctions<T>.getKeyValue(key));
 }
 
@@ -101,7 +101,7 @@ bool
 canConvert(F const& fromKey)
 {
     return KeyFunctions<T>.getKeyVersionIsSupported(
-        KeyFunctions<F>.toKeyVersion(fromKey.type()));
+        KeyFunctions<F>.toKeyVersion(fromKey.type));
 }
 
 template <typename T, typename F>
@@ -110,7 +110,7 @@ convertKey(F const& fromKey)
 {
     T toKey;
     toKey.type(KeyFunctions<T>.toKeyType(
-        KeyFunctions<F>.toKeyVersion(fromKey.type())));
+        KeyFunctions<F>.toKeyVersion(fromKey.type)));
     KeyFunctions<T>.getKeyValue(toKey) = KeyFunctions<F>.getKeyValue(fromKey);
     return toKey;
 }

@@ -237,7 +237,7 @@ KeyFunctions<PublicKey>.toKeyVersion(PublicKeyType keyType)
 uint256&
 KeyFunctions<PublicKey>.getKeyValue(PublicKey& key)
 {
-    switch (key.type())
+    switch (key.type)
     {
     case PUBLIC_KEY_TYPE_ED25519:
         return key.ed25519();
@@ -249,7 +249,7 @@ KeyFunctions<PublicKey>.getKeyValue(PublicKey& key)
 uint256 const&
 KeyFunctions<PublicKey>.getKeyValue(PublicKey const& key)
 {
-    switch (key.type())
+    switch (key.type)
     {
     case PUBLIC_KEY_TYPE_ED25519:
         return key.ed25519();
@@ -342,7 +342,7 @@ namespace std
 size_t
 hash<stellar.PublicKey>.operator()(stellar.PublicKey const& k) const noexcept
 {
-    assert(k.type() == stellar.PUBLIC_KEY_TYPE_ED25519);
+    assert(k.type == stellar.PUBLIC_KEY_TYPE_ED25519);
 
     return std.hash<stellar.uint256>()(k.ed25519());
 }

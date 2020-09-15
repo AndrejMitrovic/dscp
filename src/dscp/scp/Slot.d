@@ -110,7 +110,7 @@ class Slot
         if (e.statement.nodeID == getSCP().getLocalNodeID() &&
             e.statement.slotIndex == mSlotIndex)
         {
-            if (e.statement.pledges.type() == SCPStatementType.SCP_ST_NOMINATE)
+            if (e.statement.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
             {
                 mNominationProtocol.setStateFromEnvelope(e);
             }
@@ -121,10 +121,10 @@ class Slot
         }
         else
         {
-            if (Logging.logTrace("SCP"))
-                CLOG(TRACE, "SCP")
-                    << "Slot.setStateFromEnvelope invalid envelope"
-                    << " i: " << getSlotIndex() << " " << mSCP.envToStr(e);
+            //if (Logging.logTrace("SCP"))
+            //    CLOG(TRACE, "SCP")
+            //        << "Slot.setStateFromEnvelope invalid envelope"
+            //        << " i: " << getSlotIndex() << " " << mSCP.envToStr(e);
         }
     }
 

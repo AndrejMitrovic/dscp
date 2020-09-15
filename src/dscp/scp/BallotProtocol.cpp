@@ -55,12 +55,12 @@ BallotProtocol.isNewerStatement(SCPStatement const& oldst,
     bool res = false;
 
     // total ordering described in SCP paper.
-    auto t = st.pledges.type();
+    auto t = st.pledges.type;
 
     // statement type (PREPARE < CONFIRM < EXTERNALIZE)
-    if (oldst.pledges.type() != t)
+    if (oldst.pledges.type != t)
     {
-        res = (oldst.pledges.type() < t);
+        res = (oldst.pledges.type < t);
     }
     else
     {
@@ -261,7 +261,7 @@ BallotProtocol.isStatementSane(SCPStatement const& st, bool self)
         return false;
     }
 
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
@@ -688,7 +688,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
 {
     std.set<SCPBallot> hintBallots;
 
-    switch (hint.pledges.type())
+    switch (hint.pledges.type)
     {
     case SCP_ST_PREPARE:
     {
@@ -735,7 +735,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
         for (auto const& e : mLatestEnvelopes)
         {
             SCPStatement const& st = e.second.statement;
-            switch (st.pledges.type())
+            switch (st.pledges.type)
             {
             case SCP_ST_PREPARE:
             {
@@ -848,7 +848,7 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
             [&ballot](SCPStatement const& st) {
                 bool res;
 
-                switch (st.pledges.type())
+                switch (st.pledges.type)
                 {
                 case SCP_ST_PREPARE:
                 {
@@ -1009,7 +1009,7 @@ BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
 {
     bool res = false;
     auto const& pl = st.pledges;
-    switch (pl.type())
+    switch (pl.type)
     {
     case SCP_ST_PREPARE:
         break;
@@ -1130,7 +1130,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
     for (auto const& env : mLatestEnvelopes)
     {
         auto const& pl = env.second.statement.pledges;
-        switch (pl.type())
+        switch (pl.type)
         {
         case SCP_ST_PREPARE:
         {
@@ -1185,7 +1185,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
     // note: ballot.counter is only used for logging purpose as we're looking at
     // possible value to commit
     SCPBallot ballot;
-    switch (hint.pledges.type())
+    switch (hint.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
@@ -1229,7 +1229,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
             [&](SCPStatement const& st) -> bool {
                 bool res = false;
                 auto const& pl = st.pledges;
-                switch (pl.type())
+                switch (pl.type)
                 {
                 case SCP_ST_PREPARE:
                 {
@@ -1347,7 +1347,7 @@ BallotProtocol.setAcceptCommit(SCPBallot const& c, SCPBallot const& h)
 static uint32
 statementBallotCounter(SCPStatement const& st)
 {
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCP_ST_PREPARE:
         return st.pledges.prepare().ballot.counter;
@@ -1447,7 +1447,7 @@ BallotProtocol.attemptConfirmCommit(SCPStatement const& hint)
     // extracts value from hint
     // note: ballot.counter is only used for logging purpose
     SCPBallot ballot;
-    switch (hint.pledges.type())
+    switch (hint.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
@@ -1526,7 +1526,7 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
 {
     bool res;
 
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCP_ST_PREPARE:
     {
@@ -1562,7 +1562,7 @@ Hash
 BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
 {
     Hash h;
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCP_ST_PREPARE:
         h = st.pledges.prepare().quorumSetHash;
@@ -1583,7 +1583,7 @@ SCPBallot
 BallotProtocol.getWorkingBallot(SCPStatement const& st)
 {
     SCPBallot res;
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCP_ST_PREPARE:
         res = st.pledges.prepare().ballot;
@@ -1734,7 +1734,7 @@ BallotProtocol.setStateFromEnvelope(SCPEnvelope const& e)
 
     auto const& pl = e.statement.pledges;
 
-    switch (pl.type())
+    switch (pl.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
@@ -1907,7 +1907,7 @@ SCPDriver.ValidationLevel
 BallotProtocol.validateValues(SCPStatement const& st)
 {
     std.set<Value> values;
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
@@ -2005,7 +2005,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
     {
         auto const& st = stateit->second.statement;
 
-        switch (st.pledges.type())
+        switch (st.pledges.type)
         {
         case SCPStatementType.SCP_ST_PREPARE:
             phase = "PREPARE";
@@ -2056,7 +2056,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
             if (areBallotsCompatible(getWorkingBallot(st), b))
             {
                 agree++;
-                auto t = st.pledges.type();
+                auto t = st.pledges.type;
                 if (!(t == SCPStatementType.SCP_ST_EXTERNALIZE ||
                       (t == SCPStatementType.SCP_ST_CONFIRM &&
                        st.pledges.confirm().ballot.counter == UINT32_MAX)))
@@ -2160,7 +2160,7 @@ BallotProtocol.checkHeardFromQuorum()
                 std.bind(&Slot.getQuorumSetFromStatement, &mSlot, _1),
                 [&](SCPStatement const& st) {
                     bool res;
-                    if (st.pledges.type() == SCP_ST_PREPARE)
+                    if (st.pledges.type == SCP_ST_PREPARE)
                     {
                         res = mCurrentBallot->counter <=
                               st.pledges.prepare().ballot.counter;

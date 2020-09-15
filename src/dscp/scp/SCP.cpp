@@ -322,7 +322,7 @@ SCP.envToStr(SCPStatement const& st, bool fullKeys) const
 
     oss << "{ENV@" << nodeId << " | "
         << " i: " << st.slotIndex;
-    switch (st.pledges.type())
+    switch (st.pledges.type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
