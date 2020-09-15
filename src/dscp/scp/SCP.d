@@ -56,7 +56,14 @@ class SCP
     // Submit a value to consider for slotIndex
     // previousValue is the value from slotIndex-1
     bool nominate (uint64 slotIndex, ref const(Value) value,
-        ref const(Value) previousValue);
+        ref const(Value) previousValue)
+    {
+        assert(isValidator());
+        const bool CreateIfNew = true;
+        const bool NotTimedOut = false;
+        return getSlot(slotIndex, CreateIfNew)
+            .nominate(value, previousValue, NotTimedOut);
+    }
 
     // stops nomination for a slot
     void stopNomination (uint64 slotIndex);

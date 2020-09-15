@@ -1,11 +1,3 @@
-
-bool
-SCP.nominate(uint64 slotIndex, Value const& value, Value const& previousValue)
-{
-    assert(isValidator());
-    return getSlot(slotIndex, true).nominate(value, previousValue, false);
-}
-
 void
 SCP.stopNomination(uint64 slotIndex)
 {
