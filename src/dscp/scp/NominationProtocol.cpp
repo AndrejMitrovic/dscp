@@ -53,7 +53,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                             mLatestNominations))
                     {
                         auto vl = validateValue(v);
-                        if (vl == SCPDriver.kFullyValidatedValue)
+                        if (vl == ValidationLevel.kFullyValidatedValue)
                         {
                             mAccepted.emplace(v);
                             mVotes.emplace(v);

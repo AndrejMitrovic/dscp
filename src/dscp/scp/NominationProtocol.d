@@ -84,7 +84,7 @@ class NominationProtocol
         return false;
     }
 
-    SCPDriver.ValidationLevel validateValue(ref const(Value) v)
+    ValidationLevel validateValue(ref const(Value) v)
     {
         return mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, true);
     }
@@ -279,7 +279,7 @@ class NominationProtocol
         applyAll(nom, (ref const(Value) value) {
             Value valueToNominate;
             auto vl = validateValue(value);
-            if (vl == SCPDriver.kFullyValidatedValue)
+            if (vl == ValidationLevel.kFullyValidatedValue)
             {
                 valueToNominate = value;
             }

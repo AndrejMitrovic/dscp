@@ -108,7 +108,7 @@ class BallotProtocol
     void advanceSlot(ref const(SCPStatement) hint);
 
     // returns true if all values in statement are valid
-    SCPDriver.ValidationLevel validateValues(ref const(SCPStatement) st);
+    ValidationLevel validateValues(ref const(SCPStatement) st);
 
     // send latest envelope if needed
     void sendLatestEnvelope();

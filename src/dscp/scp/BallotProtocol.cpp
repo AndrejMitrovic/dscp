@@ -183,13 +183,13 @@ BallotProtocol.processEnvelope(SCPEnvelope const& envelope, bool self)
     }
 
     auto validationRes = validateValues(statement);
-    if (validationRes != SCPDriver.kInvalidValue)
+    if (validationRes != ValidationLevel.kInvalidValue)
     {
         bool processed = false;
 
         if (mPhase != SCP_PHASE_EXTERNALIZE)
         {
-            if (validationRes == SCPDriver.kMaybeValidValue)
+            if (validationRes == ValidationLevel.kMaybeValidValue)
             {
                 mSlot.setFullyValidated(false);
             }
@@ -1905,7 +1905,7 @@ BallotProtocol.advanceSlot(ref const(SCPStatement) hint)
     }
 }
 
-SCPDriver.ValidationLevel
+ValidationLevel
 BallotProtocol.validateValues(ref const(SCPStatement) st)
 {
     std.set<Value> values;
@@ -1933,22 +1933,22 @@ BallotProtocol.validateValues(ref const(SCPStatement) st)
         break;
     default:
         // This shouldn't happen
-        return SCPDriver.kInvalidValue;
+        return ValidationLevel.kInvalidValue;
     }
-    SCPDriver.ValidationLevel res = SCPDriver.kFullyValidatedValue;
+    ValidationLevel res = ValidationLevel.kFullyValidatedValue;
     for (auto const& v : values)
     {
         auto tr =
             mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, false);
-        if (tr != SCPDriver.kFullyValidatedValue)
+        if (tr != ValidationLevel.kFullyValidatedValue)
         {
-            if (tr == SCPDriver.kInvalidValue)
+            if (tr == ValidationLevel.kInvalidValue)
             {
-                res = SCPDriver.kInvalidValue;
+                res = ValidationLevel.kInvalidValue;
             }
             else
             {
-                res = SCPDriver.kMaybeValidValue;
+                res = ValidationLevel.kMaybeValidValue;
             }
         }
     }

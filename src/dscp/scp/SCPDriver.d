@@ -34,6 +34,23 @@ static uint64 hashHelper (ref const(uint512) hash)
 /// timeouts will keep increasing until this ceiling
 private enum int MAX_TIMEOUT_SECONDS = 30 * 60;
 
+// `validateValue` is called on each message received before any processing
+// is done. It should be used to filter out values that are not compatible
+// with the current state of that node. Unvalidated values can never
+// externalize.
+// If the value cannot be validated (node is missing some context) but
+// passes
+// the validity checks, kMaybeValidValue can be returned. This will cause
+// the current slot to be marked as a non validating slot: the local node
+// will abstain from emiting its position.
+// validation can be *more* restrictive during nomination as needed
+enum ValidationLevel
+{
+    kInvalidValue,        // value is invalid for sure
+    kFullyValidatedValue, // value is valid for sure
+    kMaybeValidValue      // value may be valid
+}
+
 abstract class SCPDriver
 {
     // Envelope signature
@@ -71,23 +88,6 @@ abstract class SCPDriver
         Duration timeout, void delegate () cb);
 
     // methods to hand over the validation and ordering of values and ballots.
-
-    // `validateValue` is called on each message received before any processing
-    // is done. It should be used to filter out values that are not compatible
-    // with the current state of that node. Unvalidated values can never
-    // externalize.
-    // If the value cannot be validated (node is missing some context) but
-    // passes
-    // the validity checks, kMaybeValidValue can be returned. This will cause
-    // the current slot to be marked as a non validating slot: the local node
-    // will abstain from emiting its position.
-    // validation can be *more* restrictive during nomination as needed
-    enum ValidationLevel
-    {
-        kInvalidValue,        // value is invalid for sure
-        kFullyValidatedValue, // value is valid for sure
-        kMaybeValidValue      // value may be valid
-    }
 
     public ValidationLevel validateValue (uint64 slotIndex,
         ref const(Value) value, bool nomination)
