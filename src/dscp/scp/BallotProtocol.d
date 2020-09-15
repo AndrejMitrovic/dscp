@@ -8,6 +8,7 @@ import dscp.scp.LocalNode;
 import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
 import dscp.scp.Slot;
+import dscp.scp.QuorumSetUtils;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -401,7 +402,83 @@ class BallotProtocol
     }
 
     // basic sanity check on statement
-    bool isStatementSane(ref const(SCPStatement) st, bool self);
+    bool isStatementSane(ref const(SCPStatement) st, bool self)
+    {
+        auto qSet = mSlot.getQuorumSetFromStatement(st);
+
+        const NoExtraChecks = false;
+        const char* reason = null;
+        bool res = qSet.ok && isQuorumSetSane(qSet, NoExtraChecks, &reason);
+        if (!res)
+        {
+            //CLOG(DEBUG, "SCP") << "Invalid quorum set received";
+            if (reason !is null)
+            {
+                //std.string msg(reason);
+                //CLOG(DEBUG, "SCP") << msg;
+            }
+
+            return false;
+        }
+
+        switch (st.pledges.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+        {
+            const p = &st.pledges.prepare_;
+            // self is allowed to have b = 0 (as long as it never gets emitted)
+            bool isOK = self || p.ballot.counter > 0;
+
+            isOK = isOK &&
+                   ((!p.preparedPrime || !p.prepared) ||
+                    (areBallotsLessAndIncompatible(*p.preparedPrime, *p.prepared)));
+
+            isOK =
+                isOK && (p.nH == 0 || (p.prepared && p.nH <= p.prepared.counter));
+
+            // c != 0 . c <= h <= b
+            isOK = isOK && (p.nC == 0 || (p.nH != 0 && p.ballot.counter >= p.nH &&
+                                          p.nH >= p.nC));
+
+            if (!isOK)
+            {
+                //CLOG(TRACE, "SCP") << "Malformed PREPARE message";
+                res = false;
+            }
+        }
+        break;
+        case SCPStatementType.SCP_ST_CONFIRM:
+        {
+            const c = &st.pledges.confirm_;
+            // c <= h <= b
+            res = c.ballot.counter > 0;
+            res = res && (c.nH <= c.ballot.counter);
+            res = res && (c.nCommit <= c.nH);
+            if (!res)
+            {
+                //CLOG(TRACE, "SCP") << "Malformed CONFIRM message";
+            }
+        }
+        break;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+        {
+            const e = &st.pledges.externalize_;
+
+            res = e.commit.counter > 0;
+            res = res && e.nH >= e.commit.counter;
+
+            if (!res)
+            {
+                //CLOG(TRACE, "SCP") << "Malformed EXTERNALIZE message";
+            }
+        }
+        break;
+        default:
+            assert(0);
+        }
+
+        return res;
+    }
 
     // records the statement in the state machine
     void recordEnvelope(ref const(SCPEnvelope) env)
