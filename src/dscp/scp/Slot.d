@@ -16,6 +16,12 @@ import dscp.xdr.Stellar_types;
 import core.stdc.stdint;
 import core.stdc.time;
 
+public enum TimerID
+{
+    NOMINATION_TIMER = 0,
+    BALLOT_PROTOCOL_TIMER = 1
+}
+
 /**
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
@@ -343,12 +349,6 @@ class Slot
     public LocalNode getLocalNode ()
     {
         return mSCP.getLocalNode();
-    }
-
-    public enum timerIDs
-    {
-        NOMINATION_TIMER = 0,
-        BALLOT_PROTOCOL_TIMER = 1
     }
 
     protected SCPEnvelope[] getEntireCurrentState ()

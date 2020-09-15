@@ -15,6 +15,8 @@ import dscp.xdr.Stellar_types;
 import std.algorithm;
 import std.range;
 
+import core.time;
+
 class NominationProtocol
 {
   protected:
@@ -361,8 +363,11 @@ class NominationProtocol
                                 toVote = extractValidValue(v);
                                 if (!toVote.empty())
                                 {
-                                    if (toVote in mVotes)
+                                    if (toVote !in mVotes)
+                                    {
+                                        mVotes[toVote.idup] = [];
                                         modified = true;
+                                    }
                                 }
                             }
                         }
@@ -425,11 +430,87 @@ class NominationProtocol
         return res;
     }
 
-    static Value[] getStatementValues(ref const(SCPStatement) st);
+    static Value[] getStatementValues(ref const(SCPStatement) st)
+    {
+        Value[] res;
+        applyAll(st.pledges.nominate_,
+                 (ref const(Value) v) { res ~= cast(ubyte[])v; });
+        return res;
+    }
 
     // attempts to nominate a value for consensus
     bool nominate(ref const(Value) value, ref const(Value) previousValue,
-                  bool timedout);
+                  bool timedout)
+    {
+        //if (Logging.logDebug("SCP"))
+        //    CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (" << mRoundNumber
+        //                       << ") " << mSlot.getSCP().getValueString(value);
+
+        bool updated = false;
+
+        if (timedout && !mNominationStarted)
+        {
+            //CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (TIMED OUT)";
+            return false;
+        }
+
+        mNominationStarted = true;
+
+        mPreviousValue = previousValue.dup;
+
+        mRoundNumber++;
+        updateRoundLeaders();
+
+        Value nominatingValue;
+
+        // if we're leader, add our value
+        if (mRoundLeaders.byKey.canFind(mSlot.getLocalNode().getNodeID()))
+        {
+            if (value !in mVotes)
+            {
+                mVotes[value] = [];
+                updated = true;
+            }
+
+            nominatingValue = value.dup;
+        }
+
+        // add a few more values from other leaders
+        foreach (leader; mRoundLeaders.byKey)
+        {
+            if (auto nom_value = leader in mLatestNominations)
+            {
+                nominatingValue = getNewValueFromNomination(
+                    nom_value.statement.pledges.nominate_);
+                if (!nominatingValue.empty())
+                {
+                    mVotes[nominatingValue.idup] = [];
+                    updated = true;
+                }
+            }
+        }
+
+        Duration timeout =
+            mSlot.getSCPDriver().computeTimeout(mRoundNumber);
+
+        mSlot.getSCPDriver().nominatingValue(mSlot.getSlotIndex(), nominatingValue);
+
+        const bool HasTimedOut = true;
+        mSlot.getSCPDriver().setupTimer(
+            mSlot.getSlotIndex(), TimerID.NOMINATION_TIMER, timeout,
+            () { mSlot.nominate(value, previousValue, HasTimedOut); });
+
+        if (updated)
+        {
+            emitNomination();
+        }
+        else
+        {
+            //CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (SKIPPED)";
+        }
+
+        return updated;
+    }
 
     // stops the nomination protocol
     void stopNomination();

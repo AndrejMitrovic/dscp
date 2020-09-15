@@ -1,90 +1,9 @@
-Value[]
-NominationProtocol.getStatementValues(ref const(SCPStatement) st)
-{
-    Value[] res;
-    applyAll(st.pledges.nominate_,
-             [&](ref const(Value) v) { res ~= v; });
-    return res;
-}
-
 // attempts to nominate a value for consensus
 bool
 NominationProtocol.nominate(ref const(Value) value, ref const(Value) previousValue,
                              bool timedout)
 {
-    if (Logging.logDebug("SCP"))
-        CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (" << mRoundNumber
-                           << ") " << mSlot.getSCP().getValueString(value);
 
-    bool updated = false;
-
-    if (timedout && !mNominationStarted)
-    {
-        CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (TIMED OUT)";
-        return false;
-    }
-
-    mNominationStarted = true;
-
-    mPreviousValue = previousValue;
-
-    mRoundNumber++;
-    updateRoundLeaders();
-
-    Value nominatingValue;
-
-    // if we're leader, add our value
-    if (mRoundLeaders.find(mSlot.getLocalNode().getNodeID()) !=
-        mRoundLeaders.end())
-    {
-        auto ins = mVotes.insert(value);
-        if (ins.second)
-        {
-            updated = true;
-        }
-        nominatingValue = value;
-    }
-    // add a few more values from other leaders
-    for (auto const& leader : mRoundLeaders)
-    {
-        auto it = mLatestNominations.find(leader);
-        if (it != mLatestNominations.end())
-        {
-            nominatingValue = getNewValueFromNomination(
-                it.second.statement.pledges.nominate_);
-            if (!nominatingValue.empty())
-            {
-                mVotes.insert(nominatingValue);
-                updated = true;
-            }
-        }
-    }
-
-    std.chrono.milliseconds timeout =
-        mSlot.getSCPDriver().computeTimeout(mRoundNumber);
-
-    mSlot.getSCPDriver().nominatingValue(mSlot.getSlotIndex(), nominatingValue);
-
-    std.shared_ptr<Slot> slot = mSlot.shared_from_this();
-
-    std.function<void()>* func = new std.function<void()>;
-    *func = [slot, value, previousValue]() {
-            slot.nominate(value, previousValue, true);
-        };
-
-    mSlot.getSCPDriver().setupTimer(
-        mSlot.getSlotIndex(), Slot.NOMINATION_TIMER, timeout, func);
-
-    if (updated)
-    {
-        emitNomination();
-    }
-    else
-    {
-        CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (SKIPPED)";
-    }
-
-    return updated;
 }
 
 void

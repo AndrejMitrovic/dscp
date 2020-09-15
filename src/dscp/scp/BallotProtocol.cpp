@@ -512,7 +512,7 @@ BallotProtocol.startBallotProtocolTimer()
     *func = [slot]() { slot.getBallotProtocol().ballotProtocolTimerExpired(); };
 
     mSlot.getSCPDriver().setupTimer(
-        mSlot.getSlotIndex(), Slot.BALLOT_PROTOCOL_TIMER, timeout, func);
+        mSlot.getSlotIndex(), TimerID.BALLOT_PROTOCOL_TIMER, timeout, func);
 }
 
 void
@@ -520,7 +520,7 @@ BallotProtocol.stopBallotProtocolTimer()
 {
     std.shared_ptr<Slot> slot = mSlot.shared_from_this();
     mSlot.getSCPDriver().setupTimer(mSlot.getSlotIndex(),
-                                    Slot.BALLOT_PROTOCOL_TIMER,
+                                    TimerID.BALLOT_PROTOCOL_TIMER,
                                     std.chrono.seconds.zero(), null);
 }
 
