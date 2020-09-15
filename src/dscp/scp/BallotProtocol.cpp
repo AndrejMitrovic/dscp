@@ -1,10 +1,4 @@
 void
-BallotProtocol.bumpToBallot(SCPBallot const& ballot, bool check)
-{
-
-}
-
-void
 BallotProtocol.startBallotProtocolTimer()
 {
     std.chrono.milliseconds timeout =

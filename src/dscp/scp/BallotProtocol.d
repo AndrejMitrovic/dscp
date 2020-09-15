@@ -14,6 +14,8 @@ import dscp.xdr.Stellar_types;
 
 import std.range;
 
+import core.time;
+
 // used to filter statements
 alias StatementPredicate = bool delegate (ref const(SCPStatement));
 
@@ -691,7 +693,16 @@ class BallotProtocol
     bool federatedAccept(StatementPredicate voted, StatementPredicate accepted);
     bool federatedRatify(StatementPredicate voted);
 
-    void startBallotProtocolTimer();
+    void startBallotProtocolTimer()
+    {
+        Duration timeout =
+            mSlot.getSCPDriver().computeTimeout(mCurrentBallot.counter);
+
+        mSlot.getSCPDriver().setupTimer(
+            mSlot.getSlotIndex(), TimerID.BALLOT_PROTOCOL_TIMER, timeout,
+            { mSlot.getBallotProtocol().ballotProtocolTimerExpired(); });
+    }
+
     void stopBallotProtocolTimer();
     void checkHeardFromQuorum();
 }
