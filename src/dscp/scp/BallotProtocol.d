@@ -165,7 +165,10 @@ class BallotProtocol
         return res;
     }
 
-    void ballotProtocolTimerExpired();
+    void ballotProtocolTimerExpired()
+    {
+        abandonBallot(0);
+    }
 
     // abandon's current ballot, move to a new ballot
     // at counter `n` (or, if n == 0, increment current counter)
@@ -676,13 +679,120 @@ class BallotProtocol
 
     // emits a statement reflecting the nodes' current state
     // and attempts to make progress
-    void emitCurrentStateStatement();
+    void emitCurrentStateStatement()
+    {
+        SCPStatementType t;
+
+        switch (mPhase)
+        {
+        case SCPPhase.SCP_PHASE_PREPARE:
+            t = SCPStatementType.SCP_ST_PREPARE;
+            break;
+        case SCPPhase.SCP_PHASE_CONFIRM:
+            t = SCPStatementType.SCP_ST_CONFIRM;
+            break;
+        case SCPPhase.SCP_PHASE_EXTERNALIZE:
+            t = SCPStatementType.SCP_ST_EXTERNALIZE;
+            break;
+        default:
+            assert(0);
+        }
+
+        SCPStatement statement = createStatement(t);
+        SCPEnvelope envelope = mSlot.createEnvelope(statement);
+
+        bool canEmit = (mCurrentBallot !is null);
+
+        // if we generate the same envelope, don't process it again
+        // this can occur when updating h in PREPARE phase
+        // as statements only keep track of h.n (but h.x could be different)
+        auto lastEnv = mSlot.getSCP().getLocalNodeID() in mLatestEnvelopes;
+
+        if (lastEnv is null || *lastEnv != envelope)
+        {
+            const FromSelf = true;
+            if (mSlot.processEnvelope(envelope, FromSelf) !=
+                SCP.EnvelopeState.VALID)
+                assert(0, "moved to a bad state (ballot protocol)");
+
+            if (canEmit &&
+                (!mLastEnvelope || isNewerStatement(mLastEnvelope.statement,
+                                                    envelope.statement)))
+            {
+                mLastEnvelope = new SCPEnvelope;
+                *mLastEnvelope = envelope;
+                // this will no-op if invoked from advanceSlot
+                // as advanceSlot consolidates all messages sent
+                sendLatestEnvelope();
+            }
+        }
+    }
 
     // verifies that the internal state is consistent
     void checkInvariants();
 
     // create a statement of the given type using the local state
-    SCPStatement createStatement(ref const(SCPStatementType) type);
+    SCPStatement createStatement(ref const(SCPStatementType) type)
+    {
+        SCPStatement statement;
+
+        checkInvariants();
+
+        statement.pledges.type = type;
+        switch (type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+        {
+            auto p = &statement.pledges.prepare_;
+            p.quorumSetHash = getLocalNode().getQuorumSetHash();
+            if (mCurrentBallot)
+            {
+                p.ballot = *mCurrentBallot;
+            }
+            if (mCommit)
+            {
+                p.nC = mCommit.counter;
+            }
+            if (mPrepared)
+            {
+                p.prepared = new SCPBallot;
+                *p.prepared = *mPrepared;
+            }
+            if (mPreparedPrime)
+            {
+                p.preparedPrime = new SCPBallot;
+                *p.preparedPrime = *mPreparedPrime;
+            }
+            if (mHighBallot)
+            {
+                p.nH = mHighBallot.counter;
+            }
+        }
+        break;
+        case SCPStatementType.SCP_ST_CONFIRM:
+        {
+            auto c = &statement.pledges.confirm_;
+            c.quorumSetHash = getLocalNode().getQuorumSetHash();
+            c.ballot = *mCurrentBallot;
+            c.nPrepared = mPrepared.counter;
+            c.nCommit = mCommit.counter;
+            c.nH = mHighBallot.counter;
+        }
+        break;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+        {
+            auto e = &statement.pledges.externalize_;
+            e.commit = *mCommit;
+            e.nH = mHighBallot.counter;
+            e.commitQuorumSetHash = getLocalNode().getQuorumSetHash();
+        }
+        break;
+        default:
+            assert(0);
+        }
+
+        return statement;
+    }
 
     // returns a string representing the slot's state
     // used for log lines
@@ -703,6 +813,12 @@ class BallotProtocol
             { mSlot.getBallotProtocol().ballotProtocolTimerExpired(); });
     }
 
-    void stopBallotProtocolTimer();
+    void stopBallotProtocolTimer()
+    {
+        mSlot.getSCPDriver().setupTimer(mSlot.getSlotIndex(),
+                                        TimerID.BALLOT_PROTOCOL_TIMER,
+                                        0.seconds, null);
+    }
+
     void checkHeardFromQuorum();
 }
