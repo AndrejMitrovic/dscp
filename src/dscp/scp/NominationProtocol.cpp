@@ -49,12 +49,12 @@ NominationProtocol.isSubsetHelper(xdr.xvector<Value> const& p,
                                    xdr.xvector<Value> const& v, bool& notEqual)
 {
     bool res;
-    if (p.size() <= v.size())
+    if (p.length <= v.length)
     {
         res = std.includes(v.begin(), v.end(), p.begin(), p.end());
         if (res)
         {
-            notEqual = p.size() != v.size();
+            notEqual = p.length != v.length;
         }
         else
         {
@@ -106,7 +106,7 @@ bool
 NominationProtocol.isSane(ref const(SCPStatement) st)
 {
     auto const& nom = st.pledges.nominate_;
-    bool res = (nom.votes.size() + nom.accepted.size()) != 0;
+    bool res = (nom.votes.length + nom.accepted.length) != 0;
 
     res = res && (std.adjacent_find(
                       nom.votes.begin(), nom.votes.end(),
@@ -232,8 +232,8 @@ NominationProtocol.updateRoundLeaders()
     mRoundLeaders.insert(newRoundLeaders.begin(), newRoundLeaders.end());
     if (Logging.logDebug("SCP"))
     {
-        CLOG(DEBUG, "SCP") << "updateRoundLeaders: " << newRoundLeaders.size()
-                           << " . " << mRoundLeaders.size();
+        CLOG(DEBUG, "SCP") << "updateRoundLeaders: " << newRoundLeaders.length
+                           << " . " << mRoundLeaders.length;
         for (auto const& rl : mRoundLeaders)
         {
             CLOG(DEBUG, "SCP")
@@ -603,7 +603,7 @@ SCPEnvelope[]
 NominationProtocol.getCurrentState() const
 {
     SCPEnvelope[] res;
-    res.reserve(mLatestNominations.size());
+    res.reserve(mLatestNominations.length);
     for (auto const& n : mLatestNominations)
     {
         // only return messages for self if the slot is fully validated

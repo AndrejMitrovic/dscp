@@ -1793,7 +1793,7 @@ SCPEnvelope[]
 BallotProtocol.getCurrentState() const
 {
     SCPEnvelope[] res;
-    res.reserve(mLatestEnvelopes.size());
+    res.reserve(mLatestEnvelopes.length);
     for (auto const& n : mLatestEnvelopes)
     {
         // only return messages for self if the slot is fully validated
@@ -1823,7 +1823,7 @@ BallotProtocol.getExternalizingState() const
     SCPEnvelope[] res;
     if (mPhase == SCP_PHASE_EXTERNALIZE)
     {
-        res.reserve(mLatestEnvelopes.size());
+        res.reserve(mLatestEnvelopes.length);
         for (auto const& n : mLatestEnvelopes)
         {
             if (!(n.first == mSlot.getSCP().getLocalNodeID()))
@@ -2094,7 +2094,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
                                                      getWorkingBallot(st), b);
                                              },
                                              &id);
-    ret["fail_at"] = static_cast<int>(f.size());
+    ret["fail_at"] = static_cast<int>(f.length);
 
     if (!summary)
     {
@@ -2123,7 +2123,7 @@ BallotProtocol.getLocalState() const
         << " | p': " << mSlot.getSCP().ballotToStr(mPreparedPrime)
         << " | h: " << mSlot.getSCP().ballotToStr(mHighBallot)
         << " | c: " << mSlot.getSCP().ballotToStr(mCommit)
-        << " | M: " << mLatestEnvelopes.size();
+        << " | M: " << mLatestEnvelopes.length;
     return oss.str();
 }
 

@@ -29,10 +29,10 @@ template <typename T>
 T const&
 rand_element(std.vector<T> const& v)
 {
-    if (v.size() == 0)
+    if (v.length == 0)
     {
         throw std.range_error("rand_element on empty vector");
     }
-    return v.at(rand_uniform<size_t>(0, v.size() - 1));
+    return v.at(rand_uniform<size_t>(0, v.length - 1));
 }
 }

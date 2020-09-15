@@ -2,7 +2,7 @@
 size_t
 SCP.getKnownSlotsCount() const
 {
-    return mKnownSlots.size();
+    return mKnownSlots.length;
 }
 
 size_t

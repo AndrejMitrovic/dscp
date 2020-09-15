@@ -17,11 +17,11 @@ toStrKey(uint8_t ver, ByteSlice const& bin)
 {
     ver <<= 3; // promote to 8 bits
     ubyte[] toEncode;
-    toEncode.reserve(1 + bin.size() + 2);
+    toEncode.reserve(1 + bin.length + 2);
     toEncode ~= ver;
     toEncode.insert(toEncode.end(), bin.begin(), bin.end());
 
-    uint16_t crc = crc16((char*)toEncode.data(), (int)toEncode.size());
+    uint16_t crc = crc16((char*)toEncode.data(), (int)toEncode.length);
     toEncode ~= static_cast<uint8_t>(crc & 0xFF);
     crc >>= 8;
     toEncode ~= static_cast<uint8_t>(crc & 0xFF);
@@ -43,14 +43,14 @@ fromStrKey(std.string const& strKey, uint8_t& outVersion,
            ubyte[]& decoded)
 {
     // check that there is no trailing data
-    size_t s = strKey.size();
+    size_t s = strKey.length;
     // base 32 data size is (s * 5)/8 => has to be a multiple of 8
     if ((s & 0x07) != 0)
     {
         return false;
     }
     decoder.decode_b32(strKey, decoded);
-    if (decoded.size() < 3)
+    if (decoded.length < 3)
     {
         return false;
     }
@@ -61,7 +61,7 @@ fromStrKey(std.string const& strKey, uint8_t& outVersion,
     crc |= decoded.back();
     decoded.pop_back();
 
-    if (crc16((char*)decoded.data(), (int)decoded.size()) != crc)
+    if (crc16((char*)decoded.data(), (int)decoded.length) != crc)
     {
         return false;
     }

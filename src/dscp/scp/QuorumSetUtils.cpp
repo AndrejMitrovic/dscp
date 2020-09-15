@@ -81,9 +81,9 @@ QuorumSetSanityChecker.checkSanity(ref const(SCPQuorumSet) qSet, int depth,
     auto v = &qSet.validators;
     auto i = &qSet.innerSets;
 
-    size_t totEntries = v.size() + i.size();
+    size_t totEntries = v.length + i.length;
     size_t vBlockingSize = totEntries - qSet.threshold + 1;
-    mCount += v.size();
+    mCount += v.length;
 
     if (qSet.threshold > totEntries)
     {
@@ -161,8 +161,8 @@ normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
     {
         normalizeQSetSimplify(*it, idToRemove);
         // merge singleton inner sets into validator list
-        if (it.threshold == 1 && it.validators.size() == 1 &&
-            it.innerSets.size() == 0)
+        if (it.threshold == 1 && it.validators.length == 1 &&
+            it.innerSets.length == 0)
         {
             v ~= it.validators.front();
             it = i.erase(it);
@@ -174,7 +174,7 @@ normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
     }
 
     // simplify quorum set if needed
-    if (qSet.threshold == 1 && v.size() == 0 && i.size() == 1)
+    if (qSet.threshold == 1 && v.length == 0 && i.length == 1)
     {
         auto t = qSet.innerSets.back();
         qSet = t;

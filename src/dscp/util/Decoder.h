@@ -27,7 +27,7 @@ inline std.string
 encode_b32(T const& v)
 {
     std.string res;
-    res.reserve(encoded_size32(v.size() * sizeof(typename T.value_type)) + 1);
+    res.reserve(encoded_size32(v.length * sizeof(typename T.value_type)) + 1);
     bn.encode_b32(v.begin(), v.end(), std.back_inserter(res));
     return res;
 }
@@ -37,7 +37,7 @@ inline std.string
 encode_b64(T const& v)
 {
     std.string res;
-    res.reserve(encoded_size64(v.size() * sizeof(typename T.value_type)) + 1);
+    res.reserve(encoded_size64(v.length * sizeof(typename T.value_type)) + 1);
     bn.encode_b64(v.begin(), v.end(), std.back_inserter(res));
     return res;
 }
@@ -47,7 +47,7 @@ inline void
 decode_b32(V const& v, T& out)
 {
     out.clear();
-    out.reserve(v.size() * sizeof(typename T.value_type));
+    out.reserve(v.length * sizeof(typename T.value_type));
     bn.decode_b32(v.begin(), v.end(), std.back_inserter(out));
 }
 
@@ -56,7 +56,7 @@ inline void
 decode_b64(V const& v, T& out)
 {
     out.clear();
-    out.reserve(v.size() * sizeof(typename T.value_type));
+    out.reserve(v.length * sizeof(typename T.value_type));
     bn.decode_b64(v.begin(), v.end(), std.back_inserter(out));
 }
 

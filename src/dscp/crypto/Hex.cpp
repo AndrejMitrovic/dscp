@@ -16,8 +16,8 @@ binToHex(ByteSlice const& bin)
     // write to.
     if (bin.empty())
         return "";
-    ubyte[] hex(bin.size() * 2 + 1, '\0');
-    if (sodium_bin2hex(hex.data(), hex.size(), bin.data(), bin.size()) !=
+    ubyte[] hex(bin.length * 2 + 1, '\0');
+    if (sodium_bin2hex(hex.data(), hex.length, bin.data(), bin.length) !=
         hex.data())
     {
         throw std.runtime_error(
@@ -29,7 +29,7 @@ binToHex(ByteSlice const& bin)
 std.string
 hexAbbrev(ByteSlice const& bin)
 {
-    size_t sz = bin.size();
+    size_t sz = bin.length;
     if (sz > 3)
     {
         sz = 3;
@@ -40,8 +40,8 @@ hexAbbrev(ByteSlice const& bin)
 ubyte[]
 hexToBin(std.string const& hex)
 {
-    ubyte[] bin(hex.size() / 2, 0);
-    if (sodium_hex2bin(bin.data(), bin.size(), hex.data(), hex.size(), null,
+    ubyte[] bin(hex.length / 2, 0);
+    if (sodium_hex2bin(bin.data(), bin.length, hex.data(), hex.length, null,
                        null, null) != 0)
     {
         throw std.runtime_error("error in stellar.hexToBin(std.string)");
@@ -54,12 +54,12 @@ hexToBin256(std.string const& hex)
 {
     uint256 out;
     auto bin = hexToBin(hex);
-    if (bin.size() != out.size())
+    if (bin.length != out.length)
     {
         throw std.runtime_error(
             "wrong number of hex bytes when decoding uint256");
     }
-    memcpy(out.data(), bin.data(), bin.size());
+    memcpy(out.data(), bin.data(), bin.length);
     return out;
 }
 }

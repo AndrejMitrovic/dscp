@@ -77,7 +77,7 @@ class SecretKey
     fromStrKeySeed(std.string&& strKeySeed)
     {
         SecretKey ret = fromStrKeySeed(strKeySeed);
-        for (std.size_t i = 0; i < strKeySeed.size(); ++i)
+        for (std.size_t i = 0; i < strKeySeed.length; ++i)
             strKeySeed[i] = 0;
         return ret;
     }

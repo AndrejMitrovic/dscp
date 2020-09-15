@@ -97,7 +97,7 @@ uint64
 LocalNode.getNodeWeight(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
 {
     uint64 n = qset.threshold;
-    uint64 d = qset.innerSets.size() + qset.validators.size();
+    uint64 d = qset.innerSets.length + qset.validators.length;
     uint64 res;
 
     for (auto const& qsetNode : qset.validators)
@@ -159,7 +159,7 @@ LocalNode.isQuorumSlice(ref const(SCPQuorumSet) qSet,
                          const(NodeID)[] nodeSet)
 {
     // CLOG(TRACE, "SCP") << "LocalNode.isQuorumSlice"
-    //                    << " nodeSet.size: " << nodeSet.size();
+    //                    << " nodeSet.size: " << nodeSet.length;
 
     return isQuorumSliceInternal(qSet, nodeSet);
 }
@@ -176,7 +176,7 @@ LocalNode.isVBlockingInternal(ref const(SCPQuorumSet) qset,
     }
 
     int leftTillBlock =
-        (int)((1 + qset.validators.size() + qset.innerSets.size()) -
+        (int)((1 + qset.validators.length + qset.innerSets.length) -
               qset.threshold);
 
     for (auto const& validator : qset.validators)
@@ -211,7 +211,7 @@ LocalNode.isVBlocking(ref const(SCPQuorumSet) qSet,
                        const(NodeID)[] nodeSet)
 {
     // CLOG(TRACE, "SCP") << "LocalNode.isVBlocking"
-    //                    << " nodeSet.size: " << nodeSet.size();
+    //                    << " nodeSet.size: " << nodeSet.length;
 
     return isVBlockingInternal(qSet, nodeSet);
 }
@@ -251,8 +251,8 @@ LocalNode.isQuorum(
     size_t count = 0;
     do
     {
-        count = pNodes.size();
-        NodeID[] fNodes(pNodes.size());
+        count = pNodes.length;
+        NodeID[] fNodes(pNodes.length);
         auto quorumFilter = [&](NodeID nodeID) . bool {
             auto qSetPtr = qfun(map.find(nodeID).second.statement);
             if (qSetPtr)
@@ -268,7 +268,7 @@ LocalNode.isQuorum(
                                quorumFilter);
         fNodes.resize(std.distance(fNodes.begin(), it));
         pNodes = fNodes;
-    } while (count != pNodes.size());
+    } while (count != pNodes.length);
 
     return isQuorumSlice(qSet, pNodes);
 }
@@ -296,7 +296,7 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
                                 const(NodeID)* excluded)
 {
     size_t leftTillBlock =
-        ((1 + qset.validators.size() + qset.innerSets.size()) - qset.threshold);
+        ((1 + qset.validators.length + qset.innerSets.length) - qset.threshold);
 
     NodeID[] res;
 
@@ -329,7 +329,7 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
         operator()(const(NodeID)[] v1,
                    const(NodeID)[] v2) const
         {
-            return v1.size() < v2.size();
+            return v1.length < v2.length;
         }
     };
 
@@ -338,7 +338,7 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
     for (auto const& inner : qset.innerSets)
     {
         auto v = findClosestVBlocking(inner, nodes, excluded);
-        if (v.size() == 0)
+        if (v.length == 0)
         {
             leftTillBlock--;
             if (leftTillBlock == 0)
@@ -354,11 +354,11 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
     }
 
     // use the top level validators to get closer
-    if (res.size() > leftTillBlock)
+    if (res.length > leftTillBlock)
     {
         res.resize(leftTillBlock);
     }
-    leftTillBlock -= res.size();
+    leftTillBlock -= res.length;
 
     // use subsets to get closer, using the smallest ones first
     auto it = resInternals.begin();

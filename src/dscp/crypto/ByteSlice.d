@@ -23,7 +23,7 @@ struct ByteSlice
 
     //this (xdr.msg_ptr const& p)
     //{
-    //    mData(p.data()), mSize(p.size());
+    //    mData(p.data()), mSize(p.length);
     //}
 
     this (ubyte[] bytes)

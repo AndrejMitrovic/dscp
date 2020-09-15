@@ -235,7 +235,7 @@ class Slot
 
     public size_t getStatementCount () const
     {
-        return mStatementsHistory.size();
+        return mStatementsHistory.length;
     }
 
     // returns the hash of the QuorumSet that should be downloaded

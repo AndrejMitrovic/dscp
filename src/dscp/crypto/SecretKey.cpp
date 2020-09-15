@@ -32,12 +32,12 @@ SecretKey.SecretKey() : mKeyType(PUBLIC_KEY_TYPE_ED25519)
 
 SecretKey.~SecretKey()
 {
-    std.memset(mSecretKey.data(), 0, mSecretKey.size());
+    std.memset(mSecretKey.data(), 0, mSecretKey.length);
 }
 
 SecretKey.Seed.~Seed()
 {
-    std.memset(mSeed.data(), 0, mSeed.size());
+    std.memset(mSeed.data(), 0, mSeed.length);
 }
 
 PublicKey const&
@@ -94,7 +94,7 @@ SecretKey.sign(ByteSlice const& bin) const
     assert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
     Signature out;
-    if (crypto_sign_detached(out.data(), null, bin.data(), bin.size(),
+    if (crypto_sign_detached(out.data(), null, bin.data(), bin.length,
                              mSecretKey.data()) != 0)
     {
         throw std.runtime_error("error while signing");
@@ -113,7 +113,7 @@ SecretKey.random()
         throw std.runtime_error("error generating random secret key");
     }
 #ifdef MSAN_ENABLED
-    __msan_unpoison(out.key.data(), out.key.size());
+    __msan_unpoison(out.key.data(), out.key.length);
 #endif
     return sk;
 }
@@ -156,7 +156,7 @@ SecretKey.fromSeed(ByteSlice const& seed)
     SecretKey sk;
     assert(sk.mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
-    if (seed.size() != crypto_sign_SEEDBYTES)
+    if (seed.length != crypto_sign_SEEDBYTES)
     {
         throw std.runtime_error("seed does not match byte size");
     }
@@ -175,8 +175,8 @@ SecretKey.fromStrKeySeed(std.string const& strKeySeed)
     ubyte[] seed;
     if (!strKey.fromStrKey(strKeySeed, ver, seed) ||
         (ver != strKey.STRKEY_SEED_ED25519) ||
-        (seed.size() != crypto_sign_SEEDBYTES) ||
-        (strKeySeed.size() != strKey.getStrKeySize(crypto_sign_SEEDBYTES)))
+        (seed.length != crypto_sign_SEEDBYTES) ||
+        (strKeySeed.length != strKey.getStrKeySize(crypto_sign_SEEDBYTES)))
     {
         throw std.runtime_error("invalid seed");
     }
@@ -264,7 +264,7 @@ PubKeyUtils.random()
     PublicKey pk;
     pk.type(PUBLIC_KEY_TYPE_ED25519);
     pk.ed25519().resize(crypto_sign_PUBLICKEYBYTES);
-    randombytes_buf(pk.ed25519().data(), pk.ed25519().size());
+    randombytes_buf(pk.ed25519().data(), pk.ed25519().length);
     return pk;
 }
 
@@ -332,7 +332,7 @@ Hash
 HashUtils.random()
 {
     Hash res;
-    randombytes_buf(res.data(), res.size());
+    randombytes_buf(res.data(), res.length);
     return res;
 }
 }

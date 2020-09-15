@@ -85,8 +85,8 @@ fromStrKey(std.string const& s)
     strKey.StrKeyVersionByte ver =
         static_cast<strKey.StrKeyVersionByte>(verByte);
     if (!KeyFunctions<T>.getKeyVersionIsSupported(ver) ||
-        (k.size() != getKeyVersionSize(ver)) ||
-        (s.size() != strKey.getStrKeySize(getKeyVersionSize(ver))))
+        (k.length != getKeyVersionSize(ver)) ||
+        (s.length != strKey.getStrKeySize(getKeyVersionSize(ver))))
     {
         throw std.invalid_argument("bad " + KeyFunctions<T>.getKeyTypeName());
     }
