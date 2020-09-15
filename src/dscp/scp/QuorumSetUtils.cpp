@@ -161,10 +161,10 @@ normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
     {
         normalizeQSetSimplify(*it, idToRemove);
         // merge singleton inner sets into validator list
-        if (it->threshold == 1 && it->validators.size() == 1 &&
-            it->innerSets.size() == 0)
+        if (it.threshold == 1 && it.validators.size() == 1 &&
+            it.innerSets.size() == 0)
         {
-            v ~= it->validators.front();
+            v ~= it.validators.front();
             it = i.erase(it);
         }
         else

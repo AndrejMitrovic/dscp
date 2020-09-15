@@ -1,43 +1,15 @@
-// Copyright 2014 Stellar Development Foundation and contributors. Licensed
-// under the Apache License, Version 2.0. See the COPYING file at the root
-// of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
-
-#include "scp/SCP.h"
-#include "crypto/Hex.h"
-#include "crypto/Hash.h"
-#include "scp/LocalNode.h"
-#include "scp/Slot.h"
-#include "util/GlobalChecks.h"
-#include "util/Logging.h"
-#include "util/XDROperators.h"
-#include "xdrpp/marshal.h"
-
-#include <algorithm>
-#include <lib/json/json.h>
-
-namespace stellar
-{
-
-SCP.SCP(SCPDriver& driver, ref const(NodeID) nodeID, bool isValidator,
-         ref const(SCPQuorumSet) qSetLocal)
-    : mDriver(driver)
-{
-    mLocalNode =
-        std.make_shared<LocalNode>(nodeID, isValidator, qSetLocal, this);
-}
 
 SCP.EnvelopeState
 SCP.receiveEnvelope(SCPEnvelope const& envelope)
 {
-    uint64 slotIndex = envelope.statement.slotIndex;
-    return getSlot(slotIndex, true)->processEnvelope(envelope, false);
+
 }
 
 bool
 SCP.nominate(uint64 slotIndex, Value const& value, Value const& previousValue)
 {
     dbgAssert(isValidator());
-    return getSlot(slotIndex, true)->nominate(value, previousValue, false);
+    return getSlot(slotIndex, true).nominate(value, previousValue, false);
 }
 
 void
@@ -46,26 +18,26 @@ SCP.stopNomination(uint64 slotIndex)
     auto s = getSlot(slotIndex, false);
     if (s)
     {
-        s->stopNomination();
+        s.stopNomination();
     }
 }
 
 void
 SCP.updateLocalQuorumSet(ref const(SCPQuorumSet) qSet)
 {
-    mLocalNode->updateQuorumSet(qSet);
+    mLocalNode.updateQuorumSet(qSet);
 }
 
 ref const(SCPQuorumSet)
 SCP.getLocalQuorumSet()
 {
-    return mLocalNode->getQuorumSet();
+    return mLocalNode.getQuorumSet();
 }
 
 ref const(NodeID)
 SCP.getLocalNodeID()
 {
-    return mLocalNode->getNodeID();
+    return mLocalNode.getNodeID();
 }
 
 void
@@ -74,7 +46,7 @@ SCP.purgeSlots(uint64 maxSlotIndex)
     auto it = mKnownSlots.begin();
     while (it != mKnownSlots.end())
     {
-        if (it->first < maxSlotIndex)
+        if (it.first < maxSlotIndex)
         {
             it = mKnownSlots.erase(it);
         }
@@ -106,7 +78,7 @@ SCP.getSlot(uint64 slotIndex, bool create)
     }
     else
     {
-        res = it->second;
+        res = it.second;
     }
     return res;
 }
@@ -118,7 +90,7 @@ SCP.getJsonInfo(size_t limit, bool fullKeys)
     auto it = mKnownSlots.rbegin();
     while (it != mKnownSlots.rend() && limit-- != 0)
     {
-        auto slot = &*(it->second);
+        auto slot = &*(it.second);
         ret[std.to_string(slot.getSlotIndex())] = slot.getJsonInfo(fullKeys);
         it++;
     }
@@ -145,7 +117,7 @@ SCP.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
         auto s = getSlot(index, false);
         if (s)
         {
-            ret = s->getJsonQuorumInfo(id, summary, fullKeys);
+            ret = s.getJsonQuorumInfo(id, summary, fullKeys);
             ret["ledger"] = static_cast<Json.UInt64>(index);
         }
     }
@@ -155,7 +127,7 @@ SCP.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
 bool
 SCP.isValidator()
 {
-    return mLocalNode->isValidator();
+    return mLocalNode.isValidator();
 }
 
 bool
@@ -164,7 +136,7 @@ SCP.isSlotFullyValidated(uint64 slotIndex)
     auto slot = getSlot(slotIndex, false);
     if (slot)
     {
-        return slot->isFullyValidated();
+        return slot.isFullyValidated();
     }
     else
     {
@@ -184,7 +156,7 @@ SCP.getCumulativeStatemtCount() const
     size_t c = 0;
     for (auto const& s : mKnownSlots)
     {
-        c += s.second->getStatementCount();
+        c += s.second.getStatementCount();
     }
     return c;
 }
@@ -195,7 +167,7 @@ SCP.getLatestMessagesSend(uint64 slotIndex)
     auto slot = getSlot(slotIndex, false);
     if (slot)
     {
-        return slot->getLatestMessagesSend();
+        return slot.getLatestMessagesSend();
     }
     else
     {
@@ -207,7 +179,7 @@ void
 SCP.setStateFromEnvelope(uint64 slotIndex, SCPEnvelope const& e)
 {
     auto slot = getSlot(slotIndex, true);
-    slot->setStateFromEnvelope(e);
+    slot.setStateFromEnvelope(e);
 }
 
 bool
@@ -220,7 +192,7 @@ uint64
 SCP.getLowSlotIndex() const
 {
     assert(!empty());
-    return mKnownSlots.begin()->first;
+    return mKnownSlots.begin().first;
 }
 
 uint64
@@ -229,7 +201,7 @@ SCP.getHighSlotIndex() const
     assert(!empty());
     auto it = mKnownSlots.end();
     it--;
-    return it->first;
+    return it.first;
 }
 
 SCPEnvelope[]
@@ -238,7 +210,7 @@ SCP.getCurrentState(uint64 slotIndex)
     auto slot = getSlot(slotIndex, false);
     if (slot)
     {
-        return slot->getCurrentState();
+        return slot.getCurrentState();
     }
     else
     {
@@ -251,8 +223,8 @@ SCP.getLatestMessage(ref const(NodeID) id)
 {
     for (auto it = mKnownSlots.rbegin(); it != mKnownSlots.rend(); it++)
     {
-        auto slot = it->second;
-        auto res = slot->getLatestMessage(id);
+        auto slot = it.second;
+        auto res = slot.getLatestMessage(id);
         if (res !is null)
         {
             return res;
@@ -267,7 +239,7 @@ SCP.getExternalizingState(uint64 slotIndex)
     auto slot = getSlot(slotIndex, false);
     if (slot)
     {
-        return slot->getExternalizingState();
+        return slot.getExternalizingState();
     }
     else
     {

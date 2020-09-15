@@ -253,8 +253,8 @@ LocalNode.isQuorum(
     {
         count = pNodes.size();
         NodeID[] fNodes(pNodes.size());
-        auto quorumFilter = [&](NodeID nodeID) -> bool {
-            auto qSetPtr = qfun(map.find(nodeID)->second.statement);
+        auto quorumFilter = [&](NodeID nodeID) . bool {
+            auto qSetPtr = qfun(map.find(nodeID).second.statement);
             if (qSetPtr)
             {
                 return isQuorumSlice(*qSetPtr, pNodes);
@@ -364,7 +364,7 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
     auto it = resInternals.begin();
     while (leftTillBlock != 0 && it != resInternals.end())
     {
-        res.insert(res.end(), it->begin(), it->end());
+        res.insert(res.end(), it.begin(), it.end());
         leftTillBlock--;
         it++;
     }
@@ -376,7 +376,7 @@ Json.Value
 LocalNode.toJson(ref const(SCPQuorumSet) qSet, bool fullKeys) const
 {
     return toJson(qSet, [&](PublicKey const& k) {
-        return mSCP->getDriver().toStrKey(k, fullKeys);
+        return mSCP.getDriver().toStrKey(k, fullKeys);
     });
 }
 

@@ -19,7 +19,11 @@ class SCP
 
   public:
     this (SCPDriver driver, ref const(NodeID) nodeID, bool isValidator,
-        ref const(SCPQuorumSet) qSetLocal);
+        ref const(SCPQuorumSet) qSetLocal)
+    {
+        mDriver = driver;
+        mLocalNode = new LocalNode(nodeID, isValidator, qSetLocal, this);
+    }
 
     SCPDriver getDriver ()
     {
@@ -40,7 +44,11 @@ class SCP
     // this is the main entry point of the SCP library
     // it processes the envelope, updates the internal state and
     // invokes the appropriate methods
-    EnvelopeState receiveEnvelope (ref const(SCPEnvelope) envelope);
+    EnvelopeState receiveEnvelope (ref const(SCPEnvelope) envelope)
+    {
+        uint64 slotIndex = envelope.statement.slotIndex;
+        return getSlot(slotIndex, true).processEnvelope(envelope, false);
+    }
 
     // Submit a value to consider for slotIndex
     // previousValue is the value from slotIndex-1
@@ -110,7 +118,7 @@ class SCP
     string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const;
 
   protected:
-    LocalNode* mLocalNode;
+    LocalNode mLocalNode;
     Slot[uint64] mKnownSlots;
 
     // Slot getter

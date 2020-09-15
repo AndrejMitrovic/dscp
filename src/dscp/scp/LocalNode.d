@@ -55,7 +55,7 @@ class LocalNode
     static bool isVBlocking(ref const(SCPQuorumSet) qSet,
                             const(NodeID)[] nodeSet);
 
-    // Tests this node against a map of nodeID -> T for the specified qSetHash.
+    // Tests this node against a map of nodeID . T for the specified qSetHash.
 
     // `isVBlocking` tests if the filtered nodes V are a v-blocking set for
     // this node.

@@ -43,7 +43,7 @@ BallotProtocol.isNewerStatement(ref const(NodeID) nodeID, ref const(SCPStatement
     }
     else
     {
-        res = isNewerStatement(oldp->second.statement, st);
+        res = isNewerStatement(oldp.second.statement, st);
     }
     return res;
 }
@@ -141,7 +141,7 @@ BallotProtocol.recordEnvelope(SCPEnvelope const& env)
     }
     else
     {
-        oldp->second = env;
+        oldp.second = env;
     }
     mSlot.recordStatement(env.statement);
 }
@@ -205,7 +205,7 @@ BallotProtocol.processEnvelope(SCPEnvelope const& envelope, bool self)
             // note: this handles also our own messages
             // in particular our final EXTERNALIZE message
             if (mPhase == SCP_PHASE_EXTERNALIZE &&
-                mCommit->value == getWorkingBallot(statement).value)
+                mCommit.value == getWorkingBallot(statement).value)
             {
                 recordEnvelope(envelope);
                 res = SCP.EnvelopeState.VALID;
@@ -274,9 +274,9 @@ BallotProtocol.isStatementSane(ref const(SCPStatement) st, bool self)
                 (areBallotsLessAndIncompatible(*p.preparedPrime, *p.prepared)));
 
         isOK =
-            isOK && (p.nH == 0 || (p.prepared && p.nH <= p.prepared->counter));
+            isOK && (p.nH == 0 || (p.prepared && p.nH <= p.prepared.counter));
 
-        // c != 0 -> c <= h <= b
+        // c != 0 . c <= h <= b
         isOK = isOK && (p.nC == 0 || (p.nH != 0 && p.ballot.counter >= p.nH &&
                                       p.nH >= p.nC));
 
@@ -330,7 +330,7 @@ BallotProtocol.abandonBallot(uint32 n)
     {
         if (mCurrentBallot)
         {
-            v = mCurrentBallot->value;
+            v = mCurrentBallot.value;
         }
     }
     if (!v.empty())
@@ -356,7 +356,7 @@ BallotProtocol.bumpState(Value const& value, bool force)
         return false;
     }
 
-    n = mCurrentBallot ? (mCurrentBallot->counter + 1) : 1;
+    n = mCurrentBallot ? (mCurrentBallot.counter + 1) : 1;
 
     return bumpState(value, n);
 }
@@ -478,7 +478,7 @@ BallotProtocol.bumpToBallot(SCPBallot const& ballot, bool check)
     }
 
     bool gotBumped =
-        !mCurrentBallot || (mCurrentBallot->counter != ballot.counter);
+        !mCurrentBallot || (mCurrentBallot.counter != ballot.counter);
 
     if (!mCurrentBallot)
     {
@@ -504,12 +504,12 @@ void
 BallotProtocol.startBallotProtocolTimer()
 {
     std.chrono.milliseconds timeout =
-        mSlot.getSCPDriver().computeTimeout(mCurrentBallot->counter);
+        mSlot.getSCPDriver().computeTimeout(mCurrentBallot.counter);
 
     std.shared_ptr<Slot> slot = mSlot.shared_from_this();
 
     std.function<void()>* func = new std.function<void()>;
-    *func = [slot]() { slot->getBallotProtocol().ballotProtocolTimerExpired(); };
+    *func = [slot]() { slot.getBallotProtocol().ballotProtocolTimerExpired(); };
 
     mSlot.getSCPDriver().setupTimer(
         mSlot.getSlotIndex(), Slot.BALLOT_PROTOCOL_TIMER, timeout, func);
@@ -543,14 +543,14 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     case SCPStatementType.SCP_ST_PREPARE:
     {
         auto p = &statement.pledges.prepare_;
-        p.quorumSetHash = getLocalNode()->getQuorumSetHash();
+        p.quorumSetHash = getLocalNode().getQuorumSetHash();
         if (mCurrentBallot)
         {
             p.ballot = *mCurrentBallot;
         }
         if (mCommit)
         {
-            p.nC = mCommit->counter;
+            p.nC = mCommit.counter;
         }
         if (mPrepared)
         {
@@ -562,26 +562,26 @@ BallotProtocol.createStatement(SCPStatementType const& type)
         }
         if (mHighBallot)
         {
-            p.nH = mHighBallot->counter;
+            p.nH = mHighBallot.counter;
         }
     }
     break;
     case SCPStatementType.SCP_ST_CONFIRM:
     {
         auto c = &statement.pledges.confirm_;
-        c.quorumSetHash = getLocalNode()->getQuorumSetHash();
+        c.quorumSetHash = getLocalNode().getQuorumSetHash();
         c.ballot = *mCurrentBallot;
-        c.nPrepared = mPrepared->counter;
-        c.nCommit = mCommit->counter;
-        c.nH = mHighBallot->counter;
+        c.nPrepared = mPrepared.counter;
+        c.nCommit = mCommit.counter;
+        c.nH = mHighBallot.counter;
     }
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
         auto e = &statement.pledges.externalize_;
         e.commit = *mCommit;
-        e.nH = mHighBallot->counter;
-        e.commitQuorumSetHash = getLocalNode()->getQuorumSetHash();
+        e.nH = mHighBallot.counter;
+        e.commitQuorumSetHash = getLocalNode().getQuorumSetHash();
     }
     break;
     default:
@@ -621,12 +621,12 @@ BallotProtocol.emitCurrentStateStatement()
     // as statements only keep track of h.n (but h.x could be different)
     auto lastEnv = mLatestEnvelopes.find(mSlot.getSCP().getLocalNodeID());
 
-    if (lastEnv == mLatestEnvelopes.end() || !(lastEnv->second == envelope))
+    if (lastEnv == mLatestEnvelopes.end() || !(lastEnv.second == envelope))
     {
         if (mSlot.processEnvelope(envelope, true) == SCP.EnvelopeState.VALID)
         {
             if (canEmit &&
-                (!mLastEnvelope || isNewerStatement(mLastEnvelope->statement,
+                (!mLastEnvelope || isNewerStatement(mLastEnvelope.statement,
                                                     envelope.statement)))
             {
                 mLastEnvelope = std.make_shared<SCPEnvelope>(envelope);
@@ -649,7 +649,7 @@ BallotProtocol.checkInvariants()
 {
     if (mCurrentBallot)
     {
-        dbgAssert(mCurrentBallot->counter != 0);
+        dbgAssert(mCurrentBallot.counter != 0);
     }
     if (mPrepared && mPreparedPrime)
     {
@@ -1223,9 +1223,9 @@ BallotProtocol.attemptAcceptCommit(ref const(SCPStatement) hint)
         }
     }
 
-    auto pred = [&ballot, this](Interval const& cur) -> bool {
+    auto pred = [&ballot, this](Interval const& cur) . bool {
         return federatedAccept(
-            [&](ref const(SCPStatement) st) -> bool {
+            [&](ref const(SCPStatement) st) . bool {
                 bool res = false;
                 auto const& pl = st.pledges;
                 switch (pl.type)
@@ -1286,7 +1286,7 @@ BallotProtocol.attemptAcceptCommit(ref const(SCPStatement) hint)
     if (candidate.first != 0)
     {
         if (mPhase != SCP_PHASE_CONFIRM ||
-            candidate.second > mHighBallot->counter)
+            candidate.second > mHighBallot.counter)
         {
             SCPBallot c = SCPBallot(candidate.first, ballot.value);
             SCPBallot h = SCPBallot(candidate.second, ballot.value);
@@ -1366,7 +1366,7 @@ hasVBlockingSubsetStrictlyAheadOf(std.shared_ptr<LocalNode> localNode,
                                   uint32_t n)
 {
     return LocalNode.isVBlocking(
-        localNode->getQuorumSet(), map,
+        localNode.getQuorumSet(), map,
         [&](ref const(SCPStatement) st) { return statementBallotCounter(st) > n; });
 }
 
@@ -1397,7 +1397,7 @@ BallotProtocol.attemptBump()
         // is no v-blocking set ahead of the local node, there's nothing
         // to do, return early.
         auto localNode = getLocalNode();
-        uint32 localCounter = mCurrentBallot ? mCurrentBallot->counter : 0;
+        uint32 localCounter = mCurrentBallot ? mCurrentBallot.counter : 0;
         if (!hasVBlockingSubsetStrictlyAheadOf(localNode, mLatestEnvelopes,
                                                localCounter))
         {
@@ -1477,7 +1477,7 @@ BallotProtocol.attemptConfirmCommit(ref const(SCPStatement) hint)
     std.set<uint32> boundaries = getCommitBoundariesFromStatements(ballot);
     Interval candidate;
 
-    auto pred = [&ballot, this](Interval const& cur) -> bool {
+    auto pred = [&ballot, this](Interval const& cur) . bool {
         return federatedRatify(
             (ref const(SCPStatement) st)
             {
@@ -1517,7 +1517,7 @@ BallotProtocol.setConfirmCommit(SCPBallot const& c, SCPBallot const& h)
     mSlot.stopNomination();
 
     mSlot.getSCPDriver().valueExternalized(mSlot.getSlotIndex(),
-                                           mCommit->value);
+                                           mCommit.value);
 
     return true;
 }
@@ -1812,7 +1812,7 @@ BallotProtocol.getLatestMessage(ref const(NodeID) id) const
     auto it = mLatestEnvelopes.find(id);
     if (it != mLatestEnvelopes.end())
     {
-        return &it->second;
+        return &it.second;
     }
     return null;
 }
@@ -1921,7 +1921,7 @@ BallotProtocol.validateValues(ref const(SCPStatement) st)
         }
         if (prep.prepared)
         {
-            values.insert(prep.prepared->value);
+            values.insert(prep.prepared.value);
         }
     }
     break;
@@ -1998,14 +1998,14 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
     if (stateit == mLatestEnvelopes.end())
     {
         phase = "unknown";
-        if (id == mSlot.getLocalNode()->getNodeID())
+        if (id == mSlot.getLocalNode().getNodeID())
         {
-            qSetHash = mSlot.getLocalNode()->getQuorumSetHash();
+            qSetHash = mSlot.getLocalNode().getQuorumSetHash();
         }
     }
     else
     {
-        auto const& st = stateit->second.statement;
+        auto const& st = stateit.second.statement;
 
         switch (st.pledges.type)
         {
@@ -2054,7 +2054,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
         }
         else
         {
-            auto st = &it->second.statement;
+            auto st = &it.second.statement;
             if (areBallotsCompatible(getWorkingBallot(st), b))
             {
                 agree++;
@@ -2103,7 +2103,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
         {
             f_ex.append(mSlot.getSCPDriver().toStrKey(n, fullKeys));
         }
-        ret["value"] = getLocalNode()->toJson(*qSet, fullKeys);
+        ret["value"] = getLocalNode().toJson(*qSet, fullKeys);
     }
 
     ret["hash"] = hexAbbrev(qSetHash);
@@ -2158,13 +2158,13 @@ BallotProtocol.checkHeardFromQuorum()
     if (mCurrentBallot)
     {
         if (LocalNode.isQuorum(
-                getLocalNode()->getQuorumSet(), mLatestEnvelopes,
+                getLocalNode().getQuorumSet(), mLatestEnvelopes,
                 &mslot.getQuorumSetFromStatement,
                 [&](ref const(SCPStatement) st) {
                     bool res;
                     if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
                     {
-                        res = mCurrentBallot->counter <=
+                        res = mCurrentBallot.counter <=
                               st.pledges.prepare_.ballot.counter;
                     }
                     else
@@ -2178,7 +2178,7 @@ BallotProtocol.checkHeardFromQuorum()
             mHeardFromQuorum = true;
             if (!oldHQ)
             {
-                // if we transition from not heard -> heard, we start the timer
+                // if we transition from not heard . heard, we start the timer
                 mSlot.getSCPDriver().ballotDidHearFromQuorum(
                     mSlot.getSlotIndex(), *mCurrentBallot);
                 if (mPhase != SCP_PHASE_EXTERNALIZE)

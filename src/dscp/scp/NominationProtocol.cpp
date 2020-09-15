@@ -39,7 +39,7 @@ NominationProtocol.isNewerStatement(ref const(NodeID) nodeID,
     }
     else
     {
-        res = isNewerStatement(oldp->second.statement.pledges.nominate_, st);
+        res = isNewerStatement(oldp.second.statement.pledges.nominate_, st);
     }
     return res;
 }
@@ -135,7 +135,7 @@ NominationProtocol.recordEnvelope(SCPEnvelope const& env)
     }
     else
     {
-        oldp->second = env;
+        oldp.second = env;
     }
     mSlot.recordStatement(env.statement);
 }
@@ -144,11 +144,11 @@ void
 NominationProtocol.emitNomination()
 {
     SCPStatement st;
-    st.nodeID = mSlot.getLocalNode()->getNodeID();
+    st.nodeID = mSlot.getLocalNode().getNodeID();
     st.pledges.type(SCP_ST_NOMINATE);
     auto nom = &st.pledges.nominate_;
 
-    nom.quorumSetHash = mSlot.getLocalNode()->getQuorumSetHash();
+    nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
 
     for (auto const& v : mVotes)
         nom.votes ~= v;
@@ -161,7 +161,7 @@ NominationProtocol.emitNomination()
     if (mSlot.processEnvelope(envelope, true) == SCP.EnvelopeState.VALID)
     {
         if (!mLastEnvelope ||
-            isNewerStatement(mLastEnvelope->statement.pledges.nominate_,
+            isNewerStatement(mLastEnvelope.statement.pledges.nominate_,
                              st.pledges.nominate_))
         {
             mLastEnvelope = std.make_unique<SCPEnvelope>(envelope);
@@ -206,11 +206,11 @@ NominationProtocol.applyAll(SCPNomination const& nom,
 void
 NominationProtocol.updateRoundLeaders()
 {
-    SCPQuorumSet myQSet = mSlot.getLocalNode()->getQuorumSet();
+    SCPQuorumSet myQSet = mSlot.getLocalNode().getQuorumSet();
 
     // initialize priority with value derived from self
     set!NodeID newRoundLeaders;
-    auto localID = mSlot.getLocalNode()->getNodeID();
+    auto localID = mSlot.getLocalNode().getNodeID();
     normalizeQSet(myQSet, &localID);
 
     newRoundLeaders.insert(localID);
@@ -233,7 +233,7 @@ NominationProtocol.updateRoundLeaders()
     if (Logging.logDebug("SCP"))
     {
         CLOG(DEBUG, "SCP") << "updateRoundLeaders: " << newRoundLeaders.size()
-                           << " -> " << mRoundLeaders.size();
+                           << " . " << mRoundLeaders.size();
         for (auto const& rl : mRoundLeaders)
         {
             CLOG(DEBUG, "SCP")
@@ -265,7 +265,7 @@ NominationProtocol.getNodePriority(ref const(NodeID) nodeID,
     uint64 res;
     uint64 w;
 
-    if (nodeID == mSlot.getLocalNode()->getNodeID())
+    if (nodeID == mSlot.getLocalNode().getNodeID())
     {
         // local node is in all quorum sets
         w = UINT64_MAX;
@@ -352,7 +352,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                         continue;
                     }
                     if (mSlot.federatedAccept(
-                            [&v](ref const(SCPStatement) st) -> bool {
+                            [&v](ref const(SCPStatement) st) . bool {
                                 auto const& nom = st.pledges.nominate_;
                                 bool res;
                                 res = (std.find(nom.votes.begin(),
@@ -481,7 +481,7 @@ NominationProtocol.nominate(Value const& value, Value const& previousValue,
     Value nominatingValue;
 
     // if we're leader, add our value
-    if (mRoundLeaders.find(mSlot.getLocalNode()->getNodeID()) !=
+    if (mRoundLeaders.find(mSlot.getLocalNode().getNodeID()) !=
         mRoundLeaders.end())
     {
         auto ins = mVotes.insert(value);
@@ -498,7 +498,7 @@ NominationProtocol.nominate(Value const& value, Value const& previousValue,
         if (it != mLatestNominations.end())
         {
             nominatingValue = getNewValueFromNomination(
-                it->second.statement.pledges.nominate_);
+                it.second.statement.pledges.nominate_);
             if (!nominatingValue.empty())
             {
                 mVotes.insert(nominatingValue);
@@ -516,7 +516,7 @@ NominationProtocol.nominate(Value const& value, Value const& previousValue,
 
     std.function<void()>* func = new std.function<void()>;
     *func = [slot, value, previousValue]() {
-            slot->nominate(value, previousValue, true);
+            slot.nominate(value, previousValue, true);
         };
 
     mSlot.getSCPDriver().setupTimer(
@@ -622,7 +622,7 @@ NominationProtocol.getLatestMessage(ref const(NodeID) id) const
     auto it = mLatestNominations.find(id);
     if (it != mLatestNominations.end())
     {
-        return &it->second;
+        return &it.second;
     }
     return null;
 }
