@@ -1,42 +1,7 @@
 void
 BallotProtocol.bumpToBallot(SCPBallot const& ballot, bool check)
 {
-    if (Logging.logTrace("SCP"))
-        CLOG(TRACE, "SCP") << "BallotProtocol.bumpToBallot"
-                           << " i: " << mSlot.getSlotIndex()
-                           << " b: " << mSlot.getSCP().ballotToStr(ballot);
 
-    // `bumpToBallot` should be never called once we committed.
-    assert(mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE);
-
-    if (check)
-    {
-        // We should move mCurrentBallot monotonically only
-        assert(!mCurrentBallot ||
-                  compareBallots(ballot, *mCurrentBallot) >= 0);
-    }
-
-    bool gotBumped =
-        !mCurrentBallot || (mCurrentBallot.counter != ballot.counter);
-
-    if (!mCurrentBallot)
-    {
-        mSlot.getSCPDriver().startedBallotProtocol(mSlot.getSlotIndex(),
-                                                   ballot);
-    }
-
-    mCurrentBallot = std.make_unique<SCPBallot>(ballot);
-
-    // invariant: h.value = b.value
-    if (mHighBallot && !areBallotsCompatible(*mCurrentBallot, *mHighBallot))
-    {
-        mHighBallot.reset();
-    }
-
-    if (gotBumped)
-    {
-        mHeardFromQuorum = false;
-    }
 }
 
 void

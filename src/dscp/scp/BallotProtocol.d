@@ -569,7 +569,47 @@ class BallotProtocol
     // this is the lowest level method to update the current ballot and as
     // such doesn't do any validation
     // check: verifies that ballot is greater than old one
-    void bumpToBallot(ref const(SCPBallot) ballot, bool check);
+    void bumpToBallot(ref const(SCPBallot) ballot, bool check)
+    {
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.bumpToBallot"
+        //                       << " i: " << mSlot.getSlotIndex()
+        //                       << " b: " << mSlot.getSCP().ballotToStr(ballot);
+
+        // `bumpToBallot` should be never called once we committed.
+        assert(mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE);
+
+        if (check)
+        {
+            // We should move mCurrentBallot monotonically only
+            assert(!mCurrentBallot ||
+                      compareBallots(ballot, *mCurrentBallot) >= 0);
+        }
+
+        bool gotBumped =
+            !mCurrentBallot || (mCurrentBallot.counter != ballot.counter);
+
+        if (!mCurrentBallot)
+        {
+            mSlot.getSCPDriver().startedBallotProtocol(mSlot.getSlotIndex(),
+                                                       ballot);
+        }
+
+        mCurrentBallot = new SCPBallot;
+        *mCurrentBallot = cast(SCPBallot)ballot;
+
+        // invariant: h.value = b.value
+        if (mHighBallot !is null &&
+            !areBallotsCompatible(*mCurrentBallot, *mHighBallot))
+        {
+            mHighBallot = null;
+        }
+
+        if (gotBumped)
+        {
+            mHeardFromQuorum = false;
+        }
+    }
 
     // switch the local node to the given ballot's value
     // with the assumption that the ballot is more recent than the one
