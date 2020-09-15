@@ -10,6 +10,8 @@ import dscp.scp.Slot;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
+import std.format;
+
 // todo: was shared_ptr. could be RefCounted
 alias SCPQuorumSetPtr = SCPQuorumSet*;
 
@@ -128,40 +130,124 @@ class SCP
 
     // Helpers for monitoring and reporting the internal memory-usage of the SCP
     // protocol to system metric reporters.
-    size_t getKnownSlotsCount () const;
-    size_t getCumulativeStatemtCount () const;
+    size_t getKnownSlotsCount () const
+    {
+        return mKnownSlots.length;
+    }
+
+    size_t getCumulativeStatemtCount () const
+    {
+        size_t c;
+        foreach (slot; mKnownSlots.byValue())  // order is not important
+            c += slot.getStatementCount();
+        return c;
+    }
 
     // returns the latest messages sent for the given slot
-    SCPEnvelope[] getLatestMessagesSend (uint64 slotIndex);
+    SCPEnvelope[] getLatestMessagesSend (uint64 slotIndex)
+    {
+        const bool DontCreateNew = false;
+        if (auto slot = getSlot(slotIndex, DontCreateNew))
+            return slot.getLatestMessagesSend();
+
+        return null;
+    }
 
     // forces the state to match the one in the envelope
     // this is used when rebuilding the state after a crash for example
-    void setStateFromEnvelope (uint64 slotIndex, ref const(SCPEnvelope) e);
+    void setStateFromEnvelope (uint64 slotIndex, ref const(SCPEnvelope) e)
+    {
+        const CreateIfNew = true;
+        auto slot = getSlot(slotIndex, CreateIfNew);
+        slot.setStateFromEnvelope(e);
+    }
 
     // check if we are holding some slots
-    bool empty() const;
+    bool empty() const
+    {
+        return mKnownSlots.length == 0;
+    }
 
     // return lowest slot index value
-    uint64 getLowSlotIndex () const;
+    uint64 getLowSlotIndex () const
+    {
+        assert(!this.empty());
+
+        // todo: optimize
+        uint64 lowest = uint64.max;
+        foreach (slot_idx; mKnownSlots.byKey)
+            if (slot_idx < lowest)
+                lowest = slot_idx;
+
+        return lowest;
+    }
 
     // return highest slot index value
-    uint64 getHighSlotIndex () const;
+    uint64 getHighSlotIndex () const
+    {
+        assert(!this.empty());
+
+        // todo: optimize
+        uint64 highest = 0;
+        foreach (slot_idx; mKnownSlots.byKey)
+            if (slot_idx > highest)
+                highest = slot_idx;
+
+        return highest;
+    }
 
     // returns all messages for the slot
-    SCPEnvelope[] getCurrentState (uint64 slotIndex);
+    SCPEnvelope[] getCurrentState (uint64 slotIndex)
+    {
+        const DontCreateNew = false;
+        if (auto slot = getSlot(slotIndex, DontCreateNew))
+            return slot.getCurrentState();
+
+        return null;
+    }
 
     // returns the latest message from a node
     // or null if not found
-    ref const(SCPEnvelope) getLatestMessage (ref const(NodeID) id);
+    // note: this is only used in tests, and it seems to skip newer slots
+    // possible bug
+    const(SCPEnvelope)* getLatestMessage (ref const(NodeID) id)
+    {
+        foreach (slot_idx; this.getLowSlotIndex() .. this.getHighSlotIndex() + 1)
+        {
+            if (auto msg = mKnownSlots[slot_idx].getLatestMessage(id))
+                return msg;
+        }
+
+        return null;
+    }
 
     // returns messages that contributed to externalizing the slot
     // (or empty if the slot didn't externalize)
-    SCPEnvelope[] getExternalizingState (uint64 slotIndex);
+    SCPEnvelope[] getExternalizingState (uint64 slotIndex)
+    {
+        const bool DontCreateNew = false;
+        if (auto slot = getSlot(slotIndex, DontCreateNew))
+            return slot.getExternalizingState();
+
+        return null;
+    }
 
     // ** helper methods to stringify ballot for logging
-    string getValueString (ref const(Value) v) const;
-    string ballotToStr (ref const(SCPBallot) ballot) const;
-    string envToStr (ref const(SCPEnvelope) envelope, bool fullKeys = false) const;
+    string getValueString (ref const(Value) v) const
+    {
+        return mDriver.getValueString(v);
+    }
+
+    string ballotToStr (ref const(SCPBallot) ballot) const
+    {
+        return format("(%s, %s)", ballot.counter, getValueString(ballot.value));
+    }
+
+    string envToStr (ref const(SCPEnvelope) envelope, bool fullKeys = false) const
+    {
+        return envToStr(envelope.statement, fullKeys);
+    }
+
     string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const;
 
   protected:
