@@ -1,5 +1,7 @@
 module dscp.util.Nullable;
 
+import std.exception;
+
 // because std.typecons.Nullable is hot garbage
 struct Nullable(T)
 {
