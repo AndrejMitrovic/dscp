@@ -21,7 +21,7 @@ struct ByteSlice
         mSize = arr.length;
     }
 
-    //this (xdr::msg_ptr const& p)
+    //this (xdr.msg_ptr const& p)
     //{
     //    mData(p->data()), mSize(p->size());
     //}

@@ -14,7 +14,7 @@
 #define WARN  2
 #define ERROR 3
 #define FATAL 4
-#define CLOG(LEVEL, MOD) stellar::DLogger(LEVEL, MOD)
+#define CLOG(LEVEL, MOD) stellar.DLogger(LEVEL, MOD)
 
 // Logging function to D code
 void writeDLog(const char* logger, int level, const char* msg);
@@ -25,22 +25,22 @@ class Logging
 {
   public:
     static void init();
-    static void setFmt(std::string const& peerID, bool timestamps = true);
-    static void setLoggingToFile(std::string const& filename);
-    static bool logDebug(std::string const& partition) { return false; }
-    static bool logTrace(std::string const& partition) { return false; }
+    static void setFmt(std.string const& peerID, bool timestamps = true);
+    static void setLoggingToFile(std.string const& filename);
+    static bool logDebug(std.string const& partition) { return false; }
+    static bool logTrace(std.string const& partition) { return false; }
     static void rotate();
 };
 
 struct DLogger
 {
   private:
-    std::string mLoggerName;
+    std.string mLoggerName;
     int mLevel;
-    std::ostringstream mOutStream;
+    std.ostringstream mOutStream;
 
   public:
-    DLogger(int level, std::string const& loggerName);
+    DLogger(int level, std.string const& loggerName);
     ~DLogger();
 
     template <class T>

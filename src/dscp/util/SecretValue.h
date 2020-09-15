@@ -18,7 +18,7 @@ namespace stellar
  */
 struct SecretValue
 {
-    std::string value;
+    std.string value;
 };
 
 bool operator==(SecretValue const& x, SecretValue const& y);

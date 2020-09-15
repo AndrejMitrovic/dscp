@@ -15,6 +15,6 @@ namespace stellar
 namespace shortHash
 {
 void initialize_byteslice_hasher();
-uint64_t computeHash(stellar::ByteSlice const& b);
+uint64_t computeHash(stellar.ByteSlice const& b);
 }
 }

@@ -105,7 +105,28 @@ class Slot
 
     // forces the state to match the one in the envelope
     // this is used when rebuilding the state after a crash for example
-    void setStateFromEnvelope(ref const(SCPEnvelope) e);
+    void setStateFromEnvelope(ref const(SCPEnvelope) e)
+    {
+        if (e.statement.nodeID == getSCP().getLocalNodeID() &&
+            e.statement.slotIndex == mSlotIndex)
+        {
+            if (e.statement.pledges.type() == SCPStatementType.SCP_ST_NOMINATE)
+            {
+                mNominationProtocol.setStateFromEnvelope(e);
+            }
+            else
+            {
+                mBallotProtocol.setStateFromEnvelope(e);
+            }
+        }
+        else
+        {
+            if (Logging.logTrace("SCP"))
+                CLOG(TRACE, "SCP")
+                    << "Slot.setStateFromEnvelope invalid envelope"
+                    << " i: " << getSlotIndex() << " " << mSCP.envToStr(e);
+        }
+    }
 
     // returns the latest messages known for this slot
     SCPEnvelope[] getCurrentState() const;

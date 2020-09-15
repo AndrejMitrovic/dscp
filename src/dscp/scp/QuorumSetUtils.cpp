@@ -37,7 +37,7 @@ class QuorumSetSanityChecker
     bool checkSanity(ref const(SCPQuorumSet) qSet, int depth, const char** reason);
 };
 
-QuorumSetSanityChecker::QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet,
+QuorumSetSanityChecker.QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet,
                                                bool extraChecks,
                                                const char** reason)
     : mExtraChecks{extraChecks}
@@ -63,7 +63,7 @@ QuorumSetSanityChecker::QuorumSetSanityChecker(ref const(SCPQuorumSet) qSet,
 }
 
 bool
-QuorumSetSanityChecker::checkSanity(ref const(SCPQuorumSet) qSet, int depth,
+QuorumSetSanityChecker.checkSanity(ref const(SCPQuorumSet) qSet, int depth,
                                     const char** reason)
 {
     if (depth > 2)
@@ -144,11 +144,11 @@ namespace
 void
 normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
 {
-    using xdr::operator==;
+    using xdr.operator==;
     auto& v = qSet.validators;
     if (idToRemove)
     {
-        auto it_v = std::remove_if(v.begin(), v.end(), [&](ref const(NodeID) n) {
+        auto it_v = std.remove_if(v.begin(), v.end(), [&](ref const(NodeID) n) {
             return n == *idToRemove;
         });
         qSet.threshold -= uint32(v.end() - it_v);
@@ -253,13 +253,13 @@ qSetCompareInt(ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r)
 void
 normalizeQuorumSetReorder(SCPQuorumSet& qset)
 {
-    std::sort(qset.validators.begin(), qset.validators.end());
+    std.sort(qset.validators.begin(), qset.validators.end());
     for (auto& qs : qset.innerSets)
     {
         normalizeQuorumSetReorder(qs);
     }
     // now, we can reorder the inner sets
-    std::sort(qset.innerSets.begin(), qset.innerSets.end(),
+    std.sort(qset.innerSets.begin(), qset.innerSets.end(),
               [](ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r) {
                   return qSetCompareInt(l, r) < 0;
               });

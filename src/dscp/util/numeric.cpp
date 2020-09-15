@@ -45,7 +45,7 @@ bigDivide(int64_t A, int64_t B, int64_t C, Rounding rounding)
     int64_t res;
     if (!bigDivide(res, A, B, C, rounding))
     {
-        throw std::overflow_error("overflow while performing bigDivide");
+        throw std.overflow_error("overflow while performing bigDivide");
     }
     return res;
 }
@@ -104,7 +104,7 @@ bigDivide(uint128_t a, int64_t B, Rounding rounding)
     int64_t res;
     if (!bigDivide(res, a, B, rounding))
     {
-        throw std::overflow_error("overflow while performing bigDivide");
+        throw std.overflow_error("overflow while performing bigDivide");
     }
     return res;
 }

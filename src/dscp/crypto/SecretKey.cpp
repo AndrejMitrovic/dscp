@@ -16,7 +16,7 @@
 namespace stellar
 {
 
-SecretKey::SecretKey() : mKeyType(PUBLIC_KEY_TYPE_ED25519)
+SecretKey.SecretKey() : mKeyType(PUBLIC_KEY_TYPE_ED25519)
 {
     static_assert(crypto_sign_PUBLICKEYBYTES == sizeof(uint256),
                   "Unexpected public key length");
@@ -30,24 +30,24 @@ SecretKey::SecretKey() : mKeyType(PUBLIC_KEY_TYPE_ED25519)
                   "Unexpected signature length");
 }
 
-SecretKey::~SecretKey()
+SecretKey.~SecretKey()
 {
-    std::memset(mSecretKey.data(), 0, mSecretKey.size());
+    std.memset(mSecretKey.data(), 0, mSecretKey.size());
 }
 
-SecretKey::Seed::~Seed()
+SecretKey.Seed.~Seed()
 {
-    std::memset(mSeed.data(), 0, mSeed.size());
+    std.memset(mSeed.data(), 0, mSeed.size());
 }
 
 PublicKey const&
-SecretKey::getPublicKey() const
+SecretKey.getPublicKey() const
 {
     return mPublicKey;
 }
 
-SecretKey::Seed
-SecretKey::getSeed() const
+SecretKey.Seed
+SecretKey.getSeed() const
 {
     assert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
@@ -56,27 +56,27 @@ SecretKey::getSeed() const
     if (crypto_sign_ed25519_sk_to_seed(seed.mSeed.data(), mSecretKey.data()) !=
         0)
     {
-        throw std::runtime_error("error extracting seed from secret key");
+        throw std.runtime_error("error extracting seed from secret key");
     }
     return seed;
 }
 
 SecretValue
-SecretKey::getStrKeySeed() const
+SecretKey.getStrKeySeed() const
 {
     assert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
-    return strKey::toStrKey(strKey::STRKEY_SEED_ED25519, getSeed().mSeed);
+    return strKey.toStrKey(strKey.STRKEY_SEED_ED25519, getSeed().mSeed);
 }
 
-std::string
-SecretKey::getStrKeyPublic() const
+std.string
+SecretKey.getStrKeyPublic() const
 {
-    return KeyUtils::toStrKey(getPublicKey());
+    return KeyUtils.toStrKey(getPublicKey());
 }
 
 bool
-SecretKey::isZero() const
+SecretKey.isZero() const
 {
     for (auto i : mSecretKey)
     {
@@ -89,7 +89,7 @@ SecretKey::isZero() const
 }
 
 Signature
-SecretKey::sign(ByteSlice const& bin) const
+SecretKey.sign(ByteSlice const& bin) const
 {
     assert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
@@ -97,20 +97,20 @@ SecretKey::sign(ByteSlice const& bin) const
     if (crypto_sign_detached(out.data(), NULL, bin.data(), bin.size(),
                              mSecretKey.data()) != 0)
     {
-        throw std::runtime_error("error while signing");
+        throw std.runtime_error("error while signing");
     }
     return out;
 }
 
 SecretKey
-SecretKey::random()
+SecretKey.random()
 {
     SecretKey sk;
     assert(sk.mKeyType == PUBLIC_KEY_TYPE_ED25519);
     if (crypto_sign_keypair(sk.mPublicKey.ed25519().data(),
                             sk.mSecretKey.data()) != 0)
     {
-        throw std::runtime_error("error generating random secret key");
+        throw std.runtime_error("error generating random secret key");
     }
 #ifdef MSAN_ENABLED
     __msan_unpoison(out.key.data(), out.key.size());
@@ -120,18 +120,18 @@ SecretKey::random()
 
 #ifdef BUILD_TESTS
 static SecretKey
-pseudoRandomForTestingFromPRNG(std::default_random_engine& engine)
+pseudoRandomForTestingFromPRNG(std.default_random_engine& engine)
 {
-    std::vector<uint8_t> bytes;
+    std.vector<uint8_t> bytes;
     for (size_t i = 0; i < crypto_sign_SEEDBYTES; ++i)
     {
         bytes.push_back(static_cast<uint8_t>(engine()));
     }
-    return SecretKey::fromSeed(bytes);
+    return SecretKey.fromSeed(bytes);
 }
 
 SecretKey
-SecretKey::pseudoRandomForTesting()
+SecretKey.pseudoRandomForTesting()
 {
     // Reminder: this is not cryptographic randomness or even particularly hard
     // to guess PRNG-ness. It's intended for _deterministic_ use, when you want
@@ -140,45 +140,45 @@ SecretKey::pseudoRandomForTesting()
 }
 
 SecretKey
-SecretKey::pseudoRandomForTestingFromSeed(unsigned int seed)
+SecretKey.pseudoRandomForTestingFromSeed(unsigned int seed)
 {
     // Reminder: this is not cryptographic randomness or even particularly hard
     // to guess PRNG-ness. It's intended for _deterministic_ use, when you want
     // "slightly random-ish" keys, for test-data generation.
-    std::default_random_engine tmpEngine(seed);
+    std.default_random_engine tmpEngine(seed);
     return pseudoRandomForTestingFromPRNG(tmpEngine);
 }
 #endif
 
 SecretKey
-SecretKey::fromSeed(ByteSlice const& seed)
+SecretKey.fromSeed(ByteSlice const& seed)
 {
     SecretKey sk;
     assert(sk.mKeyType == PUBLIC_KEY_TYPE_ED25519);
 
     if (seed.size() != crypto_sign_SEEDBYTES)
     {
-        throw std::runtime_error("seed does not match byte size");
+        throw std.runtime_error("seed does not match byte size");
     }
     if (crypto_sign_seed_keypair(sk.mPublicKey.ed25519().data(),
                                  sk.mSecretKey.data(), seed.data()) != 0)
     {
-        throw std::runtime_error("error generating secret key from seed");
+        throw std.runtime_error("error generating secret key from seed");
     }
     return sk;
 }
 
 SecretKey
-SecretKey::fromStrKeySeed(std::string const& strKeySeed)
+SecretKey.fromStrKeySeed(std.string const& strKeySeed)
 {
     uint8_t ver;
-    std::vector<uint8_t> seed;
-    if (!strKey::fromStrKey(strKeySeed, ver, seed) ||
-        (ver != strKey::STRKEY_SEED_ED25519) ||
+    std.vector<uint8_t> seed;
+    if (!strKey.fromStrKey(strKeySeed, ver, seed) ||
+        (ver != strKey.STRKEY_SEED_ED25519) ||
         (seed.size() != crypto_sign_SEEDBYTES) ||
-        (strKeySeed.size() != strKey::getStrKeySize(crypto_sign_SEEDBYTES)))
+        (strKeySeed.size() != strKey.getStrKeySize(crypto_sign_SEEDBYTES)))
     {
-        throw std::runtime_error("invalid seed");
+        throw std.runtime_error("invalid seed");
     }
 
     SecretKey sk;
@@ -186,24 +186,24 @@ SecretKey::fromStrKeySeed(std::string const& strKeySeed)
     if (crypto_sign_seed_keypair(sk.mPublicKey.ed25519().data(),
                                  sk.mSecretKey.data(), seed.data()) != 0)
     {
-        throw std::runtime_error("error generating secret key from seed");
+        throw std.runtime_error("error generating secret key from seed");
     }
     return sk;
 }
 
-std::string
-KeyFunctions<PublicKey>::getKeyTypeName()
+std.string
+KeyFunctions<PublicKey>.getKeyTypeName()
 {
     return "public key";
 }
 
 bool
-KeyFunctions<PublicKey>::getKeyVersionIsSupported(
-    strKey::StrKeyVersionByte keyVersion)
+KeyFunctions<PublicKey>.getKeyVersionIsSupported(
+    strKey.StrKeyVersionByte keyVersion)
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
+    case strKey.STRKEY_PUBKEY_ED25519:
         return true;
     default:
         return false;
@@ -211,55 +211,55 @@ KeyFunctions<PublicKey>::getKeyVersionIsSupported(
 }
 
 PublicKeyType
-KeyFunctions<PublicKey>::toKeyType(strKey::StrKeyVersionByte keyVersion)
+KeyFunctions<PublicKey>.toKeyType(strKey.StrKeyVersionByte keyVersion)
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
-        return PublicKeyType::PUBLIC_KEY_TYPE_ED25519;
+    case strKey.STRKEY_PUBKEY_ED25519:
+        return PublicKeyType.PUBLIC_KEY_TYPE_ED25519;
     default:
-        throw std::invalid_argument("invalid public key type");
+        throw std.invalid_argument("invalid public key type");
     }
 }
 
-strKey::StrKeyVersionByte
-KeyFunctions<PublicKey>::toKeyVersion(PublicKeyType keyType)
+strKey.StrKeyVersionByte
+KeyFunctions<PublicKey>.toKeyVersion(PublicKeyType keyType)
 {
     switch (keyType)
     {
-    case PublicKeyType::PUBLIC_KEY_TYPE_ED25519:
-        return strKey::STRKEY_PUBKEY_ED25519;
+    case PublicKeyType.PUBLIC_KEY_TYPE_ED25519:
+        return strKey.STRKEY_PUBKEY_ED25519;
     default:
-        throw std::invalid_argument("invalid public key type");
+        throw std.invalid_argument("invalid public key type");
     }
 }
 
 uint256&
-KeyFunctions<PublicKey>::getKeyValue(PublicKey& key)
+KeyFunctions<PublicKey>.getKeyValue(PublicKey& key)
 {
     switch (key.type())
     {
     case PUBLIC_KEY_TYPE_ED25519:
         return key.ed25519();
     default:
-        throw std::invalid_argument("invalid public key type");
+        throw std.invalid_argument("invalid public key type");
     }
 }
 
 uint256 const&
-KeyFunctions<PublicKey>::getKeyValue(PublicKey const& key)
+KeyFunctions<PublicKey>.getKeyValue(PublicKey const& key)
 {
     switch (key.type())
     {
     case PUBLIC_KEY_TYPE_ED25519:
         return key.ed25519();
     default:
-        throw std::invalid_argument("invalid public key type");
+        throw std.invalid_argument("invalid public key type");
     }
 }
 
 PublicKey
-PubKeyUtils::random()
+PubKeyUtils.random()
 {
     PublicKey pk;
     pk.type(PUBLIC_KEY_TYPE_ED25519);
@@ -269,23 +269,23 @@ PubKeyUtils::random()
 }
 
 static void
-logPublicKey(std::ostream& s, PublicKey const& pk)
+logPublicKey(std.ostream& s, PublicKey const& pk)
 {
-    s << "PublicKey:" << std::endl
-      << "  strKey: " << KeyUtils::toStrKey(pk) << std::endl
-      << "  hex: " << binToHex(pk.ed25519()) << std::endl;
+    s << "PublicKey:" << std.endl
+      << "  strKey: " << KeyUtils.toStrKey(pk) << std.endl
+      << "  hex: " << binToHex(pk.ed25519()) << std.endl;
 }
 
 static void
-logSecretKey(std::ostream& s, SecretKey const& sk)
+logSecretKey(std.ostream& s, SecretKey const& sk)
 {
-    s << "Seed:" << std::endl
-      << "  strKey: " << sk.getStrKeySeed().value << std::endl;
+    s << "Seed:" << std.endl
+      << "  strKey: " << sk.getStrKeySeed().value << std.endl;
     logPublicKey(s, sk.getPublicKey());
 }
 
 void
-StrKeyUtils::logKey(std::ostream& s, std::string const& key)
+StrKeyUtils.logKey(std.ostream& s, std.string const& key)
 {
     // if it's a hex string, display it in all forms
     try
@@ -296,7 +296,7 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
         pk.ed25519() = data;
         logPublicKey(s, pk);
 
-        SecretKey sk(SecretKey::fromSeed(data));
+        SecretKey sk(SecretKey.fromSeed(data));
         logSecretKey(s, sk);
         return;
     }
@@ -307,7 +307,7 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
     // see if it's a public key
     try
     {
-        PublicKey pk = KeyUtils::fromStrKey<PublicKey>(key);
+        PublicKey pk = KeyUtils.fromStrKey<PublicKey>(key);
         logPublicKey(s, pk);
         return;
     }
@@ -318,18 +318,18 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
     // see if it's a seed
     try
     {
-        SecretKey sk = SecretKey::fromStrKeySeed(key);
+        SecretKey sk = SecretKey.fromStrKeySeed(key);
         logSecretKey(s, sk);
         return;
     }
     catch (...)
     {
     }
-    s << "Unknown key type" << std::endl;
+    s << "Unknown key type" << std.endl;
 }
 
 Hash
-HashUtils::random()
+HashUtils.random()
 {
     Hash res;
     randombytes_buf(res.data(), res.size());
@@ -340,10 +340,10 @@ HashUtils::random()
 namespace std
 {
 size_t
-hash<stellar::PublicKey>::operator()(stellar::PublicKey const& k) const noexcept
+hash<stellar.PublicKey>.operator()(stellar.PublicKey const& k) const noexcept
 {
-    assert(k.type() == stellar::PUBLIC_KEY_TYPE_ED25519);
+    assert(k.type() == stellar.PUBLIC_KEY_TYPE_ED25519);
 
-    return std::hash<stellar::uint256>()(k.ed25519());
+    return std.hash<stellar.uint256>()(k.ed25519());
 }
 }

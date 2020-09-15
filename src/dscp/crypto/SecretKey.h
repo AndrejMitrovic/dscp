@@ -21,7 +21,7 @@ struct SignerKey;
 
 class SecretKey
 {
-    using uint512 = xdr::opaque_array<64>;
+    using uint512 = xdr.opaque_array<64>;
     PublicKeyType mKeyType;
     uint512 mSecretKey;
     PublicKey mPublicKey;
@@ -47,7 +47,7 @@ class SecretKey
     SecretValue getStrKeySeed() const;
 
     // Get the public key portion of this secret key as a StrKey string.
-    std::string getStrKeyPublic() const;
+    std.string getStrKeyPublic() const;
 
     // Return true iff this key is all-zero.
     bool isZero() const;
@@ -72,12 +72,12 @@ class SecretKey
 #endif
 
     // Decode a secret key from a provided StrKey seed value.
-    static SecretKey fromStrKeySeed(std::string const& strKeySeed);
+    static SecretKey fromStrKeySeed(std.string const& strKeySeed);
     static SecretKey
-    fromStrKeySeed(std::string&& strKeySeed)
+    fromStrKeySeed(std.string&& strKeySeed)
     {
         SecretKey ret = fromStrKeySeed(strKeySeed);
-        for (std::size_t i = 0; i < strKeySeed.size(); ++i)
+        for (std.size_t i = 0; i < strKeySeed.size(); ++i)
             strKeySeed[i] = 0;
         return ret;
     }
@@ -99,10 +99,10 @@ template <> struct KeyFunctions<PublicKey>
         using type = PublicKeyType;
     };
 
-    static std::string getKeyTypeName();
-    static bool getKeyVersionIsSupported(strKey::StrKeyVersionByte keyVersion);
-    static PublicKeyType toKeyType(strKey::StrKeyVersionByte keyVersion);
-    static strKey::StrKeyVersionByte toKeyVersion(PublicKeyType keyType);
+    static std.string getKeyTypeName();
+    static bool getKeyVersionIsSupported(strKey.StrKeyVersionByte keyVersion);
+    static PublicKeyType toKeyType(strKey.StrKeyVersionByte keyVersion);
+    static strKey.StrKeyVersionByte toKeyVersion(PublicKeyType keyType);
     static uint256& getKeyValue(PublicKey& key);
     static uint256 const& getKeyValue(PublicKey const& key);
 };
@@ -117,7 +117,7 @@ namespace StrKeyUtils
 {
 // logs a key (can be a public or private key) in all
 // known formats
-void logKey(std::ostream& s, std::string const& key);
+void logKey(std.ostream& s, std.string const& key);
 }
 
 namespace HashUtils
@@ -128,8 +128,8 @@ Hash random();
 
 namespace std
 {
-template <> struct hash<stellar::PublicKey>
+template <> struct hash<stellar.PublicKey>
 {
-    size_t operator()(stellar::PublicKey const& x) const noexcept;
+    size_t operator()(stellar.PublicKey const& x) const noexcept;
 };
 }

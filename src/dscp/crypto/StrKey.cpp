@@ -16,7 +16,7 @@ SecretValue
 toStrKey(uint8_t ver, ByteSlice const& bin)
 {
     ver <<= 3; // promote to 8 bits
-    std::vector<uint8_t> toEncode;
+    std.vector<uint8_t> toEncode;
     toEncode.reserve(1 + bin.size() + 2);
     toEncode.emplace_back(ver);
     toEncode.insert(toEncode.end(), bin.begin(), bin.end());
@@ -26,8 +26,8 @@ toStrKey(uint8_t ver, ByteSlice const& bin)
     crc >>= 8;
     toEncode.emplace_back(static_cast<uint8_t>(crc & 0xFF));
 
-    std::string res;
-    res = decoder::encode_b32(toEncode);
+    std.string res;
+    res = decoder.encode_b32(toEncode);
     return SecretValue{res};
 }
 
@@ -35,12 +35,12 @@ size_t
 getStrKeySize(size_t dataSize)
 {
     dataSize += 3; // version and crc
-    return decoder::encoded_size32(dataSize);
+    return decoder.encoded_size32(dataSize);
 }
 
 bool
-fromStrKey(std::string const& strKey, uint8_t& outVersion,
-           std::vector<uint8_t>& decoded)
+fromStrKey(std.string const& strKey, uint8_t& outVersion,
+           std.vector<uint8_t>& decoded)
 {
     // check that there is no trailing data
     size_t s = strKey.size();
@@ -49,7 +49,7 @@ fromStrKey(std::string const& strKey, uint8_t& outVersion,
     {
         return false;
     }
-    decoder::decode_b32(strKey, decoded);
+    decoder.decode_b32(strKey, decoded);
     if (decoded.size() < 3)
     {
         return false;

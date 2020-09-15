@@ -18,30 +18,30 @@
 namespace stellar
 {
 
-SCP::SCP(SCPDriver& driver, ref const(NodeID) nodeID, bool isValidator,
+SCP.SCP(SCPDriver& driver, ref const(NodeID) nodeID, bool isValidator,
          ref const(SCPQuorumSet) qSetLocal)
     : mDriver(driver)
 {
     mLocalNode =
-        std::make_shared<LocalNode>(nodeID, isValidator, qSetLocal, this);
+        std.make_shared<LocalNode>(nodeID, isValidator, qSetLocal, this);
 }
 
-SCP::EnvelopeState
-SCP::receiveEnvelope(SCPEnvelope const& envelope)
+SCP.EnvelopeState
+SCP.receiveEnvelope(SCPEnvelope const& envelope)
 {
     uint64 slotIndex = envelope.statement.slotIndex;
     return getSlot(slotIndex, true)->processEnvelope(envelope, false);
 }
 
 bool
-SCP::nominate(uint64 slotIndex, Value const& value, Value const& previousValue)
+SCP.nominate(uint64 slotIndex, Value const& value, Value const& previousValue)
 {
     dbgAssert(isValidator());
     return getSlot(slotIndex, true)->nominate(value, previousValue, false);
 }
 
 void
-SCP::stopNomination(uint64 slotIndex)
+SCP.stopNomination(uint64 slotIndex)
 {
     auto s = getSlot(slotIndex, false);
     if (s)
@@ -51,25 +51,25 @@ SCP::stopNomination(uint64 slotIndex)
 }
 
 void
-SCP::updateLocalQuorumSet(ref const(SCPQuorumSet) qSet)
+SCP.updateLocalQuorumSet(ref const(SCPQuorumSet) qSet)
 {
     mLocalNode->updateQuorumSet(qSet);
 }
 
 ref const(SCPQuorumSet)
-SCP::getLocalQuorumSet()
+SCP.getLocalQuorumSet()
 {
     return mLocalNode->getQuorumSet();
 }
 
 ref const(NodeID)
-SCP::getLocalNodeID()
+SCP.getLocalNodeID()
 {
     return mLocalNode->getNodeID();
 }
 
 void
-SCP::purgeSlots(uint64 maxSlotIndex)
+SCP.purgeSlots(uint64 maxSlotIndex)
 {
     auto it = mKnownSlots.begin();
     while (it != mKnownSlots.end())
@@ -85,22 +85,22 @@ SCP::purgeSlots(uint64 maxSlotIndex)
     }
 }
 
-std::shared_ptr<LocalNode>
-SCP::getLocalNode()
+std.shared_ptr<LocalNode>
+SCP.getLocalNode()
 {
     return mLocalNode;
 }
 
-std::shared_ptr<Slot>
-SCP::getSlot(uint64 slotIndex, bool create)
+std.shared_ptr<Slot>
+SCP.getSlot(uint64 slotIndex, bool create)
 {
-    std::shared_ptr<Slot> res;
+    std.shared_ptr<Slot> res;
     auto it = mKnownSlots.find(slotIndex);
     if (it == mKnownSlots.end())
     {
         if (create)
         {
-            res = std::make_shared<Slot>(slotIndex, *this);
+            res = std.make_shared<Slot>(slotIndex, *this);
             mKnownSlots[slotIndex] = res;
         }
     }
@@ -111,33 +111,33 @@ SCP::getSlot(uint64 slotIndex, bool create)
     return res;
 }
 
-Json::Value
-SCP::getJsonInfo(size_t limit, bool fullKeys)
+Json.Value
+SCP.getJsonInfo(size_t limit, bool fullKeys)
 {
-    Json::Value ret;
+    Json.Value ret;
     auto it = mKnownSlots.rbegin();
     while (it != mKnownSlots.rend() && limit-- != 0)
     {
         auto& slot = *(it->second);
-        ret[std::to_string(slot.getSlotIndex())] = slot.getJsonInfo(fullKeys);
+        ret[std.to_string(slot.getSlotIndex())] = slot.getJsonInfo(fullKeys);
         it++;
     }
 
     return ret;
 }
 
-Json::Value
-SCP::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
+Json.Value
+SCP.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
                        uint64 index)
 {
-    Json::Value ret;
+    Json.Value ret;
     if (index == 0)
     {
         for (auto& item : mKnownSlots)
         {
             auto& slot = *item.second;
             ret = slot.getJsonQuorumInfo(id, summary, fullKeys);
-            ret["ledger"] = static_cast<Json::UInt64>(slot.getSlotIndex());
+            ret["ledger"] = static_cast<Json.UInt64>(slot.getSlotIndex());
         }
     }
     else
@@ -146,20 +146,20 @@ SCP::getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
         if (s)
         {
             ret = s->getJsonQuorumInfo(id, summary, fullKeys);
-            ret["ledger"] = static_cast<Json::UInt64>(index);
+            ret["ledger"] = static_cast<Json.UInt64>(index);
         }
     }
     return ret;
 }
 
 bool
-SCP::isValidator()
+SCP.isValidator()
 {
     return mLocalNode->isValidator();
 }
 
 bool
-SCP::isSlotFullyValidated(uint64 slotIndex)
+SCP.isSlotFullyValidated(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
     if (slot)
@@ -173,13 +173,13 @@ SCP::isSlotFullyValidated(uint64 slotIndex)
 }
 
 size_t
-SCP::getKnownSlotsCount() const
+SCP.getKnownSlotsCount() const
 {
     return mKnownSlots.size();
 }
 
 size_t
-SCP::getCumulativeStatemtCount() const
+SCP.getCumulativeStatemtCount() const
 {
     size_t c = 0;
     for (auto const& s : mKnownSlots)
@@ -189,8 +189,8 @@ SCP::getCumulativeStatemtCount() const
     return c;
 }
 
-std::vector<SCPEnvelope>
-SCP::getLatestMessagesSend(uint64 slotIndex)
+std.vector<SCPEnvelope>
+SCP.getLatestMessagesSend(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
     if (slot)
@@ -199,32 +199,32 @@ SCP::getLatestMessagesSend(uint64 slotIndex)
     }
     else
     {
-        return std::vector<SCPEnvelope>();
+        return std.vector<SCPEnvelope>();
     }
 }
 
 void
-SCP::setStateFromEnvelope(uint64 slotIndex, SCPEnvelope const& e)
+SCP.setStateFromEnvelope(uint64 slotIndex, SCPEnvelope const& e)
 {
     auto slot = getSlot(slotIndex, true);
     slot->setStateFromEnvelope(e);
 }
 
 bool
-SCP::empty() const
+SCP.empty() const
 {
     return mKnownSlots.empty();
 }
 
 uint64
-SCP::getLowSlotIndex() const
+SCP.getLowSlotIndex() const
 {
     assert(!empty());
     return mKnownSlots.begin()->first;
 }
 
 uint64
-SCP::getHighSlotIndex() const
+SCP.getHighSlotIndex() const
 {
     assert(!empty());
     auto it = mKnownSlots.end();
@@ -232,8 +232,8 @@ SCP::getHighSlotIndex() const
     return it->first;
 }
 
-std::vector<SCPEnvelope>
-SCP::getCurrentState(uint64 slotIndex)
+std.vector<SCPEnvelope>
+SCP.getCurrentState(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
     if (slot)
@@ -242,12 +242,12 @@ SCP::getCurrentState(uint64 slotIndex)
     }
     else
     {
-        return std::vector<SCPEnvelope>();
+        return std.vector<SCPEnvelope>();
     }
 }
 
 SCPEnvelope const*
-SCP::getLatestMessage(ref const(NodeID) id)
+SCP.getLatestMessage(ref const(NodeID) id)
 {
     for (auto it = mKnownSlots.rbegin(); it != mKnownSlots.rend(); it++)
     {
@@ -261,8 +261,8 @@ SCP::getLatestMessage(ref const(NodeID) id)
     return null;
 }
 
-std::vector<SCPEnvelope>
-SCP::getExternalizingState(uint64 slotIndex)
+std.vector<SCPEnvelope>
+SCP.getExternalizingState(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
     if (slot)
@@ -271,29 +271,29 @@ SCP::getExternalizingState(uint64 slotIndex)
     }
     else
     {
-        return std::vector<SCPEnvelope>();
+        return std.vector<SCPEnvelope>();
     }
 }
 
-std::string
-SCP::getValueString(Value const& v) const
+std.string
+SCP.getValueString(Value const& v) const
 {
     return mDriver.getValueString(v);
 }
 
-std::string
-SCP::ballotToStr(SCPBallot const& ballot) const
+std.string
+SCP.ballotToStr(SCPBallot const& ballot) const
 {
-    std::ostringstream oss;
+    std.ostringstream oss;
 
     oss << "(" << ballot.counter << "," << getValueString(ballot.value) << ")";
     return oss.str();
 }
 
-std::string
-SCP::ballotToStr(std::unique_ptr<SCPBallot> const& ballot) const
+std.string
+SCP.ballotToStr(std.unique_ptr<SCPBallot> const& ballot) const
 {
-    std::string res;
+    std.string res;
     if (ballot)
     {
         res = ballotToStr(*ballot);
@@ -305,26 +305,26 @@ SCP::ballotToStr(std::unique_ptr<SCPBallot> const& ballot) const
     return res;
 }
 
-std::string
-SCP::envToStr(SCPEnvelope const& envelope, bool fullKeys) const
+std.string
+SCP.envToStr(SCPEnvelope const& envelope, bool fullKeys) const
 {
     return envToStr(envelope.statement, fullKeys);
 }
 
-std::string
-SCP::envToStr(SCPStatement const& st, bool fullKeys) const
+std.string
+SCP.envToStr(SCPStatement const& st, bool fullKeys) const
 {
-    std::ostringstream oss;
+    std.ostringstream oss;
 
-    ref const(Hash) qSetHash = Slot::getCompanionQuorumSetHashFromStatement(st);
+    ref const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
 
-    std::string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
+    std.string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
 
     oss << "{ENV@" << nodeId << " | "
         << " i: " << st.slotIndex;
     switch (st.pledges.type())
     {
-    case SCPStatementType::SCP_ST_PREPARE:
+    case SCPStatementType.SCP_ST_PREPARE:
     {
         auto const& p = st.pledges.prepare();
         oss << " | PREPARE"
@@ -335,7 +335,7 @@ SCP::envToStr(SCPStatement const& st, bool fullKeys) const
             << " | h.n: " << p.nH;
     }
     break;
-    case SCPStatementType::SCP_ST_CONFIRM:
+    case SCPStatementType.SCP_ST_CONFIRM:
     {
         auto const& c = st.pledges.confirm();
         oss << " | CONFIRM"
@@ -344,7 +344,7 @@ SCP::envToStr(SCPStatement const& st, bool fullKeys) const
             << " | c.n: " << c.nCommit << " | h.n: " << c.nH;
     }
     break;
-    case SCPStatementType::SCP_ST_EXTERNALIZE:
+    case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
         auto const& ex = st.pledges.externalize();
         oss << " | EXTERNALIZE"
@@ -352,7 +352,7 @@ SCP::envToStr(SCPStatement const& st, bool fullKeys) const
             << " | (lastD): " << hexAbbrev(qSetHash);
     }
     break;
-    case SCPStatementType::SCP_ST_NOMINATE:
+    case SCPStatementType.SCP_ST_NOMINATE:
     {
         auto const& nom = st.pledges.nominate();
         oss << " | NOMINATE"

@@ -17,7 +17,7 @@ alias int64 = long;
 // workaround for shared_ptr.get()
 auto get (T)(T* val) { return val; }
 
-// workaround for std::vector.size()
+// workaround for std.vector.size()
 auto size (T)(T[] val) { return val.length; }
 
 /// std.set equivalent

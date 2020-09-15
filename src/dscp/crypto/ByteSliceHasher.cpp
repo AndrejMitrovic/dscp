@@ -16,7 +16,7 @@ initialize_byteslice_hasher()
     crypto_shorthash_keygen(sKey);
 }
 uint64_t
-computeHash(stellar::ByteSlice const& b)
+computeHash(stellar.ByteSlice const& b)
 {
     uint64_t res;
     static_assert(sizeof(res) == crypto_shorthash_BYTES, "unexpected size");

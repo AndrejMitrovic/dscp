@@ -11,15 +11,15 @@ using namespace std;
 
 namespace stellar
 {
-DLogger::DLogger(int level, std::string const& loggerName)
+DLogger.DLogger(int level, std.string const& loggerName)
 {
     mLevel = level;
-    mLoggerName = std::string(loggerName);
+    mLoggerName = std.string(loggerName);
 }
 
-DLogger::~DLogger()
+DLogger.~DLogger()
 {
-    if (mLevel == TRACE && !Logging::logTrace("SCP"))
+    if (mLevel == TRACE && !Logging.logTrace("SCP"))
         return;
 
     writeDLog(mLoggerName.c_str(), mLevel, mOutStream.str().c_str());

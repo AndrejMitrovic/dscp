@@ -8,8 +8,8 @@
 namespace stellar
 {
 
-std::default_random_engine gRandomEngine;
-std::uniform_real_distribution<double> uniformFractionDistribution(0.0, 1.0);
+std.default_random_engine gRandomEngine;
+std.uniform_real_distribution<double> uniformFractionDistribution(0.0, 1.0);
 
 double
 rand_fraction()
