@@ -1,14 +1,8 @@
 
-SCP.EnvelopeState
-SCP.receiveEnvelope(SCPEnvelope const& envelope)
-{
-
-}
-
 bool
 SCP.nominate(uint64 slotIndex, Value const& value, Value const& previousValue)
 {
-    dbgAssert(isValidator());
+    assert(isValidator());
     return getSlot(slotIndex, true).nominate(value, previousValue, false);
 }
 

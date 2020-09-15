@@ -245,7 +245,7 @@ NominationProtocol.updateRoundLeaders()
 uint64
 NominationProtocol.hashNode(bool isPriority, ref const(NodeID) nodeID)
 {
-    dbgAssert(!mPreviousValue.empty());
+    assert(!mPreviousValue.empty());
     return mSlot.getSCPDriver().computeHashNode(
         mSlot.getSlotIndex(), mPreviousValue, isPriority, mRoundNumber, nodeID);
 }
@@ -253,7 +253,7 @@ NominationProtocol.hashNode(bool isPriority, ref const(NodeID) nodeID)
 uint64
 NominationProtocol.hashValue(Value const& value)
 {
-    dbgAssert(!mPreviousValue.empty());
+    assert(!mPreviousValue.empty());
     return mSlot.getSCPDriver().computeValueHash(
         mSlot.getSlotIndex(), mPreviousValue, mRoundNumber, value);
 }

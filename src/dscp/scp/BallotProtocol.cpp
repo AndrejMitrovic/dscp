@@ -150,7 +150,7 @@ SCP.EnvelopeState
 BallotProtocol.processEnvelope(SCPEnvelope const& envelope, bool self)
 {
     SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
-    dbgAssert(envelope.statement.slotIndex == mSlot.getSlotIndex());
+    assert(envelope.statement.slotIndex == mSlot.getSlotIndex());
 
     ref const(SCPStatement) statement = envelope.statement;
     ref const(NodeID) nodeID = statement.nodeID;
@@ -418,7 +418,7 @@ BallotProtocol.updateCurrentValue(SCPBallot const& ballot)
     }
     else
     {
-        dbgAssert(compareBallots(*mCurrentBallot, ballot) <= 0);
+        assert(compareBallots(*mCurrentBallot, ballot) <= 0);
 
         if (mCommit && !areBallotsCompatible(*mCommit, ballot))
         {
@@ -468,12 +468,12 @@ BallotProtocol.bumpToBallot(SCPBallot const& ballot, bool check)
                            << " b: " << mSlot.getSCP().ballotToStr(ballot);
 
     // `bumpToBallot` should be never called once we committed.
-    dbgAssert(mPhase != SCP_PHASE_EXTERNALIZE);
+    assert(mPhase != SCP_PHASE_EXTERNALIZE);
 
     if (check)
     {
         // We should move mCurrentBallot monotonically only
-        dbgAssert(!mCurrentBallot ||
+        assert(!mCurrentBallot ||
                   compareBallots(ballot, *mCurrentBallot) >= 0);
     }
 
@@ -649,22 +649,22 @@ BallotProtocol.checkInvariants()
 {
     if (mCurrentBallot)
     {
-        dbgAssert(mCurrentBallot.counter != 0);
+        assert(mCurrentBallot.counter != 0);
     }
     if (mPrepared && mPreparedPrime)
     {
-        dbgAssert(areBallotsLessAndIncompatible(*mPreparedPrime, *mPrepared));
+        assert(areBallotsLessAndIncompatible(*mPreparedPrime, *mPrepared));
     }
     if (mHighBallot)
     {
-        dbgAssert(mCurrentBallot);
-        dbgAssert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
+        assert(mCurrentBallot);
+        assert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
     }
     if (mCommit)
     {
-        dbgAssert(mCurrentBallot);
-        dbgAssert(areBallotsLessAndCompatible(*mCommit, *mHighBallot));
-        dbgAssert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
+        assert(mCurrentBallot);
+        assert(areBallotsLessAndCompatible(*mCommit, *mHighBallot));
+        assert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
     }
 
     switch (mPhase)
@@ -672,11 +672,11 @@ BallotProtocol.checkInvariants()
     case SCP_PHASE_PREPARE:
         break;
     case SCP_PHASE_CONFIRM:
-        dbgAssert(mCommit);
+        assert(mCommit);
         break;
     case SCP_PHASE_EXTERNALIZE:
-        dbgAssert(mCommit);
-        dbgAssert(mHighBallot);
+        assert(mCommit);
+        assert(mHighBallot);
         break;
     default:
         assert(0);
@@ -822,7 +822,7 @@ BallotProtocol.attemptPreparedAccept(ref const(SCPStatement) hint)
             {
                 continue;
             }
-            dbgAssert(areBallotsCompatible(*mCommit, ballot));
+            assert(areBallotsCompatible(*mCommit, ballot));
         }
 
         // if we already prepared this ballot, don't bother checking again
@@ -904,7 +904,7 @@ BallotProtocol.setPreparedAccept(SCPBallot const& ballot)
             (mPreparedPrime &&
              areBallotsLessAndIncompatible(*mHighBallot, *mPreparedPrime)))
         {
-            dbgAssert(mPhase == SCP_PHASE_PREPARE);
+            assert(mPhase == SCP_PHASE_PREPARE);
             mCommit.reset();
             didWork = true;
         }
@@ -1061,7 +1061,7 @@ BallotProtocol.setPreparedConfirmed(SCPBallot const& newC,
 
         if (newC.counter != 0)
         {
-            dbgAssert(!mCommit);
+            assert(!mCommit);
             mCommit = std.make_unique<SCPBallot>(newC);
             didWork = true;
         }
