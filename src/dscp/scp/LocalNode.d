@@ -193,8 +193,8 @@ class LocalNode
     // computes the distance to the set of v-blocking sets given
     // a set of nodes that agree (but can fail)
     // excluded, if set will be skipped altogether
-    public static NodeID[] findClosestVBlocking(ref const(SCPQuorumSet) qset,
-                         const(set!NodeID) nodes, const(NodeID)* excluded)
+    public static NodeID[] findClosestVBlocking (ref const(SCPQuorumSet) qset,
+        const(set!NodeID) nodes, const(NodeID)* excluded)
     {
         size_t leftTillBlock =
             ((1 + qset.validators.length + qset.innerSets.length) - qset.threshold);
@@ -260,10 +260,9 @@ class LocalNode
         return res;
     }
 
-    public static NodeID[] findClosestVBlocking(
-        ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
+    public static NodeID[] findClosestVBlocking ( ref const(SCPQuorumSet) qset,
+        const(SCPEnvelope[NodeID]) map,
         bool delegate (ref const(SCPStatement)) filter,
-        //= (ref const s) => true  // todo: can't use context here
         const(NodeID)* excluded = null)
     {
         set!NodeID s;
@@ -276,7 +275,8 @@ class LocalNode
         return findClosestVBlocking(qset, s, excluded);
     }
 
-    public static uint64 computeWeight(uint64 m, uint64 total, uint64 threshold)
+    public static uint64 computeWeight (uint64 m, uint64 total,
+        uint64 threshold)
     {
         uint64 res;
         assert(threshold <= total);
@@ -294,8 +294,8 @@ class LocalNode
     }
 
     // called recursively
-    protected static bool isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
-                                      const(NodeID)[] nodeSet)
+    protected static bool isQuorumSliceInternal (ref const(SCPQuorumSet) qset,
+        const(NodeID)[] nodeSet)
     {
         long thresholdLeft = qset.threshold;
         foreach (const validator; qset.validators)
@@ -314,17 +314,16 @@ class LocalNode
             {
                 thresholdLeft--;
                 if (thresholdLeft <= 0)
-                {
                     return true;
-                }
             }
         }
+
         return false;
     }
 
     // called recursively
-    protected static bool isVBlockingInternal(ref const(SCPQuorumSet) qset,
-                                    const(NodeID)[] nodeSet)
+    protected static bool isVBlockingInternal (ref const(SCPQuorumSet) qset,
+        const(NodeID)[] nodeSet)
     {
         // There is no v-blocking set for {\empty}
         if (qset.threshold == 0)
