@@ -9,6 +9,7 @@ import dscp.scp.BallotProtocol;
 import dscp.scp.NominationProtocol;
 import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
+import dscp.util.Nullable;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -275,12 +276,12 @@ class Slot
 
     // returns the QuorumSet that should be used for a node given the
     // statement (singleton for externalize)
-    public SCPQuorumSet getQuorumSetFromStatement (
+    public Nullable!SCPQuorumSet getQuorumSetFromStatement (
         ref const(SCPStatement) st)
     {
         SCPStatementType t = st.pledges.type;
         if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
-            return LocalNode.getSingletonQSet(st.nodeID);
+            return Nullable!SCPQuorumSet(LocalNode.getSingletonQSet(st.nodeID));
 
         Hash h;
         if (t == SCPStatementType.SCP_ST_PREPARE)

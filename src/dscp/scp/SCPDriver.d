@@ -7,6 +7,8 @@ module dscp.scp.SCPDriver;
 import dscp.crypto.ByteSlice;
 import dscp.crypto.Hash;
 import dscp.crypto.Hex;
+import dscp.scp.SCP;
+import dscp.util.Nullable;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -14,9 +16,6 @@ import core.stdc.stdint;
 import core.time;
 
 import std.conv;
-
-// was: shared_ptr. could use RefCounted
-alias SCPQuorumSetPtr = SCPQuorumSet*;
 
 // values used to switch hash function between priority and neighborhood checks
 private enum uint32 hash_N = 1;
@@ -50,7 +49,7 @@ abstract class SCPDriver
     //
     // `null` is a valid return value which cause the statement to be
     // considered invalid.
-    public abstract SCPQuorumSet getQSet (ref const(Hash) qSetHash);
+    public abstract Nullable!SCPQuorumSet getQSet (ref const(Hash) qSetHash);
 
     // Users of the SCP library should inherit from SCPDriver and implement the
     // public methods which are called by the SCP implementation to

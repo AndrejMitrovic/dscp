@@ -8,6 +8,7 @@ import dscp.crypto.Hash;
 import dscp.scp.SCP;
 import dscp.scp.QuorumSetUtils;
 import dscp.util.numeric;
+import dscp.util.Nullable;
 import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
 
@@ -127,7 +128,10 @@ class LocalNode
     }
 
     static bool isVBlocking(ref const(SCPQuorumSet) qSet,
-                            const(NodeID)[] nodeSet);
+                            const(NodeID)[] nodeSet)
+    {
+        return isVBlockingInternal(qSet, nodeSet);
+    }
 
     // Tests this node against a map of nodeID . T for the specified qSetHash.
 
@@ -138,7 +142,17 @@ class LocalNode
                 const(SCPEnvelope[NodeID]) map,
                 bool delegate (ref const(SCPStatement)) filter
                 //= (ref const s) => true  // todo: can't use context here
-                );
+                )
+    {
+        NodeID[] pNodes;
+        foreach (node_id, env; map)
+        {
+            if (filter(env.statement))
+                pNodes ~= node_id;
+        }
+
+        return isVBlocking(qSet, pNodes);
+    }
 
     // `isQuorum` tests if the filtered nodes V form a quorum
     // (meaning for each v \in V there is q \in Q(v)
@@ -147,10 +161,41 @@ class LocalNode
     // (required for transitivity)
     static bool isQuorum (ref const(SCPQuorumSet) qSet,
         const(SCPEnvelope[NodeID]) map,
-        SCPQuorumSet delegate (ref const(SCPStatement)) qfun,
+        Nullable!SCPQuorumSet delegate (ref const(SCPStatement)) qfun,
         bool delegate (ref const(SCPStatement)) filter
             //= (ref const s) => true  // todo: can't use context here
-            );
+            )
+    {
+        NodeID[] pNodes;
+        foreach (node_id, env; map)
+        {
+            if (filter(env.statement))
+                pNodes ~= node_id;
+        }
+
+        size_t count = 0;
+        do
+        {
+            count = pNodes.length;
+            NodeID[] fNodes;
+            fNodes.length = pNodes.length;
+            auto quorumFilter = (NodeID nodeID)
+            {
+                if (auto qSetPtr = qfun(map[nodeID].statement))
+                    return isQuorumSlice(qSetPtr, pNodes);
+                else
+                    return false;
+            };
+
+            // todo:
+            //auto it = std.copy_if(pNodes.begin(), pNodes.end(), fNodes.begin(),
+            //                       quorumFilter);
+            //fNodes.resize(std.distance(fNodes.begin(), it));
+            //pNodes = fNodes;
+        } while (count != pNodes.length);
+
+        return isQuorumSlice(qSet, pNodes);
+    }
 
     // computes the distance to the set of v-blocking sets given
     // a set of nodes that agree (but can fail)
