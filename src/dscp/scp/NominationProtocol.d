@@ -281,7 +281,7 @@ class NominationProtocol
             auto vl = validateValue(value);
             if (vl == ValidationLevel.kFullyValidatedValue)
             {
-                valueToNominate = value;
+                valueToNominate = value.dup;
             }
             else
             {
@@ -289,7 +289,7 @@ class NominationProtocol
             }
             if (!valueToNominate.empty())
             {
-                if (mVotes.find(valueToNominate) == mVotes.end())
+                if (valueToNominate !in mVotes)
                 {
                     uint64 curHash = hashValue(valueToNominate);
                     if (curHash >= newHash)

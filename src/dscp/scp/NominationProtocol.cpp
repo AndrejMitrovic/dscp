@@ -1,17 +1,4 @@
 
-uint64
-NominationProtocol.getNodePriority(ref const(NodeID) nodeID,
-                                    ref const(SCPQuorumSet) qset)
-{
-
-}
-
-Value
-NominationProtocol.getNewValueFromNomination(SCPNomination const& nom)
-{
-
-}
-
 SCP.EnvelopeState
 NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
 {
