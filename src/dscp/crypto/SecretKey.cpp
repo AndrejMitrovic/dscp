@@ -122,7 +122,7 @@ SecretKey.random()
 static SecretKey
 pseudoRandomForTestingFromPRNG(std.default_random_engine& engine)
 {
-    std.vector<uint8_t> bytes;
+    ubyte[] bytes;
     for (size_t i = 0; i < crypto_sign_SEEDBYTES; ++i)
     {
         bytes.push_back(static_cast<uint8_t>(engine()));
@@ -172,7 +172,7 @@ SecretKey
 SecretKey.fromStrKeySeed(std.string const& strKeySeed)
 {
     uint8_t ver;
-    std.vector<uint8_t> seed;
+    ubyte[] seed;
     if (!strKey.fromStrKey(strKeySeed, ver, seed) ||
         (ver != strKey.STRKEY_SEED_ED25519) ||
         (seed.size() != crypto_sign_SEEDBYTES) ||

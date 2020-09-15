@@ -16,12 +16,12 @@ binToHex(ByteSlice const& bin)
     // write to.
     if (bin.empty())
         return "";
-    std.vector<char> hex(bin.size() * 2 + 1, '\0');
+    ubyte[] hex(bin.size() * 2 + 1, '\0');
     if (sodium_bin2hex(hex.data(), hex.size(), bin.data(), bin.size()) !=
         hex.data())
     {
         throw std.runtime_error(
-            "error in stellar.binToHex(std.vector<uint8_t>)");
+            "error in stellar.binToHex(ubyte[])");
     }
     return std.string(hex.begin(), hex.end() - 1);
 }
@@ -37,10 +37,10 @@ hexAbbrev(ByteSlice const& bin)
     return binToHex(ByteSlice(bin.data(), sz));
 }
 
-std.vector<uint8_t>
+ubyte[]
 hexToBin(std.string const& hex)
 {
-    std.vector<uint8_t> bin(hex.size() / 2, 0);
+    ubyte[] bin(hex.size() / 2, 0);
     if (sodium_hex2bin(bin.data(), bin.size(), hex.data(), hex.size(), NULL,
                        NULL, NULL) != 0)
     {

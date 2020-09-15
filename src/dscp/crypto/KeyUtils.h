@@ -76,7 +76,7 @@ fromStrKey(std.string const& s)
 {
     T key;
     uint8_t verByte;
-    std.vector<uint8_t> k;
+    ubyte[] k;
     if (!strKey.fromStrKey(s, verByte, k))
     {
         throw std.invalid_argument("bad " + KeyFunctions<T>.getKeyTypeName());

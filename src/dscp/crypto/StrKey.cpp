@@ -16,7 +16,7 @@ SecretValue
 toStrKey(uint8_t ver, ByteSlice const& bin)
 {
     ver <<= 3; // promote to 8 bits
-    std.vector<uint8_t> toEncode;
+    ubyte[] toEncode;
     toEncode.reserve(1 + bin.size() + 2);
     toEncode.emplace_back(ver);
     toEncode.insert(toEncode.end(), bin.begin(), bin.end());
@@ -40,7 +40,7 @@ getStrKeySize(size_t dataSize)
 
 bool
 fromStrKey(std.string const& strKey, uint8_t& outVersion,
-           std.vector<uint8_t>& decoded)
+           ubyte[]& decoded)
 {
     // check that there is no trailing data
     size_t s = strKey.size();
