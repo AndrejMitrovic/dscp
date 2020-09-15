@@ -171,8 +171,8 @@ class NominationProtocol
     }
 
     // attempts to nominate a value for consensus
-    public bool nominate(ref const(Value) value, ref const(Value) previousValue,
-                  bool timedout)
+    public bool nominate (ref const(Value) value,
+        ref const(Value) previousValue, bool timedout)
     {
         //if (Logging.logDebug("SCP"))
         //    CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (" << mRoundNumber
@@ -187,9 +187,7 @@ class NominationProtocol
         }
 
         mNominationStarted = true;
-
         mPreviousValue = previousValue.dup;
-
         mRoundNumber++;
         updateRoundLeaders();
 
@@ -245,28 +243,28 @@ class NominationProtocol
     }
 
     // stops the nomination protocol
-    public void stopNomination()
+    public void stopNomination ()
     {
         mNominationStarted = false;
     }
 
     // return the current leaders
-    public const(set!NodeID) getLeaders() const
+    public const(set!NodeID) getLeaders () const
     {
         return mRoundLeaders;
     }
 
-    public ref const(Value) getLatestCompositeCandidate() const
+    public ref const(Value) getLatestCompositeCandidate () const
     {
         return mLatestCompositeCandidate;
     }
 
-    public const(SCPEnvelope)* getLastMessageSend() const
+    public const(SCPEnvelope)* getLastMessageSend () const
     {
         return mLastEnvelope.get();
     }
 
-    public void setStateFromEnvelope(ref const(SCPEnvelope) e)
+    public void setStateFromEnvelope (ref const(SCPEnvelope) e)
     {
         if (mNominationStarted)
             assert(0, "Cannot set state after nomination is started");
@@ -283,7 +281,7 @@ class NominationProtocol
         mLastEnvelope.tupleof = e.tupleof;  // deep-dup
     }
 
-    public SCPEnvelope[] getCurrentState() const
+    public SCPEnvelope[] getCurrentState () const
     {
         SCPEnvelope[] res;
         res.reserve(mLatestNominations.length);
@@ -337,8 +335,8 @@ class NominationProtocol
     // returns true if 'p' is a subset of 'v'
     // also sets 'notEqual' if p and v differ
     // note: p and v must be sorted
-    protected static bool isSubsetHelper(const(Value)[] p,
-                               const(Value)[] v, ref bool notEqual)
+    protected static bool isSubsetHelper (const(Value)[] p,
+        const(Value)[] v, ref bool notEqual)
     {
         if (p.length <= v.length && v.canFind(p))
         {
@@ -350,12 +348,12 @@ class NominationProtocol
         return false;
     }
 
-    protected ValidationLevel validateValue(ref const(Value) v)
+    protected ValidationLevel validateValue (ref const(Value) v)
     {
         return mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, true);
     }
 
-    protected Value extractValidValue(ref const(Value) value)
+    protected Value extractValidValue (ref const(Value) value)
     {
         return mSlot.getSCPDriver().extractValidValue(mSlot.getSlotIndex(), value);
     }
@@ -373,14 +371,14 @@ class NominationProtocol
 
     // only called after a call to isNewerStatement so safe to replace the
     // mLatestNomination
-    protected void recordEnvelope(ref const(SCPEnvelope) env)
+    protected void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
         mLatestNominations[st.nodeID] = env;
         mSlot.recordStatement(env.statement);
     }
 
-    protected void emitNomination()
+    protected void emitNomination ()
     {
         SCPStatement st;
         st.nodeID = mSlot.getLocalNode().getNodeID();
@@ -421,15 +419,15 @@ class NominationProtocol
     }
 
     // returns true if v is in the accepted list from the statement
-    protected static bool acceptPredicate(ref const(Value) v, ref const(SCPStatement) st)
+    protected static bool acceptPredicate (ref const(Value) v, ref const(SCPStatement) st)
     {
         const nom = &st.pledges.nominate_;
         return nom.accepted.canFind(v);
     }
 
     // applies 'processor' to all values from the passed in nomination
-    protected static void applyAll(ref const(SCPNomination) nom,
-                         void delegate(ref const(Value)) processor)
+    protected static void applyAll (ref const(SCPNomination) nom,
+        void delegate(ref const(Value)) processor)
     {
         foreach (v; nom.votes)
             processor(v);
@@ -439,7 +437,7 @@ class NominationProtocol
     }
 
     // updates the set of nodes that have priority over the others
-    protected void updateRoundLeaders()
+    protected void updateRoundLeaders ()
     {
         uint32 threshold;
         PublicKey[] validators;
@@ -471,6 +469,7 @@ class NominationProtocol
                 newRoundLeaders[cur] = [];
             }
         });
+
         // expand mRoundLeaders with the newly computed leaders
         foreach (new_leader; newRoundLeaders.byKey)
             mRoundLeaders[new_leader] = [];
@@ -489,7 +488,7 @@ class NominationProtocol
 
     // computes Gi(isPriority?P:N, prevValue, mRoundNumber, nodeID)
     // from the paper
-    protected uint64 hashNode(bool isPriority, ref const(NodeID) nodeID)
+    protected uint64 hashNode (bool isPriority, ref const(NodeID) nodeID)
     {
         assert(!mPreviousValue.empty());
         return mSlot.getSCPDriver().computeHashNode(
@@ -497,14 +496,14 @@ class NominationProtocol
     }
 
     // computes Gi(K, prevValue, mRoundNumber, value)
-    protected uint64 hashValue(ref const(Value) value)
+    protected uint64 hashValue (ref const(Value) value)
     {
         assert(!mPreviousValue.empty());
         return mSlot.getSCPDriver().computeValueHash(
             mSlot.getSlotIndex(), mPreviousValue, mRoundNumber, value);
     }
 
-    protected uint64 getNodePriority(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
+    protected uint64 getNodePriority (ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
     {
         uint64 res;
         uint64 w;
@@ -527,7 +526,7 @@ class NominationProtocol
     // returns the highest value that we don't have yet, that we should
     // vote for, extracted from a nomination.
     // returns the empty value if no new value was found
-    protected Value getNewValueFromNomination(ref const(SCPNomination) nom)
+    protected Value getNewValueFromNomination (ref const(SCPNomination) nom)
     {
         // pick the highest value we don't have from the leader
         // sorted using hashValue.
