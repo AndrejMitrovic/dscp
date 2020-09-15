@@ -32,7 +32,7 @@ BallotProtocol.BallotProtocol(Slot& slot)
 }
 
 bool
-BallotProtocol.isNewerStatement(ref const(NodeID) nodeID, SCPStatement const& st)
+BallotProtocol.isNewerStatement(ref const(NodeID) nodeID, ref const(SCPStatement) st)
 {
     auto oldp = mLatestEnvelopes.find(nodeID);
     bool res = false;
@@ -49,8 +49,8 @@ BallotProtocol.isNewerStatement(ref const(NodeID) nodeID, SCPStatement const& st
 }
 
 bool
-BallotProtocol.isNewerStatement(SCPStatement const& oldst,
-                                 SCPStatement const& st)
+BallotProtocol.isNewerStatement(ref const(SCPStatement) oldst,
+                                 ref const(SCPStatement) st)
 {
     bool res = false;
 
@@ -152,7 +152,7 @@ BallotProtocol.processEnvelope(SCPEnvelope const& envelope, bool self)
     SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
     dbgAssert(envelope.statement.slotIndex == mSlot.getSlotIndex());
 
-    SCPStatement const& statement = envelope.statement;
+    ref const(SCPStatement) statement = envelope.statement;
     ref const(NodeID) nodeID = statement.nodeID;
 
     if (!isStatementSane(statement, self))
@@ -244,7 +244,7 @@ BallotProtocol.processEnvelope(SCPEnvelope const& envelope, bool self)
 }
 
 bool
-BallotProtocol.isStatementSane(SCPStatement const& st, bool self)
+BallotProtocol.isStatementSane(ref const(SCPStatement) st, bool self)
 {
     auto qSet = mSlot.getQuorumSetFromStatement(st);
     const char* reason = null;
@@ -684,7 +684,7 @@ BallotProtocol.checkInvariants()
 }
 
 std.set<SCPBallot>
-BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
+BallotProtocol.getPrepareCandidates(ref const(SCPStatement) hint)
 {
     std.set<SCPBallot> hintBallots;
 
@@ -734,7 +734,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
         // find candidates that may have been prepared
         for (auto const& e : mLatestEnvelopes)
         {
-            SCPStatement const& st = e.second.statement;
+            ref const(SCPStatement) st = e.second.statement;
             switch (st.pledges.type)
             {
             case SCPStatementType.SCP_ST_PREPARE:
@@ -800,7 +800,7 @@ BallotProtocol.updateCurrentIfNeeded(SCPBallot const& h)
 }
 
 bool
-BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
+BallotProtocol.attemptPreparedAccept(ref const(SCPStatement) hint)
 {
     if (mPhase != SCP_PHASE_PREPARE && mPhase != SCP_PHASE_CONFIRM)
     {
@@ -845,7 +845,7 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
 
         bool accepted = federatedAccept(
             // checks if any node is voting for this ballot
-            [&ballot](SCPStatement const& st) {
+            [&ballot](ref const(SCPStatement) st) {
                 bool res;
 
                 switch (st.pledges.type)
@@ -921,7 +921,7 @@ BallotProtocol.setPreparedAccept(SCPBallot const& ballot)
 }
 
 bool
-BallotProtocol.attemptPreparedConfirmed(SCPStatement const& hint)
+BallotProtocol.attemptPreparedConfirmed(ref const(SCPStatement) hint)
 {
     if (mPhase != SCP_PHASE_PREPARE)
     {
@@ -1005,7 +1005,7 @@ BallotProtocol.attemptPreparedConfirmed(SCPStatement const& hint)
 
 bool
 BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
-                                SCPStatement const& st)
+                                ref const(SCPStatement) st)
 {
     bool res = false;
     auto const& pl = st.pledges;
@@ -1174,7 +1174,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
 }
 
 bool
-BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
+BallotProtocol.attemptAcceptCommit(ref const(SCPStatement) hint)
 {
     if (mPhase != SCP_PHASE_PREPARE && mPhase != SCP_PHASE_CONFIRM)
     {
@@ -1226,7 +1226,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
 
     auto pred = [&ballot, this](Interval const& cur) -> bool {
         return federatedAccept(
-            [&](SCPStatement const& st) -> bool {
+            [&](ref const(SCPStatement) st) -> bool {
                 bool res = false;
                 auto const& pl = st.pledges;
                 switch (pl.type)
@@ -1345,7 +1345,7 @@ BallotProtocol.setAcceptCommit(SCPBallot const& c, SCPBallot const& h)
 }
 
 static uint32
-statementBallotCounter(SCPStatement const& st)
+statementBallotCounter(ref const(SCPStatement) st)
 {
     switch (st.pledges.type)
     {
@@ -1368,7 +1368,7 @@ hasVBlockingSubsetStrictlyAheadOf(std.shared_ptr<LocalNode> localNode,
 {
     return LocalNode.isVBlocking(
         localNode->getQuorumSet(), map,
-        [&](SCPStatement const& st) { return statementBallotCounter(st) > n; });
+        [&](ref const(SCPStatement) st) { return statementBallotCounter(st) > n; });
 }
 
 // Step 9 from the paper (Feb 2016):
@@ -1432,7 +1432,7 @@ BallotProtocol.attemptBump()
 }
 
 bool
-BallotProtocol.attemptConfirmCommit(SCPStatement const& hint)
+BallotProtocol.attemptConfirmCommit(ref const(SCPStatement) hint)
 {
     if (mPhase != SCP_PHASE_CONFIRM)
     {
@@ -1522,7 +1522,7 @@ BallotProtocol.setConfirmCommit(SCPBallot const& c, SCPBallot const& h)
 
 bool
 BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
-                                  SCPStatement const& st)
+                                  ref const(SCPStatement) st)
 {
     bool res;
 
@@ -1559,7 +1559,7 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
 }
 
 Hash
-BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
+BallotProtocol.getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st)
 {
     Hash h;
     switch (st.pledges.type)
@@ -1580,7 +1580,7 @@ BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
 }
 
 SCPBallot
-BallotProtocol.getWorkingBallot(SCPStatement const& st)
+BallotProtocol.getWorkingBallot(ref const(SCPStatement) st)
 {
     SCPBallot res;
     switch (st.pledges.type)
@@ -1846,7 +1846,7 @@ BallotProtocol.getExternalizingState() const
 }
 
 void
-BallotProtocol.advanceSlot(SCPStatement const& hint)
+BallotProtocol.advanceSlot(ref const(SCPStatement) hint)
 {
     mCurrentMessageLevel++;
     if (Logging.logTrace("SCP"))
@@ -1904,7 +1904,7 @@ BallotProtocol.advanceSlot(SCPStatement const& hint)
 }
 
 SCPDriver.ValidationLevel
-BallotProtocol.validateValues(SCPStatement const& st)
+BallotProtocol.validateValues(ref const(SCPStatement) st)
 {
     std.set<Value> values;
     switch (st.pledges.type)
@@ -2087,7 +2087,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
     }
 
     auto f = LocalNode.findClosestVBlocking(*qSet, mLatestEnvelopes,
-                                             [&](SCPStatement const& st) {
+                                             [&](ref const(SCPStatement) st) {
                                                  return areBallotsCompatible(
                                                      getWorkingBallot(st), b);
                                              },
@@ -2158,7 +2158,7 @@ BallotProtocol.checkHeardFromQuorum()
         if (LocalNode.isQuorum(
                 getLocalNode()->getQuorumSet(), mLatestEnvelopes,
                 std.bind(&Slot.getQuorumSetFromStatement, &mSlot, _1),
-                [&](SCPStatement const& st) {
+                [&](ref const(SCPStatement) st) {
                     bool res;
                     if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
                     {

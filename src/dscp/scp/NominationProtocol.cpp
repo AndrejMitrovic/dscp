@@ -103,7 +103,7 @@ NominationProtocol.isNewerStatement(SCPNomination const& oldst,
 }
 
 bool
-NominationProtocol.isSane(SCPStatement const& st)
+NominationProtocol.isSane(ref const(SCPStatement) st)
 {
     auto const& nom = st.pledges.nominate_;
     bool res = (nom.votes.size() + nom.accepted.size()) != 0;
@@ -180,7 +180,7 @@ NominationProtocol.emitNomination()
 }
 
 bool
-NominationProtocol.acceptPredicate(Value const& v, SCPStatement const& st)
+NominationProtocol.acceptPredicate(Value const& v, ref const(SCPStatement) st)
 {
     auto const& nom = st.pledges.nominate_;
     bool res;
@@ -352,7 +352,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                         continue;
                     }
                     if (mSlot.federatedAccept(
-                            [&v](SCPStatement const& st) -> bool {
+                            [&v](ref const(SCPStatement) st) -> bool {
                                 auto const& nom = st.pledges.nominate_;
                                 bool res;
                                 res = (std.find(nom.votes.begin(),
@@ -448,7 +448,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
 }
 
 Value[]
-NominationProtocol.getStatementValues(SCPStatement const& st)
+NominationProtocol.getStatementValues(ref const(SCPStatement) st)
 {
     Value[] res;
     applyAll(st.pledges.nominate_,

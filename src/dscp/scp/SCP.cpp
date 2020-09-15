@@ -312,7 +312,7 @@ SCP.envToStr(SCPEnvelope const& envelope, bool fullKeys) const
 }
 
 std.string
-SCP.envToStr(SCPStatement const& st, bool fullKeys) const
+SCP.envToStr(ref const(SCPStatement) st, bool fullKeys) const
 {
     std.ostringstream oss;
 

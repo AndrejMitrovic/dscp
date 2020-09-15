@@ -337,7 +337,32 @@ class Slot
     // returns true if the statement defined by voted and accepted
     // should be accepted
     bool federatedAccept(StatementPredicate voted, StatementPredicate accepted,
-                         const(SCPEnvelope[NodeID]) envs);
+                         const(SCPEnvelope[NodeID]) envs)
+    {
+        // Checks if the nodes that claimed to accept the statement form a
+        // v-blocking set
+        if (LocalNode.isVBlocking(getLocalNode().getQuorumSet(), envs, accepted))
+            return true;
+
+        // Checks if the set of nodes that accepted or voted for it form a quorum
+
+        auto ratifyFilter = (ref const(SCPStatement) st) {
+            bool res;
+            res = accepted(st) || voted(st);
+            return res;
+        };
+
+        if (LocalNode.isQuorum(
+                getLocalNode().getQuorumSet(), envs,
+                std.bind(&Slot.getQuorumSetFromStatement, this, _1),
+                ratifyFilter))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     // returns true if the statement defined by voted
     // is ratified
     bool federatedRatify(StatementPredicate voted,
