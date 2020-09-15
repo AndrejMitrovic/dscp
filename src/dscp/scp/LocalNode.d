@@ -20,20 +20,17 @@ import std.range;
  */
 class LocalNode
 {
-  protected:
-    const NodeID mNodeID;
-    const bool mIsValidator;
-    SCPQuorumSet mQSet;
-    Hash mQSetHash;
+    protected const NodeID mNodeID;
+    protected const bool mIsValidator;
+    protected SCPQuorumSet mQSet;
+    protected Hash mQSetHash;
 
     // alternative qset used during externalize {{mNodeID}}
-    Hash gSingleQSetHash;                      // hash of the singleton qset
-    SCPQuorumSet mSingleQSet; // {{mNodeID}}
+    protected Hash gSingleQSetHash;      // hash of the singleton qset
+    protected SCPQuorumSet mSingleQSet;  // {{mNodeID}}
+    protected SCP mSCP;
 
-    SCP mSCP;
-
-  public:
-    this (ref const(NodeID) nodeID, bool isValidator,
+    public this (ref const(NodeID) nodeID, bool isValidator,
         ref SCPQuorumSet qSet, SCP scp)
     {
         mNodeID = nodeID;
@@ -51,12 +48,12 @@ class LocalNode
         gSingleQSetHash = getHashOf(mSingleQSet);
     }
 
-    ref const(NodeID) getNodeID ()
+    public ref const(NodeID) getNodeID ()
     {
         return mNodeID;
     }
 
-    void updateQuorumSet (ref SCPQuorumSet qSet)
+    public void updateQuorumSet (ref SCPQuorumSet qSet)
     {
         mQSetHash = getHashOf(qSet);
         mQSet = qSet;
@@ -72,19 +69,19 @@ class LocalNode
         return mQSetHash;
     }
 
-    bool isValidator ()
+    public bool isValidator ()
     {
         return mIsValidator;
     }
 
     // returns the quorum set {{X}}
-    static SCPQuorumSet getSingletonQSet (ref const(NodeID) nodeID)
+    public static SCPQuorumSet getSingletonQSet (ref const(NodeID) nodeID)
     {
         return buildSingletonQSet(nodeID);
     }
 
     // runs proc over all nodes contained in qset
-    static void forAllNodes (ref const(SCPQuorumSet) qset,
+    public static void forAllNodes (ref const(SCPQuorumSet) qset,
         void delegate (ref const(NodeID)) proc)
     {
         foreach (const n; qset.validators)
@@ -96,7 +93,7 @@ class LocalNode
 
     // returns the weight of the node within the qset
     // normalized between 0-UINT64_MAX
-    static uint64 getNodeWeight(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
+    public static uint64 getNodeWeight(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
     {
         uint64 n = qset.threshold;
         uint64 d = qset.innerSets.length + qset.validators.length;
@@ -125,7 +122,7 @@ class LocalNode
     }
 
     // Tests this node against nodeSet for the specified qSethash.
-    static bool isQuorumSlice(ref const(SCPQuorumSet) qSet,
+    public static bool isQuorumSlice(ref const(SCPQuorumSet) qSet,
                               const(NodeID)[] nodeSet)
     {
         // CLOG(TRACE, "SCP") << "LocalNode.isQuorumSlice"
@@ -134,7 +131,7 @@ class LocalNode
         return isQuorumSliceInternal(qSet, nodeSet);
     }
 
-    static bool isVBlocking(ref const(SCPQuorumSet) qSet,
+    public static bool isVBlocking(ref const(SCPQuorumSet) qSet,
                             const(NodeID)[] nodeSet)
     {
         return isVBlockingInternal(qSet, nodeSet);
@@ -144,12 +141,11 @@ class LocalNode
 
     // `isVBlocking` tests if the filtered nodes V are a v-blocking set for
     // this node.
-    static bool
-    isVBlocking(ref const(SCPQuorumSet) qSet,
-                const(SCPEnvelope[NodeID]) map,
-                bool delegate (ref const(SCPStatement)) filter
-                //= (ref const s) => true  // todo: can't use context here
-                )
+    public static bool isVBlocking(ref const(SCPQuorumSet) qSet,
+        const(SCPEnvelope[NodeID]) map,
+        bool delegate (ref const(SCPStatement)) filter
+        //= (ref const s) => true  // todo: can't use context here
+        )
     {
         NodeID[] pNodes;
         foreach (node_id, env; map)
@@ -166,7 +162,7 @@ class LocalNode
     // included in V and we have quorum on V for qSetHash). `qfun` extracts the
     // SCPQuorumSetPtr from the SCPStatement for its associated node in map
     // (required for transitivity)
-    static bool isQuorum (ref const(SCPQuorumSet) qSet,
+    public static bool isQuorum (ref const(SCPQuorumSet) qSet,
         const(SCPEnvelope[NodeID]) map,
         Nullable!SCPQuorumSet delegate (ref const(SCPStatement)) qfun,
         bool delegate (ref const(SCPStatement)) filter
@@ -207,8 +203,7 @@ class LocalNode
     // computes the distance to the set of v-blocking sets given
     // a set of nodes that agree (but can fail)
     // excluded, if set will be skipped altogether
-    static NodeID[]
-    findClosestVBlocking(ref const(SCPQuorumSet) qset,
+    public static NodeID[] findClosestVBlocking(ref const(SCPQuorumSet) qset,
                          const(set!NodeID) nodes, const(NodeID)* excluded)
     {
         size_t leftTillBlock =
@@ -275,7 +270,7 @@ class LocalNode
         return res;
     }
 
-    static NodeID[] findClosestVBlocking(
+    public static NodeID[] findClosestVBlocking(
         ref const(SCPQuorumSet) qset, const(SCPEnvelope[NodeID]) map,
         bool delegate (ref const(SCPStatement)) filter,
         //= (ref const s) => true  // todo: can't use context here
@@ -291,9 +286,7 @@ class LocalNode
         return findClosestVBlocking(qset, s, excluded);
     }
 
-    string to_string(ref const(SCPQuorumSet) qSet) const;
-
-    static uint64 computeWeight(uint64 m, uint64 total, uint64 threshold)
+    public static uint64 computeWeight(uint64 m, uint64 total, uint64 threshold)
     {
         uint64 res;
         assert(threshold <= total);
@@ -301,9 +294,8 @@ class LocalNode
         return res;
     }
 
-  protected:
     // returns a quorum set {{ nodeID }}
-    static SCPQuorumSet buildSingletonQSet(ref const(NodeID) nodeID)
+    protected static SCPQuorumSet buildSingletonQSet(ref const(NodeID) nodeID)
     {
         SCPQuorumSet qSet;
         qSet.threshold = 1;
@@ -312,7 +304,7 @@ class LocalNode
     }
 
     // called recursively
-    static bool isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
+    protected static bool isQuorumSliceInternal(ref const(SCPQuorumSet) qset,
                                       const(NodeID)[] nodeSet)
     {
         long thresholdLeft = qset.threshold;
@@ -341,7 +333,7 @@ class LocalNode
     }
 
     // called recursively
-    static bool isVBlockingInternal(ref const(SCPQuorumSet) qset,
+    protected static bool isVBlockingInternal(ref const(SCPQuorumSet) qset,
                                     const(NodeID)[] nodeSet)
     {
         // There is no v-blocking set for {\empty}
