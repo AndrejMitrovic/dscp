@@ -542,7 +542,7 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     {
     case SCPStatementType.SCP_ST_PREPARE:
     {
-        auto& p = statement.pledges.prepare();
+        auto p = &statement.pledges.prepare();
         p.quorumSetHash = getLocalNode()->getQuorumSetHash();
         if (mCurrentBallot)
         {
@@ -568,7 +568,7 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     break;
     case SCPStatementType.SCP_ST_CONFIRM:
     {
-        auto& c = statement.pledges.confirm();
+        auto c = &statement.pledges.confirm();
         c.quorumSetHash = getLocalNode()->getQuorumSetHash();
         c.ballot = *mCurrentBallot;
         c.nPrepared = mPrepared->counter;
@@ -578,7 +578,7 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto& e = statement.pledges.externalize();
+        auto e = &statement.pledges.externalize();
         e.commit = *mCommit;
         e.nH = mHighBallot->counter;
         e.commitQuorumSetHash = getLocalNode()->getQuorumSetHash();
@@ -1986,7 +1986,7 @@ Json.Value
 BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys)
 {
     Json.Value ret;
-    auto& phase = ret["phase"];
+    auto phase = &ret["phase"];
 
     // find the state of the node `id`
     SCPBallot b;
@@ -2052,7 +2052,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
         }
         else
         {
-            auto& st = it->second.statement;
+            auto st = &it->second.statement;
             if (areBallotsCompatible(getWorkingBallot(st), b))
             {
                 agree++;
@@ -2096,7 +2096,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
 
     if (!summary)
     {
-        auto& f_ex = ret["fail_with"];
+        auto f_ex = &ret["fail_with"];
         for (auto const& n : f)
         {
             f_ex.append(mSlot.getSCPDriver().toStrKey(n, fullKeys));

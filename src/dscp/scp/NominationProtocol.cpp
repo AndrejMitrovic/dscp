@@ -146,7 +146,7 @@ NominationProtocol.emitNomination()
     SCPStatement st;
     st.nodeID = mSlot.getLocalNode()->getNodeID();
     st.pledges.type(SCP_ST_NOMINATE);
-    auto& nom = st.pledges.nominate();
+    auto nom = &st.pledges.nominate();
 
     nom.quorumSetHash = mSlot.getLocalNode()->getQuorumSetHash();
 

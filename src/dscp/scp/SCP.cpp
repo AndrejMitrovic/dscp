@@ -118,7 +118,7 @@ SCP.getJsonInfo(size_t limit, bool fullKeys)
     auto it = mKnownSlots.rbegin();
     while (it != mKnownSlots.rend() && limit-- != 0)
     {
-        auto& slot = *(it->second);
+        auto slot = &*(it->second);
         ret[std.to_string(slot.getSlotIndex())] = slot.getJsonInfo(fullKeys);
         it++;
     }
@@ -133,9 +133,9 @@ SCP.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKeys,
     Json.Value ret;
     if (index == 0)
     {
-        for (auto& item : mKnownSlots)
+        for (auto item : mKnownSlots)
         {
-            auto& slot = *item.second;
+            auto& slot = &*item.second;
             ret = slot.getJsonQuorumInfo(id, summary, fullKeys);
             ret["ledger"] = static_cast<Json.UInt64>(slot.getSlotIndex());
         }

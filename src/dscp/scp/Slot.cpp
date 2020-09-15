@@ -5,7 +5,7 @@ Slot.createEnvelope(SCPStatement const& statement)
     SCPEnvelope envelope;
 
     envelope.statement = statement;
-    auto& mySt = envelope.statement;
+    auto mySt = &envelope.statement;
     mySt.nodeID = getSCP().getLocalNodeID();
     mySt.slotIndex = getSlotIndex();
 
@@ -110,7 +110,7 @@ Slot.getJsonInfo(bool fullKeys)
         }
     }
 
-    auto& qSets = ret["quorum_sets"];
+    auto qSets = &ret["quorum_sets"];
     for (auto const& q : qSetsUsed)
     {
         qSets[hexAbbrev(q.first)] = getLocalNode().toJson(*q.second, fullKeys);

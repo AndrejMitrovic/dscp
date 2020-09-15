@@ -386,7 +386,7 @@ LocalNode.toJson(ref const(SCPQuorumSet) qSet,
 {
     Json.Value ret;
     ret["t"] = qSet.threshold;
-    auto& entries = ret["v"];
+    auto entries = &ret["v"];
     for (auto const& v : qSet.validators)
     {
         entries.append(r(v));

@@ -78,8 +78,8 @@ QuorumSetSanityChecker.checkSanity(ref const(SCPQuorumSet) qSet, int depth,
         return false;
     }
 
-    auto& v = qSet.validators;
-    auto& i = qSet.innerSets;
+    auto v = &qSet.validators;
+    auto i = &qSet.innerSets;
 
     size_t totEntries = v.size() + i.size();
     size_t vBlockingSize = totEntries - qSet.threshold + 1;
@@ -145,7 +145,7 @@ void
 normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
 {
     using xdr.operator==;
-    auto& v = qSet.validators;
+    auto v = &qSet.validators;
     if (idToRemove)
     {
         auto it_v = std.remove_if(v.begin(), v.end(), [&](ref const(NodeID) n) {
@@ -155,7 +155,7 @@ normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
         v.erase(it_v, v.end());
     }
 
-    auto& i = qSet.innerSets;
+    auto i = &qSet.innerSets;
     auto it = i.begin();
     while (it != i.end())
     {
@@ -211,8 +211,8 @@ intLexicographicalCompare(InputIt1 first1, InputIt1 last1, InputIt2 first2,
 int
 qSetCompareInt(ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r)
 {
-    auto& lvals = l.validators;
-    auto& rvals = r.validators;
+    auto lvals = &l.validators;
+    auto rvals = &r.validators;
 
     // compare by validators first
     auto res = intLexicographicalCompare(
