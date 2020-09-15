@@ -102,9 +102,54 @@ class NominationProtocol
             nom.accepted.isStrictlyMonotonic();
     }
 
-    void recordEnvelope(ref const(SCPEnvelope) env);
+    // only called after a call to isNewerStatement so safe to replace the
+    // mLatestNomination
+    void recordEnvelope(ref const(SCPEnvelope) env)
+    {
+        const st = &env.statement;
+        mLatestNominations[st.nodeID] = env;
+        mSlot.recordStatement(env.statement);
+    }
 
-    void emitNomination();
+    void emitNomination()
+    {
+        SCPStatement st;
+        st.nodeID = mSlot.getLocalNode().getNodeID();
+        st.pledges.type = SCPStatementType.SCP_ST_NOMINATE;
+        auto nom = &st.pledges.nominate_;
+
+        nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
+
+        foreach (v; mVotes.byKey)
+            nom.votes ~= cast(ubyte[])v;
+
+        foreach (a; mAccepted.byKey)
+            nom.accepted ~= cast(ubyte[])a;
+
+        SCPEnvelope envelope = mSlot.createEnvelope(st);
+
+        if (mSlot.processEnvelope(envelope, true) == SCP.EnvelopeState.VALID)
+        {
+            if (!mLastEnvelope ||
+                isNewerStatement(mLastEnvelope.statement.pledges.nominate_,
+                                 st.pledges.nominate_))
+            {
+                mLastEnvelope = new SCPEnvelope();
+                mLastEnvelope.tupleof = envelope.tupleof;  // deep-dup
+
+                if (mSlot.isFullyValidated())
+                {
+                    mSlot.getSCPDriver().emitEnvelope(envelope);
+                }
+            }
+        }
+        else
+        {
+            // there is a bug in the application if it queued up
+            // a statement for itself that it considers invalid
+            assert(0, "moved to a bad state (nomination)");
+        }
+    }
 
     // returns true if v is in the accepted list from the statement
     static bool acceptPredicate(ref const(Value) v, ref const(SCPStatement) st);
