@@ -276,7 +276,7 @@ class Slot
             h = st.pledges.confirm_.quorumSetHash;
             break;
         case SCPStatementType.SCP_ST_EXTERNALIZE:
-            h = st.pledges.externalize().commitQuorumSetHash;
+            h = st.pledges.externalize_.commitQuorumSetHash;
             break;
         case SCPStatementType.SCP_ST_NOMINATE:
             h = st.pledges.nominate().quorumSetHash;

@@ -302,7 +302,7 @@ BallotProtocol.isStatementSane(SCPStatement const& st, bool self)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& e = st.pledges.externalize();
+        auto const& e = st.pledges.externalize_;
 
         res = e.commit.counter > 0;
         res = res && e.nH >= e.commit.counter;
@@ -578,7 +578,7 @@ BallotProtocol.createStatement(SCPStatementType const& type)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto e = &statement.pledges.externalize();
+        auto e = &statement.pledges.externalize_;
         e.commit = *mCommit;
         e.nH = mHighBallot->counter;
         e.commitQuorumSetHash = getLocalNode()->getQuorumSetHash();
@@ -713,7 +713,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& ext = hint.pledges.externalize();
+        auto const& ext = hint.pledges.externalize_;
         hintBallots.insert(SCPBallot(UINT32_MAX, ext.commit.value));
     }
     break;
@@ -771,7 +771,7 @@ BallotProtocol.getPrepareCandidates(SCPStatement const& hint)
             break;
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
-                auto const& ext = st.pledges.externalize();
+                auto const& ext = st.pledges.externalize_;
                 if (areBallotsCompatible(topVote, ext.commit))
                 {
                     candidates.insert(topVote);
@@ -864,7 +864,7 @@ BallotProtocol.attemptPreparedAccept(SCPStatement const& hint)
                 break;
                 case SCPStatementType.SCP_ST_EXTERNALIZE:
                 {
-                    auto const& e = st.pledges.externalize();
+                    auto const& e = st.pledges.externalize_;
                     res = areBallotsCompatible(ballot, e.commit);
                 }
                 break;
@@ -1024,7 +1024,7 @@ BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& e = pl.externalize();
+        auto const& e = pl.externalize_;
         if (areBallotsCompatible(ballot, e.commit))
         {
             res = e.commit.counter <= check.first;
@@ -1157,7 +1157,7 @@ BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
         break;
         case SCPStatementType.SCP_ST_EXTERNALIZE:
         {
-            auto const& e = pl.externalize();
+            auto const& e = pl.externalize_;
             if (areBallotsCompatible(ballot, e.commit))
             {
                 res.emplace(e.commit.counter);
@@ -1208,7 +1208,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& ext = hint.pledges.externalize();
+        auto const& ext = hint.pledges.externalize_;
         ballot = SCPBallot(ext.nH, ext.commit.value);
         break;
     }
@@ -1254,7 +1254,7 @@ BallotProtocol.attemptAcceptCommit(SCPStatement const& hint)
                 break;
                 case SCPStatementType.SCP_ST_EXTERNALIZE:
                 {
-                    auto const& e = pl.externalize();
+                    auto const& e = pl.externalize_;
                     if (areBallotsCompatible(ballot, e.commit))
                     {
                         res = e.commit.counter <= cur.first;
@@ -1462,7 +1462,7 @@ BallotProtocol.attemptConfirmCommit(SCPStatement const& hint)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& ext = hint.pledges.externalize();
+        auto const& ext = hint.pledges.externalize_;
         ballot = SCPBallot(ext.nH, ext.commit.value);
         break;
     }
@@ -1546,7 +1546,7 @@ BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& e = st.pledges.externalize();
+        auto const& e = st.pledges.externalize_;
         res = areBallotsCompatible(ballot, e.commit);
     }
     break;
@@ -1571,7 +1571,7 @@ BallotProtocol.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
         h = st.pledges.confirm_.quorumSetHash;
         break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
-        h = st.pledges.externalize().commitQuorumSetHash;
+        h = st.pledges.externalize_.commitQuorumSetHash;
         break;
     default:
         dbgAbort();
@@ -1595,7 +1595,7 @@ BallotProtocol.getWorkingBallot(SCPStatement const& st)
     }
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
-        res = st.pledges.externalize().commit;
+        res = st.pledges.externalize_.commit;
         break;
     default:
         dbgAbort();
@@ -1773,7 +1773,7 @@ BallotProtocol.setStateFromEnvelope(SCPEnvelope const& e)
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& ext = pl.externalize();
+        auto const& ext = pl.externalize_;
         auto const& v = ext.commit.value;
         bumpToBallot(SCPBallot(UINT32_MAX, v), true);
         mPrepared = std.make_unique<SCPBallot>(UINT32_MAX, v);
@@ -1927,7 +1927,7 @@ BallotProtocol.validateValues(SCPStatement const& st)
         values.insert(st.pledges.confirm_.ballot.value);
         break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
-        values.insert(st.pledges.externalize().commit.value);
+        values.insert(st.pledges.externalize_.commit.value);
         break;
     default:
         // This shouldn't happen
@@ -2017,7 +2017,7 @@ BallotProtocol.getJsonQuorumInfo(ref const(NodeID) id, bool summary, bool fullKe
             break;
         case SCPStatementType.SCP_ST_EXTERNALIZE:
             phase = "EXTERNALIZE";
-            b = st.pledges.externalize().commit;
+            b = st.pledges.externalize_.commit;
             break;
         default:
             dbgAbort();

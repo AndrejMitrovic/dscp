@@ -346,7 +346,7 @@ SCP.envToStr(SCPStatement const& st, bool fullKeys) const
     break;
     case SCPStatementType.SCP_ST_EXTERNALIZE:
     {
-        auto const& ex = st.pledges.externalize();
+        auto const& ex = st.pledges.externalize_;
         oss << " | EXTERNALIZE"
             << " | c: " << ballotToStr(ex.commit) << " | h.n: " << ex.nH
             << " | (lastD): " << hexAbbrev(qSetHash);
