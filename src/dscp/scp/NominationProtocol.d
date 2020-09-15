@@ -10,6 +10,8 @@ import dscp.scp.Slot;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
+import std.algorithm;
+
 class NominationProtocol
 {
   protected:
@@ -35,7 +37,14 @@ class NominationProtocol
     // the value from the previous slot
     Value mPreviousValue;
 
-    bool isNewerStatement(ref const(NodeID) nodeID, ref const(SCPNomination) st);
+    bool isNewerStatement (ref const(NodeID) nodeID, ref const(SCPNomination) st)
+    {
+        if (auto old = nodeID in mLatestNominations)
+            return isNewerStatement(old.statement.pledges.nominate_, st);
+
+        return true;
+    }
+
     static bool isNewerStatement(ref const(SCPNomination) oldst,
                                  ref const(SCPNomination) st);
 
@@ -43,7 +52,17 @@ class NominationProtocol
     // also sets 'notEqual' if p and v differ
     // note: p and v must be sorted
     static bool isSubsetHelper(const(Value)[] p,
-                               const(Value)[] v, bool* notEqual);
+                               const(Value)[] v, ref bool notEqual)
+    {
+        if (p.length <= v.length && v.canFind(p))
+        {
+            notEqual = p.length != v.length;
+            return true;
+        }
+
+        notEqual = true;
+        return false;
+    }
 
     SCPDriver.ValidationLevel validateValue(ref const(Value) v);
     Value extractValidValue(ref const(Value) value);
@@ -79,7 +98,12 @@ class NominationProtocol
     Value getNewValueFromNomination(ref const(SCPNomination) nom);
 
   public:
-    this(Slot slot);
+    this(Slot slot)
+    {
+        mSlot = slot;
+        mRoundNumber = 0;
+        mNominationStarted = false;
+    }
 
     SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope);
 

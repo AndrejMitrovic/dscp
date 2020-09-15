@@ -1,72 +1,8 @@
-// Copyright 2014 Stellar Development Foundation and contributors. Licensed
-// under the Apache License, Version 2.0. See the COPYING file at the root
-// of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
-
-#include "NominationProtocol.h"
-
-#include "Slot.h"
-#include "crypto/Hex.h"
-#include "crypto/Hash.h"
-#include "lib/json/json.h"
-#include "scp/LocalNode.h"
-#include "scp/QuorumSetUtils.h"
-#include "util/GlobalChecks.h"
-#include "util/Logging.h"
-#include "util/XDROperators.h"
-#include "xdrpp/marshal.h"
-#include <algorithm>
-#include <functional>
-
-namespace stellar
-{
-using namespace std.placeholders;
-
-NominationProtocol.NominationProtocol(Slot& slot)
-    : mSlot(slot), mRoundNumber(0), mNominationStarted(false)
-{
-}
-
-bool
-NominationProtocol.isNewerStatement(ref const(NodeID) nodeID,
-                                     SCPNomination const& st)
-{
-    auto oldp = mLatestNominations.find(nodeID);
-    bool res = false;
-
-    if (oldp == mLatestNominations.end())
-    {
-        res = true;
-    }
-    else
-    {
-        res = isNewerStatement(oldp.second.statement.pledges.nominate_, st);
-    }
-    return res;
-}
-
 bool
 NominationProtocol.isSubsetHelper(xdr.xvector<Value> const& p,
                                    xdr.xvector<Value> const& v, bool& notEqual)
 {
-    bool res;
-    if (p.length <= v.length)
-    {
-        res = std.includes(v.begin(), v.end(), p.begin(), p.end());
-        if (res)
-        {
-            notEqual = p.length != v.length;
-        }
-        else
-        {
-            notEqual = true;
-        }
-    }
-    else
-    {
-        notEqual = true;
-        res = false;
-    }
-    return res;
+
 }
 
 SCPDriver.ValidationLevel
