@@ -13,6 +13,7 @@ import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
 import std.algorithm;
+import std.range;
 
 class NominationProtocol
 {
@@ -222,17 +223,85 @@ class NominationProtocol
 
     // computes Gi(isPriority?P:N, prevValue, mRoundNumber, nodeID)
     // from the paper
-    uint64 hashNode(bool isPriority, ref const(NodeID) nodeID);
+    uint64 hashNode(bool isPriority, ref const(NodeID) nodeID)
+    {
+        assert(!mPreviousValue.empty());
+        return mSlot.getSCPDriver().computeHashNode(
+            mSlot.getSlotIndex(), mPreviousValue, isPriority, mRoundNumber, nodeID);
+    }
 
     // computes Gi(K, prevValue, mRoundNumber, value)
-    uint64 hashValue(ref const(Value) value);
+    uint64 hashValue(ref const(Value) value)
+    {
+        assert(!mPreviousValue.empty());
+        return mSlot.getSCPDriver().computeValueHash(
+            mSlot.getSlotIndex(), mPreviousValue, mRoundNumber, value);
+    }
 
-    uint64 getNodePriority(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset);
+    uint64 getNodePriority(ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
+    {
+        uint64 res;
+        uint64 w;
+
+        if (nodeID == mSlot.getLocalNode().getNodeID())
+        {
+            // local node is in all quorum sets
+            w = ulong.max;
+        }
+        else
+        {
+            w = LocalNode.getNodeWeight(nodeID, qset);
+        }
+
+        // if w > 0; w is inclusive here as
+        // 0 <= hashNode <= ulong.max
+        if (w > 0 && hashNode(false, nodeID) <= w)
+        {
+            res = hashNode(true, nodeID);
+        }
+        else
+        {
+            res = 0;
+        }
+        return res;
+    }
 
     // returns the highest value that we don't have yet, that we should
     // vote for, extracted from a nomination.
     // returns the empty value if no new value was found
-    Value getNewValueFromNomination(ref const(SCPNomination) nom);
+    Value getNewValueFromNomination(ref const(SCPNomination) nom)
+    {
+        // pick the highest value we don't have from the leader
+        // sorted using hashValue.
+        Value newVote;
+        uint64 newHash = 0;
+
+        applyAll(nom, (ref const(Value) value) {
+            Value valueToNominate;
+            auto vl = validateValue(value);
+            if (vl == SCPDriver.kFullyValidatedValue)
+            {
+                valueToNominate = value;
+            }
+            else
+            {
+                valueToNominate = extractValidValue(value);
+            }
+            if (!valueToNominate.empty())
+            {
+                if (mVotes.find(valueToNominate) == mVotes.end())
+                {
+                    uint64 curHash = hashValue(valueToNominate);
+                    if (curHash >= newHash)
+                    {
+                        newHash = curHash;
+                        newVote = valueToNominate;
+                    }
+                }
+            }
+        });
+        return newVote;
+    }
 
   public:
     this(Slot slot)

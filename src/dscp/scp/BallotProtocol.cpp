@@ -348,7 +348,7 @@ BallotProtocol.abandonBallot(uint32 n)
 }
 
 bool
-BallotProtocol.bumpState(Value const& value, bool force)
+BallotProtocol.bumpState(ref const(Value) value, bool force)
 {
     uint32 n;
     if (!force && mCurrentBallot)
@@ -362,7 +362,7 @@ BallotProtocol.bumpState(Value const& value, bool force)
 }
 
 bool
-BallotProtocol.bumpState(Value const& value, uint32 n)
+BallotProtocol.bumpState(ref const(Value) value, uint32 n)
 {
     if (mPhase != SCP_PHASE_PREPARE && mPhase != SCP_PHASE_CONFIRM)
     {

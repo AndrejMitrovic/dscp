@@ -21,6 +21,6 @@ struct SecretValue
     std.string value;
 };
 
-bool operator==(SecretValue const& x, SecretValue const& y);
-bool operator!=(SecretValue const& x, SecretValue const& y);
+bool operator==(Secretref const(Value) x, Secretref const(Value) y);
+bool operator!=(Secretref const(Value) x, Secretref const(Value) y);
 }

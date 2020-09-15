@@ -1,82 +1,15 @@
-uint64
-NominationProtocol.hashNode(bool isPriority, ref const(NodeID) nodeID)
-{
-    assert(!mPreviousValue.empty());
-    return mSlot.getSCPDriver().computeHashNode(
-        mSlot.getSlotIndex(), mPreviousValue, isPriority, mRoundNumber, nodeID);
-}
-
-uint64
-NominationProtocol.hashValue(Value const& value)
-{
-    assert(!mPreviousValue.empty());
-    return mSlot.getSCPDriver().computeValueHash(
-        mSlot.getSlotIndex(), mPreviousValue, mRoundNumber, value);
-}
 
 uint64
 NominationProtocol.getNodePriority(ref const(NodeID) nodeID,
                                     ref const(SCPQuorumSet) qset)
 {
-    uint64 res;
-    uint64 w;
 
-    if (nodeID == mSlot.getLocalNode().getNodeID())
-    {
-        // local node is in all quorum sets
-        w = UINT64_MAX;
-    }
-    else
-    {
-        w = LocalNode.getNodeWeight(nodeID, qset);
-    }
-
-    // if w > 0; w is inclusive here as
-    // 0 <= hashNode <= UINT64_MAX
-    if (w > 0 && hashNode(false, nodeID) <= w)
-    {
-        res = hashNode(true, nodeID);
-    }
-    else
-    {
-        res = 0;
-    }
-    return res;
 }
 
 Value
 NominationProtocol.getNewValueFromNomination(SCPNomination const& nom)
 {
-    // pick the highest value we don't have from the leader
-    // sorted using hashValue.
-    Value newVote;
-    uint64 newHash = 0;
 
-    applyAll(nom, [&](Value const& value) {
-        Value valueToNominate;
-        auto vl = validateValue(value);
-        if (vl == SCPDriver.kFullyValidatedValue)
-        {
-            valueToNominate = value;
-        }
-        else
-        {
-            valueToNominate = extractValidValue(value);
-        }
-        if (!valueToNominate.empty())
-        {
-            if (mVotes.find(valueToNominate) == mVotes.end())
-            {
-                uint64 curHash = hashValue(valueToNominate);
-                if (curHash >= newHash)
-                {
-                    newHash = curHash;
-                    newVote = valueToNominate;
-                }
-            }
-        }
-    });
-    return newVote;
 }
 
 SCP.EnvelopeState
@@ -206,13 +139,13 @@ NominationProtocol.getStatementValues(ref const(SCPStatement) st)
 {
     Value[] res;
     applyAll(st.pledges.nominate_,
-             [&](Value const& v) { res ~= v; });
+             [&](ref const(Value) v) { res ~= v; });
     return res;
 }
 
 // attempts to nominate a value for consensus
 bool
-NominationProtocol.nominate(Value const& value, Value const& previousValue,
+NominationProtocol.nominate(ref const(Value) value, ref const(Value) previousValue,
                              bool timedout)
 {
     if (Logging.logDebug("SCP"))
