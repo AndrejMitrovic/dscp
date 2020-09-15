@@ -24,19 +24,19 @@ class Slot
 {
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
-    struct HistoricalStatement
+    public struct HistoricalStatement
     {
         time_t mWhen;
         SCPStatement mStatement;
         bool mValidated;
     }
 
-    const uint64 mSlotIndex;  // the index this slot is tracking
-    SCP mSCP;
-    BallotProtocol mBallotProtocol;
-    NominationProtocol mNominationProtocol;
-    HistoricalStatement[] mStatementsHistory;
-    bool mFullyValidated;  // true if the Slot was fully validated
+    private const uint64 mSlotIndex;  // the index this slot is tracking
+    private SCP mSCP;
+    private BallotProtocol mBallotProtocol;
+    private NominationProtocol mNominationProtocol;
+    private HistoricalStatement[] mStatementsHistory;
+    private bool mFullyValidated;  // true if the Slot was fully validated
 
     public this (uint64 slotIndex, SCP scp)
     {
