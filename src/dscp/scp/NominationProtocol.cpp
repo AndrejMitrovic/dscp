@@ -1,61 +1,8 @@
-bool
-NominationProtocol.isSubsetHelper(xdr.xvector<Value> const& p,
-                                   xdr.xvector<Value> const& v, bool& notEqual)
-{
-
-}
-
-SCPDriver.ValidationLevel
-NominationProtocol.validateValue(Value const& v)
-{
-    return mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, true);
-}
-
-Value
-NominationProtocol.extractValidValue(Value const& value)
-{
-    return mSlot.getSCPDriver().extractValidValue(mSlot.getSlotIndex(), value);
-}
-
-bool
-NominationProtocol.isNewerStatement(SCPNomination const& oldst,
-                                     SCPNomination const& st)
-{
-    bool res = false;
-    bool grows;
-    bool g = false;
-
-    if (isSubsetHelper(oldst.votes, st.votes, g))
-    {
-        grows = g;
-        if (isSubsetHelper(oldst.accepted, st.accepted, g))
-        {
-            grows = grows || g;
-            res = grows; //  true only if one of the sets grew
-        }
-    }
-
-    return res;
-}
 
 bool
 NominationProtocol.isSane(ref const(SCPStatement) st)
 {
-    const nom = &st.pledges.nominate_;
-    bool res = (nom.votes.length + nom.accepted.length) != 0;
 
-    res = res && (std.adjacent_find(
-                      nom.votes.begin(), nom.votes.end(),
-                      [](stellar.Value const& l, stellar.Value const& r) {
-                          return !(l < r);
-                      }) == nom.votes.end());
-    res = res && (std.adjacent_find(
-                      nom.accepted.begin(), nom.accepted.end(),
-                      [](stellar.Value const& l, stellar.Value const& r) {
-                          return !(l < r);
-                      }) == nom.accepted.end());
-
-    return res;
 }
 
 // only called after a call to isNewerStatement so safe to replace the

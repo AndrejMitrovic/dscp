@@ -46,7 +46,24 @@ class NominationProtocol
     }
 
     static bool isNewerStatement(ref const(SCPNomination) oldst,
-                                 ref const(SCPNomination) st);
+                                 ref const(SCPNomination) st)
+    {
+        bool res = false;
+        bool grows;
+        bool g = false;
+
+        if (isSubsetHelper(oldst.votes, st.votes, g))
+        {
+            grows = g;
+            if (isSubsetHelper(oldst.accepted, st.accepted, g))
+            {
+                grows = grows || g;
+                res = grows; //  true only if one of the sets grew
+            }
+        }
+
+        return res;
+    }
 
     // returns true if 'p' is a subset of 'v'
     // also sets 'notEqual' if p and v differ
@@ -64,10 +81,26 @@ class NominationProtocol
         return false;
     }
 
-    SCPDriver.ValidationLevel validateValue(ref const(Value) v);
-    Value extractValidValue(ref const(Value) value);
+    SCPDriver.ValidationLevel validateValue(ref const(Value) v)
+    {
+        return mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, true);
+    }
 
-    bool isSane(ref const(SCPStatement) st);
+    Value extractValidValue(ref const(Value) value)
+    {
+        return mSlot.getSCPDriver().extractValidValue(mSlot.getSlotIndex(), value);
+    }
+
+    bool isSane (ref const(SCPStatement) st)
+    {
+        const nom = &st.pledges.nominate_;
+
+        if (nom.votes.length + nom.accepted.length == 0)
+            return false;
+
+        return nom.votes.isStrictlyMonotonic() &&
+            nom.accepted.isStrictlyMonotonic();
+    }
 
     void recordEnvelope(ref const(SCPEnvelope) env);
 
