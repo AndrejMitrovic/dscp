@@ -12,6 +12,8 @@ import dscp.scp.QuorumSetUtils;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
+import std.range;
+
 // used to filter statements
 alias StatementPredicate = bool delegate (ref const(SCPStatement));
 
@@ -162,18 +164,91 @@ class BallotProtocol
     }
 
     void ballotProtocolTimerExpired();
+
     // abandon's current ballot, move to a new ballot
     // at counter `n` (or, if n == 0, increment current counter)
-    bool abandonBallot(uint32 n);
+    bool abandonBallot(uint32 n)
+    {
+        //CLOG(TRACE, "SCP") << "BallotProtocol.abandonBallot";
+        bool res = false;
+        Value v = mSlot.getLatestCompositeCandidate().dup;
+        if (v.empty())
+        {
+            if (mCurrentBallot)
+            {
+                v = mCurrentBallot.value;
+            }
+        }
+        if (!v.empty())
+        {
+            if (n == 0)
+            {
+                res = bumpState(v, true);
+            }
+            else
+            {
+                res = bumpState(v, n);
+            }
+        }
+        return res;
+    }
 
     // bumps the ballot based on the local state and the value passed in:
     // in prepare phase, attempts to take value
     // otherwise, no-ops
     // force: when true, always bumps the value, otherwise only bumps
     // the state if no value was prepared
-    bool bumpState(ref const(Value) value, bool force);
+    bool bumpState(ref const(Value) value, bool force)
+    {
+        uint32 n;
+        if (!force && mCurrentBallot)
+        {
+            return false;
+        }
+
+        n = mCurrentBallot ? (mCurrentBallot.counter + 1) : 1;
+
+        return bumpState(value, n);
+    }
+
     // flavor that takes the actual desired counter value
-    bool bumpState(ref const(Value) value, uint32 n);
+    bool bumpState(ref const(Value) value, uint32 n)
+    {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        {
+            return false;
+        }
+
+        SCPBallot newb;
+
+        newb.counter = n;
+
+        if (mValueOverride)
+        {
+            // we use the value that we saw confirmed prepared
+            // or that we at least voted to commit to
+            newb.value = *mValueOverride;
+        }
+        else
+        {
+            newb.value = value.dup;
+        }
+
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.bumpState"
+        //                       << " i: " << mSlot.getSlotIndex()
+        //                       << " v: " << mSlot.getSCP().ballotToStr(newb);
+
+        bool updated = updateCurrentValue(newb);
+
+        if (updated)
+        {
+            emitCurrentStateStatement();
+            checkHeardFromQuorum();
+        }
+
+        return updated;
+    }
 
     // ** status methods
 
