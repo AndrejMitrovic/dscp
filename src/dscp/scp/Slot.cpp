@@ -1,50 +1,7 @@
-Value[]
-Slot.getStatementValues(SCPStatement const& st)
-{
-    Value[] res;
-    if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
-    {
-        res = NominationProtocol.getStatementValues(st);
-    }
-    else
-    {
-        res ~= BallotProtocol.getWorkingBallot(st).value;
-    }
-    return res;
-}
-
 SCPQuorumSetPtr
 Slot.getQuorumSetFromStatement(SCPStatement const& st)
 {
-    SCPQuorumSetPtr res;
-    SCPStatementType t = st.pledges.type;
 
-    if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
-    {
-        res = LocalNode.getSingletonQSet(st.nodeID);
-    }
-    else
-    {
-        Hash h;
-        if (t == SCPStatementType.SCP_ST_PREPARE)
-        {
-            h = st.pledges.prepare_.quorumSetHash;
-        }
-        else if (t == SCPStatementType.SCP_ST_CONFIRM)
-        {
-            h = st.pledges.confirm_.quorumSetHash;
-        }
-        else if (t == SCPStatementType.SCP_ST_NOMINATE)
-        {
-            h = st.pledges.nominate_.quorumSetHash;
-        }
-        else
-        {
-            assert(0);
-        }
-        res = getSCPDriver().getQSet(h);
-    }
-    return res;
 }
 
 Json.Value

@@ -288,11 +288,34 @@ class Slot
     }
 
     // returns the values associated with the statement
-    static Value[] getStatementValues(ref const(SCPStatement) st);
+    static Value[] getStatementValues(ref const(SCPStatement) st)
+    {
+        if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
+            return NominationProtocol.getStatementValues(st);
+        else
+            return [BallotProtocol.getWorkingBallot(st).value];
+    }
 
     // returns the QuorumSet that should be used for a node given the
     // statement (singleton for externalize)
-    SCPQuorumSetPtr getQuorumSetFromStatement(ref const(SCPStatement) st);
+    SCPQuorumSetPtr getQuorumSetFromStatement(ref const(SCPStatement) st)
+    {
+        SCPStatementType t = st.pledges.type;
+        if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
+            return LocalNode.getSingletonQSet(st.nodeID);
+
+        Hash h;
+        if (t == SCPStatementType.SCP_ST_PREPARE)
+            h = st.pledges.prepare_.quorumSetHash;
+        else if (t == SCPStatementType.SCP_ST_CONFIRM)
+            h = st.pledges.confirm_.quorumSetHash;
+        else if (t == SCPStatementType.SCP_ST_NOMINATE)
+            h = st.pledges.nominate_.quorumSetHash;
+        else
+            assert(0);
+
+        return getSCPDriver().getQSet(h);
+    }
 
     // wraps a statement in an envelope (sign it, etc)
     SCPEnvelope createEnvelope(ref const(SCPStatement) statement)
