@@ -290,10 +290,9 @@ class NominationProtocol
             // only return messages for self if the slot is fully validated
             if (node_id != mSlot.getSCP().getLocalNodeID() ||
                 mSlot.isFullyValidated())
-            {
                 res ~= env;
-            }
         }
+
         return res;
     }
 
