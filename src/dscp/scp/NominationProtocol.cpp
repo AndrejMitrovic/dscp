@@ -151,13 +151,10 @@ NominationProtocol.emitNomination()
     nom.quorumSetHash = mSlot.getLocalNode()->getQuorumSetHash();
 
     for (auto const& v : mVotes)
-    {
-        nom.votes.emplace_back(v);
-    }
+        nom.votes ~= v;
+
     for (auto const& a : mAccepted)
-    {
-        nom.accepted.emplace_back(a);
-    }
+        nom.accepted ~= a;
 
     SCPEnvelope envelope = mSlot.createEnvelope(st);
 
@@ -455,7 +452,7 @@ NominationProtocol.getStatementValues(SCPStatement const& st)
 {
     Value[] res;
     applyAll(st.pledges.nominate_,
-             [&](Value const& v) { res.emplace_back(v); });
+             [&](Value const& v) { res ~= v; });
     return res;
 }
 
@@ -615,7 +612,7 @@ NominationProtocol.getCurrentState() const
         if (!(n.first == mSlot.getSCP().getLocalNodeID()) ||
             mSlot.isFullyValidated())
         {
-            res.emplace_back(n.second);
+            res ~= n.second;
         }
     }
     return res;

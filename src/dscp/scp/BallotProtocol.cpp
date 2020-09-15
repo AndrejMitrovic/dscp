@@ -1798,7 +1798,7 @@ BallotProtocol.getCurrentState() const
         if (!(n.first == mSlot.getSCP().getLocalNodeID()) ||
             mSlot.isFullyValidated())
         {
-            res.emplace_back(n.second);
+            res ~= n.second;
         }
     }
     return res;
@@ -1832,13 +1832,13 @@ BallotProtocol.getExternalizingState() const
                 if (areBallotsCompatible(getWorkingBallot(n.second.statement),
                                          *mCommit))
                 {
-                    res.emplace_back(n.second);
+                    res ~= n.second;
                 }
             }
             else if (mSlot.isFullyValidated())
             {
                 // only return messages for self if the slot is fully validated
-                res.emplace_back(n.second);
+                res ~= n.second;
             }
         }
     }

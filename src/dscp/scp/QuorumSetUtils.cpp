@@ -164,7 +164,7 @@ normalizeQSetSimplify(SCPQuorumSet& qSet, const(NodeID)* idToRemove)
         if (it->threshold == 1 && it->validators.size() == 1 &&
             it->innerSets.size() == 0)
         {
-            v.emplace_back(it->validators.front());
+            v ~= it->validators.front();
             it = i.erase(it);
         }
         else

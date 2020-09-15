@@ -39,7 +39,7 @@ LocalNode.buildSingletonQSet(ref const(NodeID) nodeID)
 {
     SCPQuorumSet qSet;
     qSet.threshold = 1;
-    qSet.validators.emplace_back(nodeID);
+    qSet.validators ~= nodeID;
     return qSet;
 }
 
@@ -318,7 +318,7 @@ LocalNode.findClosestVBlocking(ref const(SCPQuorumSet) qset,
             else
             {
                 // save this for later
-                res.emplace_back(validator);
+                res ~= validator;
             }
         }
     }

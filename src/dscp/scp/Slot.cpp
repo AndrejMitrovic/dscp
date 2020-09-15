@@ -1,27 +1,3 @@
-Hash
-Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
-{
-    Hash h;
-    switch (st.pledges.type)
-    {
-    case SCPStatementType.SCP_ST_PREPARE:
-        h = st.pledges.prepare_.quorumSetHash;
-        break;
-    case SCPStatementType.SCP_ST_CONFIRM:
-        h = st.pledges.confirm_.quorumSetHash;
-        break;
-    case SCPStatementType.SCP_ST_EXTERNALIZE:
-        h = st.pledges.externalize_.commitQuorumSetHash;
-        break;
-    case SCPStatementType.SCP_ST_NOMINATE:
-        h = st.pledges.nominate_.quorumSetHash;
-        break;
-    default:
-        assert(0);
-    }
-    return h;
-}
-
 Value[]
 Slot.getStatementValues(SCPStatement const& st)
 {
@@ -32,7 +8,7 @@ Slot.getStatementValues(SCPStatement const& st)
     }
     else
     {
-        res.emplace_back(BallotProtocol.getWorkingBallot(st).value);
+        res ~= BallotProtocol.getWorkingBallot(st).value;
     }
     return res;
 }
