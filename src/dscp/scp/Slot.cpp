@@ -157,10 +157,10 @@ Slot.getCompanionQuorumSetHashFromStatement(SCPStatement const& st)
     return h;
 }
 
-std.vector<Value>
+Value[]
 Slot.getStatementValues(SCPStatement const& st)
 {
-    std.vector<Value> res;
+    Value[] res;
     if (st.pledges.type() == SCP_ST_NOMINATE)
     {
         res = NominationProtocol.getStatementValues(st);

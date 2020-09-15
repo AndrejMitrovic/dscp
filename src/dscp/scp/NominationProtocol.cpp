@@ -450,10 +450,10 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
     return res;
 }
 
-std.vector<Value>
+Value[]
 NominationProtocol.getStatementValues(SCPStatement const& st)
 {
-    std.vector<Value> res;
+    Value[] res;
     applyAll(st.pledges.nominate(),
              [&](Value const& v) { res.emplace_back(v); });
     return res;
