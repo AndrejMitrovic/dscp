@@ -2,14 +2,10 @@
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 Slot.getCurrentState() const
 {
-    std.vector<SCPEnvelope> res;
-    res = mNominationProtocol.getCurrentState();
-    auto r2 = mBallotProtocol.getCurrentState();
-    res.insert(res.end(), r2.begin(), r2.end());
-    return res;
+
 }
 
 SCPEnvelope const*
@@ -23,7 +19,7 @@ Slot.getLatestMessage(ref const(NodeID) id) const
     return m;
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 Slot.getExternalizingState() const
 {
     return mBallotProtocol.getExternalizingState();
@@ -302,7 +298,7 @@ Slot.getLocalNode()
     return mSCP.getLocalNode();
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 Slot.getEntireCurrentState()
 {
     bool old = mFullyValidated;

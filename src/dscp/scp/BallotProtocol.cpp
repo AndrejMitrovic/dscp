@@ -1787,10 +1787,10 @@ BallotProtocol.setStateFromEnvelope(SCPEnvelope const& e)
     }
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 BallotProtocol.getCurrentState() const
 {
-    std.vector<SCPEnvelope> res;
+    SCPEnvelope[] res;
     res.reserve(mLatestEnvelopes.size());
     for (auto const& n : mLatestEnvelopes)
     {
@@ -1815,10 +1815,10 @@ BallotProtocol.getLatestMessage(ref const(NodeID) id) const
     return null;
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 BallotProtocol.getExternalizingState() const
 {
-    std.vector<SCPEnvelope> res;
+    SCPEnvelope[] res;
     if (mPhase == SCP_PHASE_EXTERNALIZE)
     {
         res.reserve(mLatestEnvelopes.size());

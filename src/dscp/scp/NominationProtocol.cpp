@@ -604,10 +604,10 @@ NominationProtocol.setStateFromEnvelope(SCPEnvelope const& e)
     mLastEnvelope = std.make_unique<SCPEnvelope>(e);
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 NominationProtocol.getCurrentState() const
 {
-    std.vector<SCPEnvelope> res;
+    SCPEnvelope[] res;
     res.reserve(mLatestNominations.size());
     for (auto const& n : mLatestNominations)
     {

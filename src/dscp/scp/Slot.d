@@ -129,7 +129,14 @@ class Slot
     }
 
     // returns the latest messages known for this slot
-    SCPEnvelope[] getCurrentState() const;
+    SCPEnvelope[] getCurrentState() const
+    {
+        SCPEnvelope[] res;
+        res = mNominationProtocol.getCurrentState();
+        auto r2 = mBallotProtocol.getCurrentState();
+        res.insert(res.end(), r2.begin(), r2.end());
+        return res;
+    }
 
     // returns the latest message from a node
     // or null if not found

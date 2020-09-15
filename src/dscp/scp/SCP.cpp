@@ -189,7 +189,7 @@ SCP.getCumulativeStatemtCount() const
     return c;
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 SCP.getLatestMessagesSend(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
@@ -199,7 +199,7 @@ SCP.getLatestMessagesSend(uint64 slotIndex)
     }
     else
     {
-        return std.vector<SCPEnvelope>();
+        return SCPEnvelope[]();
     }
 }
 
@@ -232,7 +232,7 @@ SCP.getHighSlotIndex() const
     return it->first;
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 SCP.getCurrentState(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
@@ -242,7 +242,7 @@ SCP.getCurrentState(uint64 slotIndex)
     }
     else
     {
-        return std.vector<SCPEnvelope>();
+        return SCPEnvelope[]();
     }
 }
 
@@ -261,7 +261,7 @@ SCP.getLatestMessage(ref const(NodeID) id)
     return null;
 }
 
-std.vector<SCPEnvelope>
+SCPEnvelope[]
 SCP.getExternalizingState(uint64 slotIndex)
 {
     auto slot = getSlot(slotIndex, false);
@@ -271,7 +271,7 @@ SCP.getExternalizingState(uint64 slotIndex)
     }
     else
     {
-        return std.vector<SCPEnvelope>();
+        return SCPEnvelope[]();
     }
 }
 
