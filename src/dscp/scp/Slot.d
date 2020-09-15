@@ -170,28 +170,87 @@ class Slot
     // the slot accordingly.
     // self: set to true when node wants to record its own messages (potentially
     // triggering more transitions)
-    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope, bool self);
+    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope, bool self)
+    {
+        assert(envelope.statement.slotIndex == mSlotIndex);
 
-    bool abandonBallot();
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "Slot.processEnvelope"
+        //                       << " i: " << getSlotIndex() << " "
+        //                       << mSCP.envToStr(envelope);
+
+        SCP.EnvelopeState res;
+
+        try
+        {
+
+            if (envelope.statement.pledges.type ==
+                SCPStatementType.SCP_ST_NOMINATE)
+            {
+                res = mNominationProtocol.processEnvelope(envelope);
+            }
+            else
+            {
+                res = mBallotProtocol.processEnvelope(envelope, self);
+            }
+        }
+        catch (Throwable thr)
+        {
+            //CLOG(FATAL, "SCP") << "SCP context:";
+            //CLOG(FATAL, "SCP") << getJsonInfo().toStyledString();
+            //CLOG(FATAL, "SCP") << "Exception processing SCP messages at "
+            //                   << mSlotIndex
+            //                   << ", envelope: " << mSCP.envToStr(envelope);
+            //CLOG(FATAL, "SCP") << REPORT_INTERNAL_BUG;
+
+            throw thr;
+        }
+
+        return res;
+    }
+
+    bool abandonBallot()
+    {
+        return mBallotProtocol.abandonBallot(0);
+    }
 
     // bumps the ballot based on the local state and the value passed in:
     // in prepare phase, attempts to take value
     // otherwise, no-ops
     // force: when true, always bumps the value, otherwise only bumps
     // the state if no value was prepared
-    bool bumpState(const(Value) value, bool force);
+    bool bumpState(const(Value) value, bool force)
+    {
+        return mBallotProtocol.bumpState(value, force);
+    }
 
     // attempts to nominate a value for consensus
     bool nominate(const(Value) value, const(Value) previousValue,
-                  bool timedout);
+                  bool timedout)
+    {
+        return mNominationProtocol.nominate(value, previousValue, timedout);
+    }
 
-    void stopNomination();
+    void stopNomination()
+    {
+        mNominationProtocol.stopNomination();
+    }
 
     // returns the current nomination leaders
-    set!NodeID getNominationLeaders() const;
+    const(set!NodeID) getNominationLeaders() const
+    {
+        return mNominationProtocol.getLeaders();
+    }
 
-    bool isFullyValidated() const;
-    void setFullyValidated(bool fullyValidated);
+    bool isFullyValidated() const
+    {
+        return mFullyValidated;
+    }
+
+    void setFullyValidated(bool fullyValidated)
+    {
+        mFullyValidated = fullyValidated;
+    }
 
     // ** status methods
 
