@@ -121,8 +121,8 @@ class NominationProtocol
                 continue;
 
             if (mSlot.federatedRatify(
-                    (ref const(SCPStatement) st) => acceptPredicate(a, st),
-                    mLatestNominations))
+                (ref const(SCPStatement) st) => acceptPredicate(a, st),
+                mLatestNominations))
             {
                 mCandidates[a] = [];
                 newCandidates = true;
