@@ -59,7 +59,7 @@ class SCP
     ref const(NodeID) getLocalNodeID ();
 
     // returns the local node descriptor
-    LocalNode* getLocalNode ();
+    LocalNode getLocalNode ();
 
     // Purges all data relative to all the slots whose slotIndex is smaller
     // than the specified `maxSlotIndex`.

@@ -366,9 +366,17 @@ class Slot
     // returns true if the statement defined by voted
     // is ratified
     bool federatedRatify(StatementPredicate voted,
-                         const(SCPEnvelope[NodeID]) envs);
+                         const(SCPEnvelope[NodeID]) envs)
+    {
+        return LocalNode.isQuorum(
+            getLocalNode().getQuorumSet(), envs,
+            &this.getQuorumSetFromStatement, voted);
+    }
 
-    LocalNode getLocalNode();
+    LocalNode getLocalNode()
+    {
+        return mSCP.getLocalNode();
+    }
 
     enum timerIDs
     {
@@ -377,5 +385,13 @@ class Slot
     };
 
   protected:
-    SCPEnvelope[] getEntireCurrentState();
+    SCPEnvelope[] getEntireCurrentState()
+    {
+        bool old = mFullyValidated;
+        // fake fully validated to force returning all envelopes
+        mFullyValidated = true;
+        auto r = getCurrentState();
+        mFullyValidated = old;
+        return r;
+    }
 }
