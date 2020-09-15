@@ -353,9 +353,9 @@ class Slot
         };
 
         if (LocalNode.isQuorum(
-                getLocalNode().getQuorumSet(), envs,
-                std.bind(&Slot.getQuorumSetFromStatement, this, _1),
-                ratifyFilter))
+            getLocalNode().getQuorumSet(), envs,
+            &this.getQuorumSetFromStatement,
+            ratifyFilter))
         {
             return true;
         }

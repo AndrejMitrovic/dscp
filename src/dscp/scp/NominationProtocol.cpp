@@ -360,8 +360,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                                                  v) != nom.votes.end());
                                 return res;
                             },
-                            std.bind(&NominationProtocol.acceptPredicate, v,
-                                      _1),
+                            &v.acceptPredicate,
                             mLatestNominations))
                     {
                         auto vl = validateValue(v);
@@ -396,8 +395,7 @@ NominationProtocol.processEnvelope(SCPEnvelope const& envelope)
                         continue;
                     }
                     if (mSlot.federatedRatify(
-                            std.bind(&NominationProtocol.acceptPredicate, a,
-                                      _1),
+                            &a.acceptPredicate,
                             mLatestNominations))
                     {
                         mCandidates.emplace(a);

@@ -12,7 +12,7 @@ Slot.federatedRatify(StatementPredicate voted,
 {
     return LocalNode.isQuorum(
         getLocalNode().getQuorumSet(), envs,
-        std.bind(&Slot.getQuorumSetFromStatement, this, _1), voted);
+        &this.getQuorumSetFromStatement, voted);
 }
 
 std.shared_ptr<LocalNode>

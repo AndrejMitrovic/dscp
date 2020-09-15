@@ -875,7 +875,7 @@ BallotProtocol.attemptPreparedAccept(ref const(SCPStatement) hint)
 
                 return res;
             },
-            std.bind(&BallotProtocol.hasPreparedBallot, ballot, _1));
+            &ballot.hasPreparedBallot);
         if (accepted)
         {
             return setPreparedAccept(ballot);
@@ -951,7 +951,7 @@ BallotProtocol.attemptPreparedConfirmed(ref const(SCPStatement) hint)
         }
 
         bool ratified = federatedRatify(
-            std.bind(&BallotProtocol.hasPreparedBallot, ballot, _1));
+            &ballot.hasPreparedBallot);
         if (ratified)
         {
             newH = ballot;
@@ -986,8 +986,7 @@ BallotProtocol.attemptPreparedConfirmed(ref const(SCPStatement) hint)
                 {
                     continue;
                 }
-                bool ratified = federatedRatify(
-                    std.bind(&BallotProtocol.hasPreparedBallot, ballot, _1));
+                bool ratified = federatedRatify(&ballot.hasPreparedBallot);
                 if (ratified)
                 {
                     newC = ballot;
@@ -1266,7 +1265,7 @@ BallotProtocol.attemptAcceptCommit(ref const(SCPStatement) hint)
                 }
                 return res;
             },
-            std.bind(&BallotProtocol.commitPredicate, ballot, cur, _1));
+            &ballot.commitPredicate);
     };
 
     // build the boundaries to scan
@@ -1480,7 +1479,10 @@ BallotProtocol.attemptConfirmCommit(ref const(SCPStatement) hint)
 
     auto pred = [&ballot, this](Interval const& cur) -> bool {
         return federatedRatify(
-            std.bind(&BallotProtocol.commitPredicate, ballot, cur, _1));
+            (ref const(SCPStatement) st)
+            {
+                this.ballot.commitPredicate(ballot, cur)
+            });
     };
 
     findExtendedInterval(candidate, boundaries, pred);
@@ -2157,7 +2159,7 @@ BallotProtocol.checkHeardFromQuorum()
     {
         if (LocalNode.isQuorum(
                 getLocalNode()->getQuorumSet(), mLatestEnvelopes,
-                std.bind(&Slot.getQuorumSetFromStatement, &mSlot, _1),
+                &mslot.getQuorumSetFromStatement,
                 [&](ref const(SCPStatement) st) {
                     bool res;
                     if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
