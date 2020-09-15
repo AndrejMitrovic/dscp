@@ -166,20 +166,14 @@ class Slot
         //                       << " i: " << getSlotIndex() << " "
         //                       << mSCP.envToStr(envelope);
 
-        SCP.EnvelopeState res;
-
         try
         {
 
             if (envelope.statement.pledges.type ==
                 SCPStatementType.SCP_ST_NOMINATE)
-            {
-                res = mNominationProtocol.processEnvelope(envelope);
-            }
+                return mNominationProtocol.processEnvelope(envelope);
             else
-            {
-                res = mBallotProtocol.processEnvelope(envelope, self);
-            }
+                return mBallotProtocol.processEnvelope(envelope, self);
         }
         catch (Throwable thr)
         {
@@ -192,8 +186,6 @@ class Slot
 
             throw thr;
         }
-
-        return res;
     }
 
     public bool abandonBallot ()
@@ -312,7 +304,6 @@ class Slot
         auto mySt = &envelope.statement;
         mySt.nodeID = getSCP().getLocalNodeID();
         mySt.slotIndex = getSlotIndex();
-
         mSCP.getDriver().signEnvelope(envelope);
 
         return envelope;
@@ -330,18 +321,12 @@ class Slot
         if (LocalNode.isVBlocking(getLocalNode().getQuorumSet(), envs, accepted))
             return true;
 
-        // Checks if the set of nodes that accepted or voted for it form a quorum
-
-        auto ratifyFilter = (ref const(SCPStatement) st) {
-            bool res;
-            res = accepted(st) || voted(st);
-            return res;
-        };
-
         return LocalNode.isQuorum(
             getLocalNode().getQuorumSet(), envs,
             &this.getQuorumSetFromStatement,
-            ratifyFilter);
+            // ratify filter - accepted / voted form a quorum
+            (ref const(SCPStatement) st) => (accepted(st) || voted(st))
+        );
     }
 
     // returns true if the statement defined by voted
