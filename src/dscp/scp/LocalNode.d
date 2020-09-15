@@ -4,10 +4,11 @@
 
 module dscp.scp.LocalNode;
 
+import dscp.crypto.Hash;
 import dscp.scp.SCP;
+import dscp.scp.QuorumSetUtils;
 import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
-
 
 /**
  * This is one Node in the stellar network
@@ -22,13 +23,28 @@ class LocalNode
 
     // alternative qset used during externalize {{mNodeID}}
     Hash gSingleQSetHash;                      // hash of the singleton qset
-    SCPQuorumSet* mSingleQSet; // {{mNodeID}}
+    SCPQuorumSet mSingleQSet; // {{mNodeID}}
 
     SCP mSCP;
 
   public:
     this (ref const(NodeID) nodeID, bool isValidator,
-        ref const(SCPQuorumSet) qSet, SCP scp);
+        ref SCPQuorumSet qSet, SCP scp)
+    {
+        mNodeID = nodeID;
+        mIsValidator = isValidator;
+        mQSet = qSet;
+        mSCP = scp;
+        normalizeQSet(mQSet);
+        mQSetHash = getHashOf(mQSet);
+
+        //CLOG(INFO, "SCP") << "LocalNode.LocalNode"
+        //                  << "@" << KeyUtils.toShortString(mNodeID)
+        //                  << " qSet: " << hexAbbrev(mQSetHash);
+
+        mSingleQSet = buildSingletonQSet(mNodeID);
+        gSingleQSetHash = getHashOf(mSingleQSet);
+    }
 
     ref const(NodeID) getNodeID ();
 

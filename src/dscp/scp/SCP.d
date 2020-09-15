@@ -24,7 +24,7 @@ class SCP
     private SCPDriver mDriver;
 
     public this (SCPDriver driver, ref const(NodeID) nodeID, bool isValidator,
-        ref const(SCPQuorumSet) qSetLocal)
+        ref SCPQuorumSet qSetLocal)
     {
         mDriver = driver;
         mLocalNode = new LocalNode(nodeID, isValidator, qSetLocal, this);
