@@ -1,36 +1,7 @@
 bool
 BallotProtocol.setPreparedAccept(SCPBallot const& ballot)
 {
-    if (Logging.logTrace("SCP"))
-        CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedAccept"
-                           << " i: " << mSlot.getSlotIndex()
-                           << " b: " << mSlot.getSCP().ballotToStr(ballot);
 
-    // update our state
-    bool didWork = setPrepared(ballot);
-
-    // check if we also need to clear 'c'
-    if (mCommit && mHighBallot)
-    {
-        if ((mPrepared &&
-             areBallotsLessAndIncompatible(*mHighBallot, *mPrepared)) ||
-            (mPreparedPrime &&
-             areBallotsLessAndIncompatible(*mHighBallot, *mPreparedPrime)))
-        {
-            assert(mPhase == SCPPhase.SCP_PHASE_PREPARE);
-            mCommit.reset();
-            didWork = true;
-        }
-    }
-
-    if (didWork)
-    {
-        mSlot.getSCPDriver().acceptedBallotPrepared(mSlot.getSlotIndex(),
-                                                    ballot);
-        emitCurrentStateStatement();
-    }
-
-    return didWork;
 }
 
 bool

@@ -397,7 +397,39 @@ class BallotProtocol
     }
 
     // prepared: ballot that should be prepared
-    bool setPreparedAccept(ref const(SCPBallot) prepared);
+    bool setPreparedAccept(ref const(SCPBallot) ballot)
+    {
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedAccept"
+        //                       << " i: " << mSlot.getSlotIndex()
+        //                       << " b: " << mSlot.getSCP().ballotToStr(ballot);
+
+        // update our state
+        bool didWork = setPrepared(ballot);
+
+        // check if we also need to clear 'c'
+        if (mCommit && mHighBallot)
+        {
+            if ((mPrepared &&
+                 areBallotsLessAndIncompatible(*mHighBallot, *mPrepared)) ||
+                (mPreparedPrime &&
+                 areBallotsLessAndIncompatible(*mHighBallot, *mPreparedPrime)))
+            {
+                assert(mPhase == SCPPhase.SCP_PHASE_PREPARE);
+                mCommit = null;
+                didWork = true;
+            }
+        }
+
+        if (didWork)
+        {
+            mSlot.getSCPDriver().acceptedBallotPrepared(mSlot.getSlotIndex(),
+                                                        ballot);
+            emitCurrentStateStatement();
+        }
+
+        return didWork;
+    }
 
     // step 2+3+8 from the SCP paper
     // ballot is the candidate to record as 'confirmed prepared'
