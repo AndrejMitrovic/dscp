@@ -10,6 +10,17 @@ alias Value = ubyte[];
 
 struct SCPBallot
 {
+    int opCmp (const ref SCPBallot rhs) inout
+    {
+        if (this.counter < rhs.counter)
+            return -1;
+
+        if (this.value < rhs.value)
+            return -1;
+
+        return 0;
+    }
+
     uint32 counter; // n
     Value value;    // x
 }

@@ -309,7 +309,93 @@ class BallotProtocol
     //  output: returns true if the state was updated.
 
     // step 1 and 5 from the SCP paper
-    bool attemptPreparedAccept(ref const(SCPStatement) hint);
+    bool attemptPreparedAccept(ref const(SCPStatement) hint)
+    {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        {
+            return false;
+        }
+
+        auto candidates = getPrepareCandidates(hint);
+
+        // todo: set needs to be sorted so we can iterate over it from highest ballot
+        // to lowest ballot
+        // see if we can accept any of the candidates, starting with the highest
+        foreach (cur; candidates[].retro)
+        {
+            const(SCPBallot) ballot = cur;
+
+            if (mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+            {
+                // only consider the ballot if it may help us increase
+                // p (note: at this point, p ~ c)
+                if (!areBallotsLessAndCompatible(*mPrepared, ballot))
+                {
+                    continue;
+                }
+                assert(areBallotsCompatible(*mCommit, ballot));
+            }
+
+            // if we already prepared this ballot, don't bother checking again
+
+            // if ballot <= p' ballot is neither a candidate for p nor p'
+            if (mPreparedPrime && compareBallots(ballot, *mPreparedPrime) <= 0)
+            {
+                continue;
+            }
+
+            if (mPrepared)
+            {
+                // if ballot is already covered by p, skip
+                if (areBallotsLessAndCompatible(ballot, *mPrepared))
+                {
+                    continue;
+                }
+                // otherwise, there is a chance it increases p'
+            }
+
+            bool accepted = federatedAccept(
+                // checks if any node is voting for this ballot
+                (ref const(SCPStatement) st) {
+                    bool res;
+
+                    switch (st.pledges.type)
+                    {
+                    case SCPStatementType.SCP_ST_PREPARE:
+                    {
+                        const p = &st.pledges.prepare_;
+                        res = areBallotsLessAndCompatible(ballot, p.ballot);
+                    }
+                    break;
+                    case SCPStatementType.SCP_ST_CONFIRM:
+                    {
+                        const c = &st.pledges.confirm_;
+                        res = areBallotsCompatible(ballot, c.ballot);
+                    }
+                    break;
+                    case SCPStatementType.SCP_ST_EXTERNALIZE:
+                    {
+                        const e = &st.pledges.externalize_;
+                        res = areBallotsCompatible(ballot, e.commit);
+                    }
+                    break;
+                    default:
+                        res = false;
+                        assert(0);
+                    }
+
+                    return res;
+                },
+                (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
+            if (accepted)
+            {
+                return setPreparedAccept(ballot);
+            }
+        }
+
+        return false;
+    }
+
     // prepared: ballot that should be prepared
     bool setPreparedAccept(ref const(SCPBallot) prepared);
 
@@ -342,28 +428,28 @@ class BallotProtocol
             case SCPStatementType.SCP_ST_PREPARE:
             {
                 const prep = &hint.pledges.prepare_;
-                hintBallots[prep.ballot] = [];
+                hintBallots.insert(prep.ballot);
                 if (prep.prepared)
                 {
-                    hintBallots[*prep.prepared] = [];
+                    hintBallots.insert(*prep.prepared);
                 }
                 if (prep.preparedPrime)
                 {
-                    hintBallots[*prep.preparedPrime] = [];
+                    hintBallots.insert(*prep.preparedPrime);
                 }
             }
             break;
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const con = &hint.pledges.confirm_;
-                hintBallots[SCPBallot(con.nPrepared, con.ballot.value.dup)] = [];
-                hintBallots[SCPBallot(uint.max, con.ballot.value.dup)] = [];
+                hintBallots.insert(SCPBallot(con.nPrepared, con.ballot.value.dup));
+                hintBallots.insert(SCPBallot(uint.max, con.ballot.value.dup));
             }
             break;
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
                 const ext = &hint.pledges.externalize_;
-                hintBallots[SCPBallot(uint.max, ext.commit.value.dup)] = [];
+                hintBallots.insert(SCPBallot(uint.max, ext.commit.value.dup));
             }
             break;
             default:
@@ -374,8 +460,8 @@ class BallotProtocol
 
         while (!hintBallots.length != 0)
         {
-            const(SCPBallot) topVote = hintBallots.byKey.front;
-            hintBallots.remove(topVote);
+            const(SCPBallot) topVote = hintBallots[].front;
+            hintBallots.removeFront();
 
             const val = &topVote.value;
 
@@ -390,17 +476,17 @@ class BallotProtocol
                     const prep = &st.pledges.prepare_;
                     if (areBallotsLessAndCompatible(prep.ballot, topVote))
                     {
-                        candidates[prep.ballot] = [];
+                        candidates.insert(prep.ballot);
                     }
                     if (prep.prepared &&
                         areBallotsLessAndCompatible(*prep.prepared, topVote))
                     {
-                        candidates[*prep.prepared] = [];
+                        candidates.insert(*prep.prepared);
                     }
                     if (prep.preparedPrime &&
                         areBallotsLessAndCompatible(*prep.preparedPrime, topVote))
                     {
-                        candidates[*prep.preparedPrime] = [];
+                        candidates.insert(*prep.preparedPrime);
                     }
                 }
                 break;
@@ -409,10 +495,10 @@ class BallotProtocol
                     const con = &st.pledges.confirm_;
                     if (areBallotsCompatible(topVote, con.ballot))
                     {
-                        candidates[topVote] = [];
+                        candidates.insert(topVote);
                         if (con.nPrepared < topVote.counter)
                         {
-                            candidates[SCPBallot(con.nPrepared, (*val).dup)] = [];
+                            candidates.insert(SCPBallot(con.nPrepared, (*val).dup));
                         }
                     }
                 }
@@ -422,7 +508,7 @@ class BallotProtocol
                     const ext = &st.pledges.externalize_;
                     if (areBallotsCompatible(topVote, ext.commit))
                     {
-                        candidates[topVote] = [];
+                        candidates.insert(topVote);
                     }
                 }
                 break;
@@ -436,7 +522,16 @@ class BallotProtocol
     }
 
     // helper to perform step (8) from the paper
-    bool updateCurrentIfNeeded(ref const(SCPBallot) h);
+    bool updateCurrentIfNeeded(ref const(SCPBallot) h)
+    {
+        bool didWork = false;
+        if (!mCurrentBallot || compareBallots(*mCurrentBallot, h) < 0)
+        {
+            bumpToBallot(h, true);
+            didWork = true;
+        }
+        return didWork;
+    }
 
     // An interval is [low,high] represented as a pair
     struct Interval

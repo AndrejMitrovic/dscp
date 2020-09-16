@@ -269,7 +269,7 @@ class LocalNode
         foreach (node_id, env; map)
         {
             if (filter(env.statement))
-                s[node_id] = [];
+                s.insert(node_id);
         }
 
         return findClosestVBlocking(qset, s, excluded);

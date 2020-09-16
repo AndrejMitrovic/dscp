@@ -91,8 +91,8 @@ class NominationProtocol
                 auto vl = validateValue(v);
                 if (vl == ValidationLevel.kFullyValidatedValue)
                 {
-                    mAccepted[v] = [];
-                    mVotes[v] = [];
+                    mAccepted.insert(v);
+                    mVotes.insert(v);
                     modified = true;
                 }
                 else
@@ -106,7 +106,7 @@ class NominationProtocol
                     {
                         if (toVote !in mVotes)
                         {
-                            mVotes[toVote.idup] = [];
+                            mVotes.insert(toVote.idup);
                             modified = true;
                         }
                     }
@@ -115,29 +115,28 @@ class NominationProtocol
         }
 
         // attempts to promote accepted values to candidates
-        foreach (a; mAccepted.byKey)
+        foreach (a; mAccepted[])
         {
-            if (mCandidates.byKey.canFind(a))
+            if (a in mCandidates)
                 continue;
 
             if (mSlot.federatedRatify(
                 (ref const(SCPStatement) st) => acceptPredicate(a, st),
                 mLatestNominations))
             {
-                mCandidates[a] = [];
+                mCandidates.insert(a);
                 newCandidates = true;
             }
         }
 
         // only take round leader votes if we're still looking for
         // candidates
-        if (mCandidates.empty() &&
-            mRoundLeaders.byKey.canFind(st.nodeID))
+        if (mCandidates.empty() && st.nodeID in mRoundLeaders)
         {
             Value newVote = getNewValueFromNomination(*nom);
             if (!newVote.empty())
             {
-                mVotes[newVote.idup] = [];
+                mVotes.insert(newVote.idup);
                 modified = true;
                 mSlot.getSCPDriver().nominatingValue(
                     mSlot.getSlotIndex(), newVote);
@@ -194,11 +193,11 @@ class NominationProtocol
         Value nominatingValue;
 
         // if we're leader, add our value
-        if (mRoundLeaders.byKey.canFind(mSlot.getLocalNode().getNodeID()))
+        if (mSlot.getLocalNode().getNodeID() in mRoundLeaders)
         {
             if (value !in mVotes)
             {
-                mVotes[value] = [];
+                mVotes.insert(value);
                 updated = true;
             }
 
@@ -206,7 +205,7 @@ class NominationProtocol
         }
 
         // add a few more values from other leaders
-        foreach (leader; mRoundLeaders.byKey)
+        foreach (leader; mRoundLeaders[])
         {
             if (auto nom_value = leader in mLatestNominations)
             {
@@ -214,7 +213,7 @@ class NominationProtocol
                     nom_value.statement.pledges.nominate_);
                 if (!nominatingValue.empty())
                 {
-                    mVotes[nominatingValue.idup] = [];
+                    mVotes.insert(nominatingValue.idup);
                     updated = true;
                 }
             }
@@ -272,10 +271,10 @@ class NominationProtocol
         recordEnvelope(e);
         const nom = &e.statement.pledges.nominate_;
         foreach (a; nom.accepted)
-            mAccepted[a] = [];
+            mAccepted.insert(a);
 
         foreach (v; nom.votes)
-            mVotes[v] = [];
+            mVotes.insert(v);
 
         mLastEnvelope = new SCPEnvelope();
         mLastEnvelope.tupleof = e.tupleof;  // deep-dup
@@ -386,10 +385,10 @@ class NominationProtocol
 
         nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
 
-        foreach (v; mVotes.byKey)
+        foreach (v; mVotes[])
             nom.votes ~= cast(ubyte[])v;
 
-        foreach (a; mAccepted.byKey)
+        foreach (a; mAccepted[])
             nom.accepted ~= cast(ubyte[])a;
 
         SCPEnvelope envelope = mSlot.createEnvelope(st);
@@ -453,7 +452,7 @@ class NominationProtocol
         auto localID = mSlot.getLocalNode().getNodeID();
         normalizeQSet(myQSet, &localID);
 
-        newRoundLeaders[localID] = [];
+        newRoundLeaders.insert(localID);
         uint64 topPriority = getNodePriority(localID, myQSet);
 
         LocalNode.forAllNodes(myQSet, (ref const(NodeID) cur) {
@@ -465,13 +464,13 @@ class NominationProtocol
             }
             if (w == topPriority && w > 0)
             {
-                newRoundLeaders[cur] = [];
+                newRoundLeaders.insert(cur);
             }
         });
 
         // expand mRoundLeaders with the newly computed leaders
-        foreach (new_leader; newRoundLeaders.byKey)
-            mRoundLeaders[new_leader] = [];
+        foreach (new_leader; newRoundLeaders[])
+            mRoundLeaders.insert(new_leader);
 
         //if (Logging.logDebug("SCP"))
         //{

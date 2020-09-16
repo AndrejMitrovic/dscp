@@ -4,6 +4,8 @@
 
 module dscp.xdr.Stellar_types;
 
+import std.container;
+
 alias Hash = ubyte[64];
 alias uint256 = ubyte[32];
 alias uint512 = ubyte[64];
@@ -20,13 +22,8 @@ auto get (T)(T* val) { return val; }
 // workaround for std.vector.length
 auto size (T)(T[] val) { return val.length; }
 
-//void insert (E)(set!E the_set, E val)
-//{
-//    the_set[val] = [];
-//}
-
 /// std.set equivalent
-public alias set (V) = void[][const(V)];
+public alias set (V) = RedBlackTree!(const(V));
 
 enum CryptoKeyType
 {
@@ -49,6 +46,11 @@ enum SignerKeyType
 
 struct PublicKey
 {
+    int opCmp (const ref PublicKey rhs) inout
+    {
+        return this.ed25519 < rhs.ed25519;
+    }
+
     uint256 ed25519;
 }
 
