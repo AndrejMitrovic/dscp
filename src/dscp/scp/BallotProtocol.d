@@ -328,14 +328,12 @@ class BallotProtocol
     void setStateFromEnvelope(ref const(SCPEnvelope) e)
     {
         if (mCurrentBallot)
-        {
-            throw std.runtime_error(
-                "Cannot set state after starting ballot protocol");
-        }
+            assert(0, "Cannot set state after starting ballot protocol");
 
         recordEnvelope(e);
 
-        mLastEnvelope = std.make_shared<SCPEnvelope>(e);
+        mLastEnvelope = new SCPEnvelope;
+        *mLastEnvelope = e;
         mLastEnvelopeEmit = mLastEnvelope;
 
         const pl = &e.statement.pledges;
@@ -346,22 +344,26 @@ class BallotProtocol
         {
             const prep = &pl.prepare_;
             const b = &prep.ballot;
-            bumpToBallot(b, true);
+            bumpToBallot(*b, true);
             if (prep.prepared)
             {
-                mPrepared = std.make_unique<SCPBallot>(*prep.prepared);
+                mPrepared = new SCPBallot;
+                *mPrepared = *cast(SCPBallot*)prep.prepared;
             }
             if (prep.preparedPrime)
             {
-                mPreparedPrime = std.make_unique<SCPBallot>(*prep.preparedPrime);
+                mPreparedPrime = new SCPBallot;
+                *mPreparedPrime = *cast(SCPBallot*)prep.preparedPrime;
             }
             if (prep.nH)
             {
-                mHighBallot = std.make_unique<SCPBallot>(prep.nH, b.value);
+                mHighBallot = new SCPBallot;
+                *mHighBallot = SCPBallot(prep.nH, b.value.dup);
             }
             if (prep.nC)
             {
-                mCommit = std.make_unique<SCPBallot>(prep.nC, b.value);
+                mCommit = new SCPBallot;
+                *mCommit = SCPBallot(prep.nC, b.value.dup);
             }
             mPhase = SCPPhase.SCP_PHASE_PREPARE;
         }
@@ -371,9 +373,12 @@ class BallotProtocol
             const c = &pl.confirm_;
             const v = &c.ballot.value;
             bumpToBallot(c.ballot, true);
-            mPrepared = std.make_unique<SCPBallot>(c.nPrepared, v);
-            mHighBallot = std.make_unique<SCPBallot>(c.nH, v);
-            mCommit = std.make_unique<SCPBallot>(c.nCommit, v);
+            mPrepared = new SCPBallot;
+            *mPrepared = SCPBallot(c.nPrepared, (*v).dup);
+            mHighBallot = new SCPBallot;
+            *mHighBallot = SCPBallot(c.nH, (*v).dup);
+            mCommit = new SCPBallot;
+            *mCommit = SCPBallot(c.nCommit, (*v).dup);
             mPhase = SCPPhase.SCP_PHASE_CONFIRM;
         }
         break;
@@ -381,10 +386,14 @@ class BallotProtocol
         {
             const ext = &pl.externalize_;
             const v = &ext.commit.value;
-            bumpToBallot(SCPBallot(uint.max, v), true);
-            mPrepared = std.make_unique<SCPBallot>(uint.max, v);
-            mHighBallot = std.make_unique<SCPBallot>(ext.nH, v);
-            mCommit = std.make_unique<SCPBallot>(ext.commit);
+            auto bump_ballot = SCPBallot(uint.max, (*v).dup);
+            bumpToBallot(bump_ballot, true);
+            mPrepared = new SCPBallot;
+            *mPrepared = SCPBallot(uint.max, (*v).dup);
+            mHighBallot = new SCPBallot;
+            *mHighBallot = SCPBallot(ext.nH, (*v).dup);
+            mCommit = new SCPBallot;
+            *mCommit = *cast(SCPBallot*)&ext.commit;
             mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
         }
         break;
