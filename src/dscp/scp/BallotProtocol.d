@@ -785,7 +785,69 @@ class BallotProtocol
     }
 
     // step 7+8 from the SCP paper
-    bool attemptConfirmCommit(ref const(SCPStatement) hint);
+    bool attemptConfirmCommit(ref const(SCPStatement) hint)
+    {
+        if (mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        {
+            return false;
+        }
+
+        if (!mHighBallot || !mCommit)
+        {
+            return false;
+        }
+
+        // extracts value from hint
+        // note: ballot.counter is only used for logging purpose
+        SCPBallot ballot;
+        switch (hint.pledges.type)
+        {
+            case SCPStatementType.SCP_ST_PREPARE:
+            {
+                return false;
+            }
+            break;
+            case SCPStatementType.SCP_ST_CONFIRM:
+            {
+                const con = &hint.pledges.confirm_;
+                ballot = SCPBallot(con.nH, con.ballot.value.dup);
+            }
+            break;
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+            {
+                const ext = &hint.pledges.externalize_;
+                ballot = SCPBallot(ext.nH, ext.commit.value.dup);
+                break;
+            }
+            default:
+                assert(0);
+        }
+
+        if (!areBallotsCompatible(ballot, *mCommit))
+        {
+            return false;
+        }
+
+        set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
+        Interval candidate;
+
+        auto pred = (ref const(Interval) cur) {
+            return federatedRatify(
+                (ref const(SCPStatement) st) => commitPredicate(ballot, cur, st));
+        };
+
+        findExtendedInterval(candidate, boundaries, pred);
+
+        bool res = candidate.first != 0;
+        if (res)
+        {
+            SCPBallot c = SCPBallot(candidate.first, ballot.value);
+            SCPBallot h = SCPBallot(candidate.second, ballot.value);
+            return setConfirmCommit(c, h);
+        }
+        return res;
+    }
+
     bool setConfirmCommit(ref const(SCPBallot) acceptCommitLow,
                           ref const(SCPBallot) acceptCommitHigh);
 
