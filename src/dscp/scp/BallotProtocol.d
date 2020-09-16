@@ -60,7 +60,7 @@ class BallotProtocol
     SCPEnvelope[NodeID] mLatestEnvelopes; // M
     SCPPhase mPhase = SCPPhase.SCP_PHASE_PREPARE;  // Phi
     // todo: this was unique_ptr
-    Value* mValueOverride;          // z
+    Value mValueOverride;           // z
 
     int mCurrentMessageLevel = 0; // number of messages triggered in one run
 
@@ -238,11 +238,11 @@ class BallotProtocol
 
         newb.counter = n;
 
-        if (mValueOverride)
+        if (mValueOverride !is null)
         {
             // we use the value that we saw confirmed prepared
             // or that we at least voted to commit to
-            newb.value = *mValueOverride;
+            newb.value = mValueOverride;
         }
         else
         {
@@ -529,7 +529,53 @@ class BallotProtocol
     }
 
     // newC, newH : low/high bounds prepared confirmed
-    bool setPreparedConfirmed(ref const(SCPBallot) newC, ref const(SCPBallot) newH);
+    bool setPreparedConfirmed(ref const(SCPBallot) newC, ref const(SCPBallot) newH)
+    {
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedConfirmed"
+        //                       << " i: " << mSlot.getSlotIndex()
+        //                       << " h: " << mSlot.getSCP().ballotToStr(newH);
+
+        bool didWork = false;
+
+        // remember newH's value
+        mValueOverride = newH.value.dup;
+
+        // we don't set c/h if we're not on a compatible ballot
+        if (!mCurrentBallot || areBallotsCompatible(*mCurrentBallot, newH))
+        {
+            if (!mHighBallot || compareBallots(newH, *mHighBallot) > 0)
+            {
+                didWork = true;
+                mHighBallot = new SCPBallot;
+                *mHighBallot = *cast(SCPBallot*)&newH;
+            }
+
+            if (newC.counter != 0)
+            {
+                assert(!mCommit);
+                mCommit = new SCPBallot;
+                *mCommit = *cast(SCPBallot*)&newC;
+                didWork = true;
+            }
+
+            if (didWork)
+            {
+                mSlot.getSCPDriver().confirmedBallotPrepared(mSlot.getSlotIndex(),
+                                                             newH);
+            }
+        }
+
+        // always perform step (8) with the computed value of h
+        didWork = updateCurrentIfNeeded(newH) || didWork;
+
+        if (didWork)
+        {
+            emitCurrentStateStatement();
+        }
+
+        return didWork;
+    }
 
     // step (4 and 6)+8 from the SCP paper
     bool attemptAcceptCommit(ref const(SCPStatement) hint);

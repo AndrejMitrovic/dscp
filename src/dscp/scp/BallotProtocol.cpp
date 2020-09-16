@@ -2,48 +2,7 @@ bool
 BallotProtocol.setPreparedConfirmed(SCPBallot const& newC,
                                      SCPBallot const& newH)
 {
-    if (Logging.logTrace("SCP"))
-        CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedConfirmed"
-                           << " i: " << mSlot.getSlotIndex()
-                           << " h: " << mSlot.getSCP().ballotToStr(newH);
 
-    bool didWork = false;
-
-    // remember newH's value
-    mValueOverride = std.make_unique<Value>(newH.value);
-
-    // we don't set c/h if we're not on a compatible ballot
-    if (!mCurrentBallot || areBallotsCompatible(*mCurrentBallot, newH))
-    {
-        if (!mHighBallot || compareBallots(newH, *mHighBallot) > 0)
-        {
-            didWork = true;
-            mHighBallot = std.make_unique<SCPBallot>(newH);
-        }
-
-        if (newC.counter != 0)
-        {
-            assert(!mCommit);
-            mCommit = std.make_unique<SCPBallot>(newC);
-            didWork = true;
-        }
-
-        if (didWork)
-        {
-            mSlot.getSCPDriver().confirmedBallotPrepared(mSlot.getSlotIndex(),
-                                                         newH);
-        }
-    }
-
-    // always perform step (8) with the computed value of h
-    didWork = updateCurrentIfNeeded(newH) || didWork;
-
-    if (didWork)
-    {
-        emitCurrentStateStatement();
-    }
-
-    return didWork;
 }
 
 void
