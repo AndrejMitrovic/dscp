@@ -1,10 +1,3 @@
-
-set!uint32
-BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
-{
-
-}
-
 bool
 BallotProtocol.attemptAcceptCommit(ref const(SCPStatement) hint)
 {

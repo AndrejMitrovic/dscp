@@ -580,7 +580,134 @@ class BallotProtocol
     }
 
     // step (4 and 6)+8 from the SCP paper
-    bool attemptAcceptCommit(ref const(SCPStatement) hint);
+    bool attemptAcceptCommit(ref const(SCPStatement) hint)
+    {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        {
+            return false;
+        }
+
+        // extracts value from hint
+        // note: ballot.counter is only used for logging purpose as we're looking at
+        // possible value to commit
+        SCPBallot ballot;
+        switch (hint.pledges.type)
+        {
+            case SCPStatementType.SCP_ST_PREPARE:
+            {
+                const prep = &hint.pledges.prepare_;
+                if (prep.nC != 0)
+                {
+                    ballot = SCPBallot(prep.nH, prep.ballot.value.dup);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            break;
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+            {
+                const con = &hint.pledges.confirm_;
+                ballot = SCPBallot(con.nH, con.ballot.value.dup);
+            }
+            break;
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+            {
+                const ext = &hint.pledges.externalize_;
+                ballot = SCPBallot(ext.nH, ext.commit.value.dup);
+                break;
+            }
+
+            default:
+                assert(0);
+        }
+
+        if (mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+        {
+            if (!areBallotsCompatible(ballot, *mHighBallot))
+            {
+                return false;
+            }
+        }
+
+        auto pred = (ref const(Interval) cur) {
+            return federatedAccept(
+                (ref const(SCPStatement) st) {
+                    bool res = false;
+                    const pl = &st.pledges;
+                    switch (pl.type)
+                    {
+                    case SCPStatementType.SCP_ST_PREPARE:
+                    {
+                        const p = &pl.prepare_;
+                        if (areBallotsCompatible(ballot, p.ballot))
+                        {
+                            if (p.nC != 0)
+                            {
+                                res = p.nC <= cur.first && cur.second <= p.nH;
+                            }
+                        }
+                    }
+                    break;
+                    case SCPStatementType.SCP_ST_CONFIRM:
+                    {
+                        const c = &pl.confirm_;
+                        if (areBallotsCompatible(ballot, c.ballot))
+                        {
+                            res = c.nCommit <= cur.first;
+                        }
+                    }
+                    break;
+                    case SCPStatementType.SCP_ST_EXTERNALIZE:
+                    {
+                        const e = &pl.externalize_;
+                        if (areBallotsCompatible(ballot, e.commit))
+                        {
+                            res = e.commit.counter <= cur.first;
+                        }
+                    }
+                    break;
+                    default:
+                        assert(0);
+                    }
+                    return res;
+                },
+
+                (ref const(SCPStatement) st) => commitPredicate(ballot, cur, st));
+        };
+
+        // build the boundaries to scan
+        set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
+
+        if (boundaries.empty())
+        {
+            return false;
+        }
+
+        // now, look for the high interval
+        Interval candidate;
+
+        findExtendedInterval(candidate, boundaries, pred);
+
+        bool res = false;
+
+        if (candidate.first != 0)
+        {
+            if (mPhase != SCPPhase.SCP_PHASE_CONFIRM ||
+                candidate.second > mHighBallot.counter)
+            {
+                SCPBallot c = SCPBallot(candidate.first, ballot.value);
+                SCPBallot h = SCPBallot(candidate.second, ballot.value);
+                res = setAcceptCommit(c, h);
+            }
+        }
+
+        return res;
+    }
+
     // new values for c and h
     bool setAcceptCommit(ref const(SCPBallot) c, ref const(SCPBallot) h);
 
