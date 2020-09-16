@@ -1,26 +1,7 @@
 bool
 BallotProtocol.setConfirmCommit(SCPBallot const& c, SCPBallot const& h)
 {
-    if (Logging.logTrace("SCP"))
-        CLOG(TRACE, "SCP") << "BallotProtocol.setConfirmCommit"
-                           << " i: " << mSlot.getSlotIndex()
-                           << " new c: " << mSlot.getSCP().ballotToStr(c)
-                           << " new h: " << mSlot.getSCP().ballotToStr(h);
 
-    mCommit = std.make_unique<SCPBallot>(c);
-    mHighBallot = std.make_unique<SCPBallot>(h);
-    updateCurrentIfNeeded(*mHighBallot);
-
-    mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
-
-    emitCurrentStateStatement();
-
-    mSlot.stopNomination();
-
-    mSlot.getSCPDriver().valueExternalized(mSlot.getSlotIndex(),
-                                           mCommit.value);
-
-    return true;
 }
 
 bool

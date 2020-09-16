@@ -848,8 +848,32 @@ class BallotProtocol
         return res;
     }
 
-    bool setConfirmCommit(ref const(SCPBallot) acceptCommitLow,
-                          ref const(SCPBallot) acceptCommitHigh);
+    bool setConfirmCommit(ref const(SCPBallot) c,
+                          ref const(SCPBallot) h)
+    {
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.setConfirmCommit"
+        //                       << " i: " << mSlot.getSlotIndex()
+        //                       << " new c: " << mSlot.getSCP().ballotToStr(c)
+        //                       << " new h: " << mSlot.getSCP().ballotToStr(h);
+
+        mCommit = new SCPBallot;
+        *mCommit = *cast(SCPBallot*)&c;
+        mHighBallot = new SCPBallot;
+        *mHighBallot = *cast(SCPBallot*)&h;
+        updateCurrentIfNeeded(*mHighBallot);
+
+        mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
+
+        emitCurrentStateStatement();
+
+        mSlot.stopNomination();
+
+        mSlot.getSCPDriver().valueExternalized(mSlot.getSlotIndex(),
+                                               mCommit.value);
+
+        return true;
+    }
 
     // Step 9 from the paper (Feb 2016):
     //
