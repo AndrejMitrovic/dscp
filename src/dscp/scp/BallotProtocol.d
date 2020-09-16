@@ -274,11 +274,50 @@ class BallotProtocol
     // with the statement.
     // note: the companion hash for an EXTERNALIZE statement does
     // not match the hash of the QSet, but the hash of commitQuorumSetHash
-    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st);
+    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st)
+    {
+        Hash h;
+        switch (st.pledges.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+            h = st.pledges.prepare_.quorumSetHash;
+            break;
+        case SCPStatementType.SCP_ST_CONFIRM:
+            h = st.pledges.confirm_.quorumSetHash;
+            break;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+            h = st.pledges.externalize_.commitQuorumSetHash;
+            break;
+        default:
+            assert(0);
+        }
+        return h;
+    }
 
     // helper function to retrieve b for PREPARE, P for CONFIRM or
     // c for EXTERNALIZE messages
-    static SCPBallot getWorkingBallot(ref const(SCPStatement) st);
+    static SCPBallot getWorkingBallot(ref const(SCPStatement) st)
+    {
+        SCPBallot res;
+        switch (st.pledges.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+            res = st.pledges.prepare_.ballot;
+            break;
+        case SCPStatementType.SCP_ST_CONFIRM:
+        {
+            const con = &st.pledges.confirm_;
+            res = SCPBallot(con.nCommit, con.ballot.value.dup);
+        }
+        break;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+            res = st.pledges.externalize_.commit;
+            break;
+        default:
+            assert(0);
+        }
+        return res;
+    }
 
     const(SCPEnvelope)*
     getLastMessageSend() const
