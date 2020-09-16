@@ -709,7 +709,52 @@ class BallotProtocol
     }
 
     // new values for c and h
-    bool setAcceptCommit(ref const(SCPBallot) c, ref const(SCPBallot) h);
+    bool setAcceptCommit(ref const(SCPBallot) c, ref const(SCPBallot) h)
+    {
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.setAcceptCommit"
+        //                       << " i: " << mSlot.getSlotIndex()
+        //                       << " new c: " << mSlot.getSCP().ballotToStr(c)
+        //                       << " new h: " << mSlot.getSCP().ballotToStr(h);
+
+        bool didWork = false;
+
+        // remember h's value
+        mValueOverride = h.value.dup;
+
+        if (!mHighBallot || !mCommit || compareBallots(*mHighBallot, h) != 0 ||
+            compareBallots(*mCommit, c) != 0)
+        {
+            mCommit = new SCPBallot;
+            *mCommit = *cast(SCPBallot*)&c;
+            mHighBallot = new SCPBallot;
+            *mHighBallot = *cast(SCPBallot*)&h;
+
+            didWork = true;
+        }
+
+        if (mPhase == SCPPhase.SCP_PHASE_PREPARE)
+        {
+            mPhase = SCPPhase.SCP_PHASE_CONFIRM;
+            if (mCurrentBallot && !areBallotsLessAndCompatible(h, *mCurrentBallot))
+            {
+                bumpToBallot(h, false);
+            }
+            mPreparedPrime = null;
+
+            didWork = true;
+        }
+
+        if (didWork)
+        {
+            updateCurrentIfNeeded(*mHighBallot);
+
+            mSlot.getSCPDriver().acceptedCommit(mSlot.getSlotIndex(), h);
+            emitCurrentStateStatement();
+        }
+
+        return didWork;
+    }
 
     // step 7+8 from the SCP paper
     bool attemptConfirmCommit(ref const(SCPStatement) hint);
