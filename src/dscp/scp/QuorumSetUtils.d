@@ -138,11 +138,12 @@ void normalizeQSetSimplify (ref SCPQuorumSet qSet, const(NodeID)* idToRemove)
         qSet.threshold -= old_len - qSet.validators.length;
     }
 
-    auto i = &qSet.innerSets;
-    auto it = i.begin();
-    while (it != i.end())
+    //foreach (idx; 0 .. qSet.innerSets)
+    //auto i = &qSet.innerSets;
+    //auto it = i.begin();
+    //while (it != i.end())
     {
-        normalizeQSetSimplify(*it, idToRemove);
+        normalizeQSetSimplify(qSet.innerSets[idx], idToRemove);
         // merge singleton inner sets into validator list
         if (it.threshold == 1 && it.validators.length == 1 &&
             it.innerSets.length == 0)
