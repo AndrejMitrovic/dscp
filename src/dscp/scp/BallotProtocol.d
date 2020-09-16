@@ -433,7 +433,91 @@ class BallotProtocol
 
     // step 2+3+8 from the SCP paper
     // ballot is the candidate to record as 'confirmed prepared'
-    bool attemptPreparedConfirmed(ref const(SCPStatement) hint);
+    bool attemptPreparedConfirmed(ref const(SCPStatement) hint)
+    {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE)
+        {
+            return false;
+        }
+
+        // check if we could accept this ballot as prepared
+        if (!mPrepared)
+        {
+            return false;
+        }
+
+        auto candidates = getPrepareCandidates(hint);
+
+        // see if we can accept any of the candidates, starting with the highest
+        SCPBallot newH;
+        bool newHfound = false;
+
+        auto range = candidates[].retro;
+        while (!range.empty)
+        {
+            auto cur = range.front();
+            range.popFront();
+            SCPBallot ballot = *cast(SCPBallot*)&cur;
+
+            // only consider it if we can potentially raise h
+            if (mHighBallot && compareBallots(*mHighBallot, ballot) >= 0)
+            {
+                break;
+            }
+
+            bool ratified = federatedRatify(
+                (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
+            if (ratified)
+            {
+                newH = ballot;
+                newHfound = true;
+                break;
+            }
+        }
+
+        bool res = false;
+
+        if (newHfound)
+        {
+            SCPBallot newC;
+            // now, look for newC (left as 0 if no update)
+            // step (3) from the paper
+            SCPBallot b = mCurrentBallot ? *mCurrentBallot : SCPBallot();
+            if (!mCommit &&
+                (!mPrepared || !areBallotsLessAndIncompatible(newH, *mPrepared)) &&
+                (!mPreparedPrime ||
+                 !areBallotsLessAndIncompatible(newH, *mPreparedPrime)))
+            {
+                // continue where we left off (cur is at newH at this point)
+                foreach (cur; range)
+                {
+                    SCPBallot ballot = *cast(SCPBallot*)&cur;
+                    if (compareBallots(ballot, b) < 0)
+                    {
+                        break;
+                    }
+                    // c and h must be compatible
+                    if (!areBallotsLessAndCompatible(cur, newH))
+                    {
+                        continue;
+                    }
+                    bool ratified = federatedRatify(
+                        (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
+                    if (ratified)
+                    {
+                        newC = ballot;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            res = setPreparedConfirmed(newC, newH);
+        }
+        return res;
+    }
+
     // newC, newH : low/high bounds prepared confirmed
     bool setPreparedConfirmed(ref const(SCPBallot) newC, ref const(SCPBallot) newH);
 
