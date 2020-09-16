@@ -14,6 +14,7 @@ import dscp.xdr.Stellar_types;
 
 import std.range;
 
+import core.stdc.stdint;
 import core.time;
 
 // used to filter statements
@@ -754,6 +755,33 @@ class BallotProtocol
         }
 
         return didWork;
+    }
+
+    static uint32
+    statementBallotCounter(ref const(SCPStatement) st)
+    {
+        switch (st.pledges.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+            return st.pledges.prepare_.ballot.counter;
+        case SCPStatementType.SCP_ST_CONFIRM:
+            return st.pledges.confirm_.ballot.counter;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+            return uint.max;
+        default:
+            // Should never be called with SCPStatementType.SCP_ST_NOMINATE.
+            assert(0);
+        }
+    }
+
+    static bool
+    hasVBlockingSubsetStrictlyAheadOf(LocalNode localNode,
+                                      const(SCPEnvelope[NodeID]) map,
+                                      uint32_t n)
+    {
+        return LocalNode.isVBlocking(
+            localNode.getQuorumSet(), map,
+            (ref const(SCPStatement) st) { return statementBallotCounter(st) > n; });
     }
 
     // step 7+8 from the SCP paper
