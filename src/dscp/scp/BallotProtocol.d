@@ -29,8 +29,10 @@ struct Interval
     uint32 high;
 }
 
-auto first = (Interval interval) => interval.low;
-auto second = (Interval interval) => interval.high;
+ref uint32 first (ref Interval interval)  { return interval.low; }
+ref const(uint32) first (ref const(Interval) interval)  { return interval.low; }
+ref uint32 second (ref Interval interval)  { return interval.high; }
+ref const(uint32) second (ref const(Interval) interval)  { return interval.high; }
 
 /**
  * The Slot object is in charge of maintaining the state of the SCP protocol
@@ -710,7 +712,40 @@ class BallotProtocol
     // updates 'candidate' (or leave it unchanged)
     static void findExtendedInterval(ref Interval candidate,
                                      ref const(set!uint32) boundaries,
-                                     bool delegate(ref const(Interval)) pred);
+                                     bool delegate(ref const(Interval)) pred)
+    {
+        // iterate through interesting boundaries, starting from the top
+        foreach (it; boundaries[].retro)
+        {
+            uint32 b = it;
+
+            Interval cur;
+            if (candidate.first == 0)
+            {
+                // first, find the high bound
+                cur = Interval(b, b);
+            }
+            else if (b > candidate.second) // invalid
+            {
+                continue;
+            }
+            else
+            {
+                cur.first = b;
+                cur.second = candidate.second;
+            }
+
+            if (pred(cur))
+            {
+                candidate = cur;
+            }
+            else if (candidate.first != 0)
+            {
+                // could not extend further
+                break;
+            }
+        }
+    }
 
     // constructs the set of counters representing the
     // commit ballots compatible with the ballot

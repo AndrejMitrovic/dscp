@@ -1,46 +1,9 @@
-bool
-BallotProtocol.setPreparedConfirmed(SCPBallot const& newC,
-                                     SCPBallot const& newH)
-{
-
-}
-
 void
 BallotProtocol.findExtendedInterval(Interval& candidate,
                                      set!uint32 const& boundaries,
                                      std.function<bool(Interval const&)> pred)
 {
-    // iterate through interesting boundaries, starting from the top
-    for (auto it = boundaries.rbegin(); it != boundaries.rend(); it++)
-    {
-        uint32 b = *it;
 
-        Interval cur;
-        if (candidate.first == 0)
-        {
-            // first, find the high bound
-            cur = Interval(b, b);
-        }
-        else if (b > candidate.second) // invalid
-        {
-            continue;
-        }
-        else
-        {
-            cur.first = b;
-            cur.second = candidate.second;
-        }
-
-        if (pred(cur))
-        {
-            candidate = cur;
-        }
-        else if (candidate.first != 0)
-        {
-            // could not extend further
-            break;
-        }
-    }
 }
 
 set!uint32
