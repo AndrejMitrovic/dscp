@@ -789,8 +789,64 @@ class BallotProtocol
     bool setConfirmCommit(ref const(SCPBallot) acceptCommitLow,
                           ref const(SCPBallot) acceptCommitHigh);
 
-    // step 9 from the SCP paper
-    bool attemptBump();
+    // Step 9 from the paper (Feb 2016):
+    //
+    //   If ∃ S ⊆ M such that the set of senders {v_m | m ∈ S} is v-blocking
+    //   and ∀m ∈ S, b_m.n > b_v.n, then set b <- <n, z> where n is the lowest
+    //   counter for which no such S exists.
+    //
+    // a.k.a 4th rule for setting ballot.counter in the internet-draft (v03):
+    //
+    //   If nodes forming a blocking threshold all have ballot.counter values
+    //   greater than the local ballot.counter, then the local node immediately
+    //   cancels any pending timer, increases ballot.counter to the lowest
+    //   value such that this is no longer the case, and if appropriate
+    //   according to the rules above arms a new timer. Note that the blocking
+    //   threshold may include ballots from SCPCommit messages as well as
+    //   SCPExternalize messages, which implicitly have an infinite ballot
+    //   counter.
+
+    bool attemptBump()
+    {
+        if (mPhase == SCPPhase.SCP_PHASE_PREPARE || mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+        {
+
+            // First check to see if this condition applies at all. If there
+            // is no v-blocking set ahead of the local node, there's nothing
+            // to do, return early.
+            auto localNode = getLocalNode();
+            uint32 localCounter = mCurrentBallot ? mCurrentBallot.counter : 0;
+            if (!hasVBlockingSubsetStrictlyAheadOf(localNode, mLatestEnvelopes,
+                                                   localCounter))
+            {
+                return false;
+            }
+
+            // Collect all possible counters we might need to advance to.
+            set!uint32 allCounters;
+            foreach (node_id, e; mLatestEnvelopes)
+            {
+                uint32_t c = statementBallotCounter(e.statement);
+                if (c > localCounter)
+                    allCounters.insert(c);
+            }
+
+            // If we got to here, implicitly there _was_ a v-blocking subset
+            // with counters above the local counter; we just need to find a
+            // minimal n at which that's no longer true. So check them in
+            // order, starting from the smallest.
+            foreach (uint32_t n; allCounters)
+            {
+                if (!hasVBlockingSubsetStrictlyAheadOf(localNode, mLatestEnvelopes,
+                                                       n))
+                {
+                    // Move to n.
+                    return abandonBallot(n);
+                }
+            }
+        }
+        return false;
+    }
 
     // computes a list of candidate values that may have been prepared
     set!SCPBallot getPrepareCandidates(ref const(SCPStatement) hint)
