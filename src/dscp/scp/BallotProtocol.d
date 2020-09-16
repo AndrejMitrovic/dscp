@@ -54,6 +54,9 @@ class BallotProtocol
         SCP_PHASE_NUM
     };
 
+    const string[SCPPhase.SCP_PHASE_NUM] phaseNames =
+        ["PREPARE", "FINISH", "EXTERNALIZE"];
+
     // todo: this was unique_ptr, keeping refcount..
     SCPBallot* mCurrentBallot;      // b
     SCPBallot* mPrepared;           // p
@@ -458,13 +461,124 @@ class BallotProtocol
     // attempts to make progress using the latest statement as a hint
     // calls into the various attempt* methods, emits message
     // to make progress
-    void advanceSlot(ref const(SCPStatement) hint);
+    void advanceSlot(ref const(SCPStatement) hint)
+    {
+        mCurrentMessageLevel++;
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.advanceSlot "
+        //                       << mCurrentMessageLevel << " " << getLocalState();
+
+        // TODO: verify the safety of this, it seems like it could cause a crash
+        if (mCurrentMessageLevel >= MAX_ADVANCE_SLOT_RECURSION)
+            assert(0, "maximum number of transitions reached in advanceSlot");
+
+        // attempt* methods will queue up messages, causing advanceSlot to be
+        // called recursively
+
+        // done in order so that we follow the steps from the white paper in
+        // order
+        // allowing the state to be updated properly
+
+        bool didWork = false;
+
+        didWork = attemptPreparedAccept(hint) || didWork;
+
+        didWork = attemptPreparedConfirmed(hint) || didWork;
+
+        didWork = attemptAcceptCommit(hint) || didWork;
+
+        didWork = attemptConfirmCommit(hint) || didWork;
+
+        // only bump after we're done with everything else
+        if (mCurrentMessageLevel == 1)
+        {
+            bool didBump = false;
+            do
+            {
+                // attemptBump may invoke advanceSlot recursively
+                didBump = attemptBump();
+                didWork = didBump || didWork;
+            } while (didBump);
+
+            checkHeardFromQuorum();
+        }
+
+        //if (Logging.logTrace("SCP"))
+        //    CLOG(TRACE, "SCP") << "BallotProtocol.advanceSlot "
+        //                       << mCurrentMessageLevel << " - exiting "
+        //                       << getLocalState();
+
+        --mCurrentMessageLevel;
+
+        if (didWork)
+        {
+            sendLatestEnvelope();
+        }
+    }
 
     // returns true if all values in statement are valid
-    ValidationLevel validateValues(ref const(SCPStatement) st);
+    ValidationLevel validateValues(ref const(SCPStatement) st)
+    {
+        set!Value values;
+        switch (st.pledges.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+        {
+            const prep = &st.pledges.prepare_;
+            const b = &prep.ballot;
+            if (b.counter != 0)
+            {
+                values.insert(prep.ballot.value);
+            }
+            if (prep.prepared)
+            {
+                values.insert(prep.prepared.value);
+            }
+        }
+        break;
+        case SCPStatementType.SCP_ST_CONFIRM:
+            values.insert(st.pledges.confirm_.ballot.value);
+            break;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+            values.insert(st.pledges.externalize_.commit.value);
+            break;
+        default:
+            // This shouldn't happen
+            return ValidationLevel.kInvalidValue;
+        }
+        ValidationLevel res = ValidationLevel.kFullyValidatedValue;
+        foreach (v; values)
+        {
+            auto tr =
+                mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, false);
+            if (tr != ValidationLevel.kFullyValidatedValue)
+            {
+                if (tr == ValidationLevel.kInvalidValue)
+                {
+                    res = ValidationLevel.kInvalidValue;
+                }
+                else
+                {
+                    res = ValidationLevel.kMaybeValidValue;
+                }
+            }
+        }
+        return res;
+    }
 
     // send latest envelope if needed
-    void sendLatestEnvelope();
+    void sendLatestEnvelope()
+    {
+        // emit current envelope if needed
+        if (mCurrentMessageLevel == 0 && mLastEnvelope && mSlot.isFullyValidated())
+        {
+            if (!mLastEnvelopeEmit || mLastEnvelope != mLastEnvelopeEmit)
+            {
+                mLastEnvelopeEmit = mLastEnvelope;
+                mSlot.getSCPDriver().emitEnvelope(*mLastEnvelopeEmit);
+            }
+        }
+    }
 
     // `attempt*` methods are called by `advanceSlot` internally call the
     //  the `set*` methods.
@@ -1940,10 +2054,20 @@ class BallotProtocol
     // used for log lines
     string getLocalState() const;
 
-    LocalNode getLocalNode();
+    LocalNode getLocalNode()
+    {
+        return mSlot.getSCP().getLocalNode();
+    }
 
-    bool federatedAccept(StatementPredicate voted, StatementPredicate accepted);
-    bool federatedRatify(StatementPredicate voted);
+    bool federatedAccept(StatementPredicate voted, StatementPredicate accepted)
+    {
+        return mSlot.federatedAccept(voted, accepted, mLatestEnvelopes);
+    }
+
+    bool federatedRatify(StatementPredicate voted)
+    {
+        return mSlot.federatedRatify(voted, mLatestEnvelopes);
+    }
 
     void startBallotProtocolTimer()
     {
