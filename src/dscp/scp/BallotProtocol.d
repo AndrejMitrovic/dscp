@@ -1307,8 +1307,52 @@ class BallotProtocol
 
     // ballot comparison (ordering)
     static int compareBallots(ref const(SCPBallot*) b1,
-                              ref const(SCPBallot*) b2);
-    static int compareBallots(ref const(SCPBallot) b1, ref const(SCPBallot) b2);
+                              ref const(SCPBallot*) b2)
+    {
+        int res;
+        if (b1 && b2)
+        {
+            res = compareBallots(*b1, *b2);
+        }
+        else if (b1 && !b2)
+        {
+            res = 1;
+        }
+        else if (!b1 && b2)
+        {
+            res = -1;
+        }
+        else
+        {
+            res = 0;
+        }
+        return res;
+    }
+
+    static int compareBallots(ref const(SCPBallot) b1, ref const(SCPBallot) b2)
+    {
+        if (b1.counter < b2.counter)
+        {
+            return -1;
+        }
+        else if (b2.counter < b1.counter)
+        {
+            return 1;
+        }
+        // ballots are also strictly ordered by value
+        if (b1.value < b2.value)
+        {
+            return -1;
+        }
+        else if (b2.value < b1.value)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 
     // b1 ~ b2
     static bool areBallotsCompatible(ref const(SCPBallot) b1, ref const(SCPBallot) b2);
