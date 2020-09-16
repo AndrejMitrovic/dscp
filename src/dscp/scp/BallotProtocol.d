@@ -372,18 +372,17 @@ class BallotProtocol
 
         set!SCPBallot candidates;
 
-        while (!hintBallots.empty())
+        while (!hintBallots.length != 0)
         {
-            auto last = --hintBallots.end();
-            SCPBallot topVote = *last;
-            hintBallots.erase(last);
+            const(SCPBallot) topVote = hintBallots.byKey.front;
+            hintBallots.remove(topVote);
 
             const val = &topVote.value;
 
             // find candidates that may have been prepared
             foreach (node_id, env; mLatestEnvelopes)
             {
-                const(SCPStatement)* st = &e.second.statement;
+                const(SCPStatement)* st = &env.statement;
                 switch (st.pledges.type)
                 {
                 case SCPStatementType.SCP_ST_PREPARE:
@@ -391,17 +390,17 @@ class BallotProtocol
                     const prep = &st.pledges.prepare_;
                     if (areBallotsLessAndCompatible(prep.ballot, topVote))
                     {
-                        candidates.insert(prep.ballot);
+                        candidates[prep.ballot] = [];
                     }
                     if (prep.prepared &&
                         areBallotsLessAndCompatible(*prep.prepared, topVote))
                     {
-                        candidates.insert(*prep.prepared);
+                        candidates[*prep.prepared] = [];
                     }
                     if (prep.preparedPrime &&
                         areBallotsLessAndCompatible(*prep.preparedPrime, topVote))
                     {
-                        candidates.insert(*prep.preparedPrime);
+                        candidates[*prep.preparedPrime] = [];
                     }
                 }
                 break;
@@ -410,10 +409,10 @@ class BallotProtocol
                     const con = &st.pledges.confirm_;
                     if (areBallotsCompatible(topVote, con.ballot))
                     {
-                        candidates.insert(topVote);
+                        candidates[topVote] = [];
                         if (con.nPrepared < topVote.counter)
                         {
-                            candidates.insert(SCPBallot(con.nPrepared, val));
+                            candidates[SCPBallot(con.nPrepared, (*val).dup)] = [];
                         }
                     }
                 }
@@ -423,12 +422,12 @@ class BallotProtocol
                     const ext = &st.pledges.externalize_;
                     if (areBallotsCompatible(topVote, ext.commit))
                     {
-                        candidates.insert(topVote);
+                        candidates[topVote] = [];
                     }
                 }
                 break;
                 default:
-                    abort();
+                    assert(0);
                 }
             }
         }

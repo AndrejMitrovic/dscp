@@ -430,7 +430,7 @@ BallotProtocol.attemptAcceptCommit(ref const(SCPStatement) hint)
         break;
     }
     default:
-        abort();
+        assert(0);
     };
 
     if (mPhase == SCPPhase.SCP_PHASE_CONFIRM)
@@ -574,7 +574,7 @@ statementBallotCounter(ref const(SCPStatement) st)
         return uint.max;
     default:
         // Should never be called with SCPStatementType.SCP_ST_NOMINATE.
-        abort();
+        assert(0);
     }
 }
 
@@ -684,7 +684,7 @@ BallotProtocol.attemptConfirmCommit(ref const(SCPStatement) hint)
         break;
     }
     default:
-        abort();
+        assert(0);
     };
 
     if (!areBallotsCompatible(ballot, *mCommit))
