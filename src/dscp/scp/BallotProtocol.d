@@ -402,13 +402,57 @@ class BallotProtocol
         }
     }
 
-    SCPEnvelope[] getCurrentState() const;
+    SCPEnvelope[] getCurrentState() const
+    {
+        SCPEnvelope[] res;
+        res.reserve(mLatestEnvelopes.length);
+        foreach (node_id, env; mLatestEnvelopes)
+        {
+            // only return messages for self if the slot is fully validated
+            if (node_id != mSlot.getSCP().getLocalNodeID() ||
+                mSlot.isFullyValidated())
+            {
+                res ~= env;
+            }
+        }
+        return res;
+    }
 
     // returns the latest message from a node
     // or null if not found
-    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const;
+    const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const
+    {
+        return id in mLatestEnvelopes;
+    }
 
-    SCPEnvelope[] getExternalizingState() const;
+    SCPEnvelope[] getExternalizingState() const
+    {
+        SCPEnvelope[] res;
+        if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
+        {
+            res.reserve(mLatestEnvelopes.length);
+            foreach (node_id, env; mLatestEnvelopes)
+            {
+                if (node_id != mSlot.getSCP().getLocalNodeID())
+                {
+                    // good approximation: statements with the value that
+                    // externalized
+                    // we could filter more using mConfirmedPrepared as well
+                    auto work_ballot = getWorkingBallot(env.statement);
+                    if (areBallotsCompatible(work_ballot, *mCommit))
+                    {
+                        res ~= env;
+                    }
+                }
+                else if (mSlot.isFullyValidated())
+                {
+                    // only return messages for self if the slot is fully validated
+                    res ~= env;
+                }
+            }
+        }
+        return res;
+    }
 
   private:
     // attempts to make progress using the latest statement as a hint
