@@ -1,45 +1,8 @@
 bool
-BallotProtocol.setConfirmCommit(SCPBallot const& c, SCPBallot const& h)
-{
-
-}
-
-bool
 BallotProtocol.hasPreparedBallot(SCPBallot const& ballot,
                                   ref const(SCPStatement) st)
 {
-    bool res;
 
-    switch (st.pledges.type)
-    {
-    case SCPStatementType.SCP_ST_PREPARE:
-    {
-        const p = &st.pledges.prepare_;
-        res =
-            (p.prepared && areBallotsLessAndCompatible(ballot, *p.prepared)) ||
-            (p.preparedPrime &&
-             areBallotsLessAndCompatible(ballot, *p.preparedPrime));
-    }
-    break;
-    case SCPStatementType.SCP_ST_CONFIRM:
-    {
-        const c = &st.pledges.confirm_;
-        SCPBallot prepared(c.nPrepared, c.ballot.value);
-        res = areBallotsLessAndCompatible(ballot, prepared);
-    }
-    break;
-    case SCPStatementType.SCP_ST_EXTERNALIZE:
-    {
-        const e = &st.pledges.externalize_;
-        res = areBallotsCompatible(ballot, e.commit);
-    }
-    break;
-    default:
-        res = false;
-        assert(0);
-    }
-
-    return res;
 }
 
 Hash
