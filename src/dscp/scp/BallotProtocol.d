@@ -22,6 +22,16 @@ alias StatementPredicate = bool delegate (ref const(SCPStatement));
 // max number of transitions that can occur from processing one message
 private enum MAX_ADVANCE_SLOT_RECURSION = 50;
 
+// An interval is [low,high] represented as a pair
+struct Interval
+{
+    uint32 low;
+    uint32 high;
+}
+
+auto first = (Interval interval) => interval.low;
+auto second = (Interval interval) => interval.high;
+
 /**
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
@@ -649,13 +659,6 @@ class BallotProtocol
         return didWork;
     }
 
-    // An interval is [low,high] represented as a pair
-    struct Interval
-    {
-        uint32 low;
-        uint32 high;
-    }
-
     // helper function to find a contiguous range 'candidate' that satisfies the
     // predicate.
     // updates 'candidate' (or leave it unchanged)
@@ -676,7 +679,37 @@ class BallotProtocol
 
     // returns true if the statement commits the ballot in the range 'check'
     static bool commitPredicate(ref const(SCPBallot) ballot, ref const(Interval) check,
-                                ref const(SCPStatement) st);
+                                ref const(SCPStatement) st)
+    {
+        bool res = false;
+        const pl = &st.pledges;
+        switch (pl.type)
+        {
+        case SCPStatementType.SCP_ST_PREPARE:
+            break;
+        case SCPStatementType.SCP_ST_CONFIRM:
+        {
+            const c = &pl.confirm_;
+            if (areBallotsCompatible(ballot, c.ballot))
+            {
+                res = c.nCommit <= check.first && check.second <= c.nH;
+            }
+        }
+        break;
+        case SCPStatementType.SCP_ST_EXTERNALIZE:
+        {
+            const e = &pl.externalize_;
+            if (areBallotsCompatible(ballot, e.commit))
+            {
+                res = e.commit.counter <= check.first;
+            }
+        }
+        break;
+        default:
+            assert(0);
+        }
+        return res;
+    }
 
     // attempts to update p to ballot (updating p' if needed)
     bool setPrepared(ref const(SCPBallot) ballot);

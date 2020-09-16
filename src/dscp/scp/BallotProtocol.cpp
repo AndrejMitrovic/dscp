@@ -1,44 +1,4 @@
 bool
-BallotProtocol.attemptPreparedConfirmed(ref const(SCPStatement) hint)
-{
-
-}
-
-bool
-BallotProtocol.commitPredicate(SCPBallot const& ballot, Interval const& check,
-                                ref const(SCPStatement) st)
-{
-    bool res = false;
-    const pl = &st.pledges;
-    switch (pl.type)
-    {
-    case SCPStatementType.SCP_ST_PREPARE:
-        break;
-    case SCPStatementType.SCP_ST_CONFIRM:
-    {
-        const c = &pl.confirm_;
-        if (areBallotsCompatible(ballot, c.ballot))
-        {
-            res = c.nCommit <= check.first && check.second <= c.nH;
-        }
-    }
-    break;
-    case SCPStatementType.SCP_ST_EXTERNALIZE:
-    {
-        const e = &pl.externalize_;
-        if (areBallotsCompatible(ballot, e.commit))
-        {
-            res = e.commit.counter <= check.first;
-        }
-    }
-    break;
-    default:
-        assert(0);
-    }
-    return res;
-}
-
-bool
 BallotProtocol.setPreparedConfirmed(SCPBallot const& newC,
                                      SCPBallot const& newH)
 {
