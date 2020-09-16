@@ -749,7 +749,54 @@ class BallotProtocol
 
     // constructs the set of counters representing the
     // commit ballots compatible with the ballot
-    set!uint32 getCommitBoundariesFromStatements(ref const(SCPBallot) ballot);
+    set!uint32 getCommitBoundariesFromStatements(ref const(SCPBallot) ballot)
+    {
+        set!uint32 res;
+        foreach (node_id, env; mLatestEnvelopes)
+        {
+            const pl = &env.statement.pledges;
+            switch (pl.type)
+            {
+            case SCPStatementType.SCP_ST_PREPARE:
+            {
+                const p = &pl.prepare_;
+                if (areBallotsCompatible(ballot, p.ballot))
+                {
+                    if (p.nC)
+                    {
+                        res.insert(p.nC);
+                        res.insert(p.nH);
+                    }
+                }
+            }
+            break;
+            case SCPStatementType.SCP_ST_CONFIRM:
+            {
+                const c = &pl.confirm_;
+                if (areBallotsCompatible(ballot, c.ballot))
+                {
+                    res.insert(c.nCommit);
+                    res.insert(c.nH);
+                }
+            }
+            break;
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+            {
+                const e = &pl.externalize_;
+                if (areBallotsCompatible(ballot, e.commit))
+                {
+                    res.insert(e.commit.counter);
+                    res.insert(e.nH);
+                    res.insert(uint.max);
+                }
+            }
+            break;
+            default:
+                assert(0);
+            }
+        }
+        return res;
+    }
 
     // ** helper predicates that evaluate if a statement satisfies
     // a certain property

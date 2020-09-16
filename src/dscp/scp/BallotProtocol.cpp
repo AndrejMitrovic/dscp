@@ -1,59 +1,8 @@
-void
-BallotProtocol.findExtendedInterval(Interval& candidate,
-                                     set!uint32 const& boundaries,
-                                     std.function<bool(Interval const&)> pred)
-{
-
-}
 
 set!uint32
 BallotProtocol.getCommitBoundariesFromStatements(SCPBallot const& ballot)
 {
-    set!uint32 res;
-    for (auto const& env : mLatestEnvelopes)
-    {
-        auto const& pl = &env.second.statement.pledges;
-        switch (pl.type)
-        {
-        case SCPStatementType.SCP_ST_PREPARE:
-        {
-            const p = &pl.prepare_;
-            if (areBallotsCompatible(ballot, p.ballot))
-            {
-                if (p.nC)
-                {
-                    res.emplace(p.nC);
-                    res.emplace(p.nH);
-                }
-            }
-        }
-        break;
-        case SCPStatementType.SCP_ST_CONFIRM:
-        {
-            const c = &pl.confirm_;
-            if (areBallotsCompatible(ballot, c.ballot))
-            {
-                res.emplace(c.nCommit);
-                res.emplace(c.nH);
-            }
-        }
-        break;
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-        {
-            const e = &pl.externalize_;
-            if (areBallotsCompatible(ballot, e.commit))
-            {
-                res.emplace(e.commit.counter);
-                res.emplace(e.nH);
-                res.emplace(uint.max);
-            }
-        }
-        break;
-        default:
-            assert(0);
-        }
-    }
-    return res;
+
 }
 
 bool
