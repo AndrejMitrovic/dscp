@@ -1707,7 +1707,7 @@ class BallotProtocol
         auto qSet = mSlot.getQuorumSetFromStatement(st);
 
         const NoExtraChecks = false;
-        const char* reason = null;
+        const(char)* reason = null;
         bool res = qSet.ok && isQuorumSetSane(qSet, NoExtraChecks, &reason);
         if (!res)
         {
