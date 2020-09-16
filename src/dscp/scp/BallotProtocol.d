@@ -1255,7 +1255,53 @@ class BallotProtocol
     }
 
     // attempts to update p to ballot (updating p' if needed)
-    bool setPrepared(ref const(SCPBallot) ballot);
+    bool setPrepared(ref const(SCPBallot) ballot)
+    {
+        bool didWork = false;
+
+        // p and p' are the two higest prepared and incompatible ballots
+        if (mPrepared)
+        {
+            int comp = compareBallots(*mPrepared, ballot);
+            if (comp < 0)
+            {
+                // as we're replacing p, we see if we should also replace p'
+                if (!areBallotsCompatible(*mPrepared, ballot))
+                {
+                    mPreparedPrime = new SCPBallot;
+                    *mPreparedPrime = *mPrepared;
+                }
+                mPrepared = new SCPBallot;
+                *mPrepared = *cast(SCPBallot*)&ballot;
+                didWork = true;
+            }
+            else if (comp > 0)
+            {
+                // check if we should update only p', this happens
+                // either p' was null
+                // or p' gets replaced by ballot
+                //      (p' < ballot and ballot is incompatible with p)
+                // note, the later check is here out of paranoia as this function is
+                // not called with a value that would not allow us to make progress
+
+                if (!mPreparedPrime ||
+                    ((compareBallots(*mPreparedPrime, ballot) < 0) &&
+                     !areBallotsCompatible(*mPrepared, ballot)))
+                {
+                    mPreparedPrime = new SCPBallot;
+                    *mPreparedPrime = *cast(SCPBallot*)&ballot;
+                    didWork = true;
+                }
+            }
+        }
+        else
+        {
+            mPrepared = new SCPBallot;
+            *mPrepared = *cast(SCPBallot*)&ballot;
+            didWork = true;
+        }
+        return didWork;
+    }
 
     // ** Helper methods to compare two ballots
 
