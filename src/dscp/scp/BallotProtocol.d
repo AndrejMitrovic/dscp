@@ -76,24 +76,18 @@ class BallotProtocol
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope,
         bool self)
     {
-        SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
         assert(envelope.statement.slotIndex == mSlot.getSlotIndex());
 
-        auto statement = envelope.statement;
-        auto nodeID = statement.nodeID;
-
-        if (!isStatementSane(statement, self))
+        if (!isStatementSane(envelope.statement, self))
         {
-            if (self)
-            {
+            //if (self)
                 //CLOG(ERROR, "SCP") << "not sane statement from self, skipping "
                 //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
-            }
 
             return SCP.EnvelopeState.INVALID;
         }
 
-        if (!isNewerStatement(nodeID, statement))
+        if (!isNewerStatement(envelope.statement.nodeID, envelope.statement))
         {
             if (self)
             {
@@ -109,20 +103,16 @@ class BallotProtocol
             return SCP.EnvelopeState.INVALID;
         }
 
-        auto validationRes = validateValues(statement);
+        auto validationRes = validateValues(envelope.statement);
         if (validationRes == ValidationLevel.kInvalidValue)
         {
             // If the value is not valid, we just ignore it.
-            if (self)
-            {
+            //if (self)
                 //CLOG(ERROR, "SCP") << "invalid value from self, skipping "
                 //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
-            }
-            else
-            {
+            //else
                 //CLOG(TRACE, "SCP") << "invalid value "
                 //                   << " i: " << mSlot.getSlotIndex();
-            }
 
             return SCP.EnvelopeState.INVALID;
         }
@@ -131,7 +121,7 @@ class BallotProtocol
         {
             // note: this handles also our own messages
             // in particular our final EXTERNALIZE message
-            if (mCommit.value == getWorkingBallot(statement).value)
+            if (mCommit.value == getWorkingBallot(envelope.statement).value)
             {
                 recordEnvelope(envelope);
                 return SCP.EnvelopeState.VALID;
@@ -155,7 +145,7 @@ class BallotProtocol
                 mSlot.setFullyValidated(false);
 
             recordEnvelope(envelope);
-            advanceSlot(statement);
+            advanceSlot(envelope.statement);
             return SCP.EnvelopeState.VALID;
         }
     }
