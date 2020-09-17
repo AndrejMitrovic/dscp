@@ -1972,27 +1972,22 @@ class BallotProtocol
                 auto p = &statement.pledges.prepare_;
                 p.quorumSetHash = getLocalNode().getQuorumSetHash();
                 if (mCurrentBallot)
-                {
                     p.ballot = *mCurrentBallot;
-                }
+
                 if (mCommit)
-                {
                     p.nC = mCommit.counter;
-                }
+
                 if (mPrepared)
-                {
                     p.prepared = new SCPBallot;
                     *p.prepared = *mPrepared;
-                }
+
                 if (mPreparedPrime)
-                {
                     p.preparedPrime = new SCPBallot;
                     *p.preparedPrime = *mPreparedPrime;
-                }
+
                 if (mHighBallot)
-                {
                     p.nH = mHighBallot.counter;
-                }
+
                 break;
             }
 
@@ -2046,7 +2041,7 @@ class BallotProtocol
 
         mSlot.getSCPDriver().setupTimer(
             mSlot.getSlotIndex(), TimerID.BALLOT_PROTOCOL_TIMER, timeout,
-            { mSlot.getBallotProtocol().ballotProtocolTimerExpired(); });
+            &mSlot.getBallotProtocol().ballotProtocolTimerExpired);
     }
 
     private void stopBallotProtocolTimer ()
@@ -2064,47 +2059,48 @@ class BallotProtocol
         // (messages are ignored upstream)
         // therefore the local node will not flip flop between "seen" and "not seen"
         // for a given counter on the local node
-        if (mCurrentBallot)
-        {
-            if (LocalNode.isQuorum(
-                    getLocalNode().getQuorumSet(), mLatestEnvelopes,
-                    &mSlot.getQuorumSetFromStatement,
-                    (ref const(SCPStatement) st) {
-                        bool res;
-                        if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
-                        {
-                            res = mCurrentBallot.counter <=
-                                  st.pledges.prepare_.ballot.counter;
-                        }
-                        else
-                        {
-                            res = true;
-                        }
-                        return res;
-                    }))
-            {
-                bool oldHQ = mHeardFromQuorum;
-                mHeardFromQuorum = true;
-                if (!oldHQ)
-                {
-                    // if we transition from not heard . heard, we start the timer
-                    mSlot.getSCPDriver().ballotDidHearFromQuorum(
-                        mSlot.getSlotIndex(), *mCurrentBallot);
-                    if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
+
+        if (mCurrentBallot is null)
+            return;
+
+        if (LocalNode.isQuorum(
+                getLocalNode().getQuorumSet(), mLatestEnvelopes,
+                &mSlot.getQuorumSetFromStatement,
+                (ref const(SCPStatement) st) {
+                    bool res;
+                    if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
                     {
-                        startBallotProtocolTimer();
+                        res = mCurrentBallot.counter <=
+                              st.pledges.prepare_.ballot.counter;
                     }
-                }
-                if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
+                    else
+                    {
+                        res = true;
+                    }
+                    return res;
+                }))
+        {
+            bool oldHQ = mHeardFromQuorum;
+            mHeardFromQuorum = true;
+            if (!oldHQ)
+            {
+                // if we transition from not heard . heard, we start the timer
+                mSlot.getSCPDriver().ballotDidHearFromQuorum(
+                    mSlot.getSlotIndex(), *mCurrentBallot);
+                if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
                 {
-                    stopBallotProtocolTimer();
+                    startBallotProtocolTimer();
                 }
             }
-            else
+            if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
             {
-                mHeardFromQuorum = false;
                 stopBallotProtocolTimer();
             }
+        }
+        else
+        {
+            mHeardFromQuorum = false;
+            stopBallotProtocolTimer();
         }
     }
 }
