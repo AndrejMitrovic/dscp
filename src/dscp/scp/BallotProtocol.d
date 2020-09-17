@@ -171,7 +171,6 @@ class BallotProtocol
     public bool abandonBallot (uint32 n)
     {
         //CLOG(TRACE, "SCP") << "BallotProtocol.abandonBallot";
-        bool res = false;
         Value v = mSlot.getLatestCompositeCandidate().dup;
         if (v.empty())
         {
@@ -182,12 +181,12 @@ class BallotProtocol
         if (!v.empty())
         {
             if (n == 0)
-                res = bumpState(v, true);
+                return bumpState(v, true);
             else
-                res = bumpState(v, n);
+                return bumpState(v, n);
         }
 
-        return res;
+        return false;
     }
 
     // bumps the ballot based on the local state and the value passed in:
@@ -230,15 +229,12 @@ class BallotProtocol
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " v: " << mSlot.getSCP().ballotToStr(newb);
 
-        bool updated = updateCurrentValue(newb);
+        if (!updateCurrentValue(newb))
+            return false;
 
-        if (updated)
-        {
-            emitCurrentStateStatement();
-            checkHeardFromQuorum();
-        }
-
-        return updated;
+        emitCurrentStateStatement();
+        checkHeardFromQuorum();
+        return true;
     }
 
     // ** status methods
@@ -296,7 +292,7 @@ class BallotProtocol
 
     public void setStateFromEnvelope (ref const(SCPEnvelope) e)
     {
-        if (mCurrentBallot)
+        if (mCurrentBallot !is null)
             assert(0, "Cannot set state after starting ballot protocol");
 
         recordEnvelope(e);
@@ -417,9 +413,7 @@ class BallotProtocol
                 // we could filter more using mConfirmedPrepared as well
                 auto work_ballot = getWorkingBallot(env.statement);
                 if (areBallotsCompatible(work_ballot, *mCommit))
-                {
                     res ~= env;
-                }
             }
             else if (mSlot.isFullyValidated())
             {
@@ -434,7 +428,7 @@ class BallotProtocol
     // attempts to make progress using the latest statement as a hint
     // calls into the various attempt* methods, emits message
     // to make progress
-    private void advanceSlot(ref const(SCPStatement) hint)
+    private void advanceSlot (ref const(SCPStatement) hint)
     {
         mCurrentMessageLevel++;
         //if (Logging.logTrace("SCP"))
@@ -484,58 +478,54 @@ class BallotProtocol
         --mCurrentMessageLevel;
 
         if (didWork)
-        {
             sendLatestEnvelope();
-        }
     }
 
     // returns true if all values in statement are valid
     private ValidationLevel validateValues(ref const(SCPStatement) st)
     {
         set!Value values;
-        switch (st.pledges.type)
+        final switch (st.pledges.type)
         {
-        case SCPStatementType.SCP_ST_PREPARE:
-        {
-            const prep = &st.pledges.prepare_;
-            const b = &prep.ballot;
-            if (b.counter != 0)
+            case SCPStatementType.SCP_ST_PREPARE:
             {
-                values.insert(prep.ballot.value);
+                const prep = &st.pledges.prepare_;
+                const b = &prep.ballot;
+                if (b.counter != 0)
+                    values.insert(prep.ballot.value);
+
+                if (prep.prepared)
+                    values.insert(prep.prepared.value);
+
+                break;
             }
-            if (prep.prepared)
-            {
-                values.insert(prep.prepared.value);
-            }
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+                values.insert(st.pledges.confirm_.ballot.value);
+                break;
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+                values.insert(st.pledges.externalize_.commit.value);
+                break;
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+                assert(0);
         }
-        break;
-        case SCPStatementType.SCP_ST_CONFIRM:
-            values.insert(st.pledges.confirm_.ballot.value);
-            break;
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-            values.insert(st.pledges.externalize_.commit.value);
-            break;
-        default:
-            // This shouldn't happen
-            return ValidationLevel.kInvalidValue;
-        }
+
         ValidationLevel res = ValidationLevel.kFullyValidatedValue;
         foreach (v; values)
         {
-            auto tr =
-                mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, false);
+            auto tr = mSlot.getSCPDriver().validateValue(
+                mSlot.getSlotIndex(), v, false);
             if (tr != ValidationLevel.kFullyValidatedValue)
             {
                 if (tr == ValidationLevel.kInvalidValue)
-                {
                     res = ValidationLevel.kInvalidValue;
-                }
                 else
-                {
                     res = ValidationLevel.kMaybeValidValue;
-                }
             }
         }
+
         return res;
     }
 
@@ -570,9 +560,7 @@ class BallotProtocol
     private bool attemptPreparedAccept(ref const(SCPStatement) hint)
     {
         if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
-        {
             return false;
-        }
 
         auto candidates = getPrepareCandidates(hint);
 
@@ -588,9 +576,8 @@ class BallotProtocol
                 // only consider the ballot if it may help us increase
                 // p (note: at this point, p ~ c)
                 if (!areBallotsLessAndCompatible(*mPrepared, ballot))
-                {
                     continue;
-                }
+
                 assert(areBallotsCompatible(*mCommit, ballot));
             }
 
@@ -598,17 +585,14 @@ class BallotProtocol
 
             // if ballot <= p' ballot is neither a candidate for p nor p'
             if (mPreparedPrime && compareBallots(ballot, *mPreparedPrime) <= 0)
-            {
                 continue;
-            }
 
             if (mPrepared)
             {
                 // if ballot is already covered by p, skip
                 if (areBallotsLessAndCompatible(ballot, *mPrepared))
-                {
                     continue;
-                }
+
                 // otherwise, there is a chance it increases p'
             }
 
@@ -617,45 +601,46 @@ class BallotProtocol
                 (ref const(SCPStatement) st) {
                     bool res;
 
-                    switch (st.pledges.type)
+                    final switch (st.pledges.type)
                     {
-                    case SCPStatementType.SCP_ST_PREPARE:
-                    {
-                        const p = &st.pledges.prepare_;
-                        res = areBallotsLessAndCompatible(ballot, p.ballot);
-                    }
-                    break;
-                    case SCPStatementType.SCP_ST_CONFIRM:
-                    {
-                        const c = &st.pledges.confirm_;
-                        res = areBallotsCompatible(ballot, c.ballot);
-                    }
-                    break;
-                    case SCPStatementType.SCP_ST_EXTERNALIZE:
-                    {
-                        const e = &st.pledges.externalize_;
-                        res = areBallotsCompatible(ballot, e.commit);
-                    }
-                    break;
-                    default:
-                        res = false;
-                        assert(0);
+                        case SCPStatementType.SCP_ST_PREPARE:
+                        {
+                            const p = &st.pledges.prepare_;
+                            res = areBallotsLessAndCompatible(ballot, p.ballot);
+                            break;
+                        }
+
+                        case SCPStatementType.SCP_ST_CONFIRM:
+                        {
+                            const c = &st.pledges.confirm_;
+                            res = areBallotsCompatible(ballot, c.ballot);
+                            break;
+                        }
+
+                        case SCPStatementType.SCP_ST_EXTERNALIZE:
+                        {
+                            const e = &st.pledges.externalize_;
+                            res = areBallotsCompatible(ballot, e.commit);
+                            break;
+                        }
+
+                        case SCPStatementType.SCP_ST_NOMINATE:
+                            assert(0);
                     }
 
                     return res;
                 },
                 (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
+
             if (accepted)
-            {
                 return setPreparedAccept(ballot);
-            }
         }
 
         return false;
     }
 
     // prepared: ballot that should be prepared
-    private bool setPreparedAccept(ref const(SCPBallot) ballot)
+    private bool setPreparedAccept (ref const(SCPBallot) ballot)
     {
         //if (Logging.logTrace("SCP"))
         //    CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedAccept"
