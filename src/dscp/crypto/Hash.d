@@ -22,13 +22,29 @@ import core.stdc.stdint;
 
 *******************************************************************************/
 
-uint512 getHashOf (ref const(SCPQuorumSet));
+uint512 getHashOf (ref const(SCPQuorumSet))
+{
+    // todo: fixup
+    return uint512.init;
+}
 
 /// Ditto
-uint512 getHashOf (ref const(Value));
+uint512 getHashOf (ref const(Value))
+{
+    // todo: fixup
+    return uint512.init;
+}
 
 /// Ditto
-uint512 getHashOf (uint64_t, ref const(Value), uint32_t, int32_t, ref const(NodeID));
+uint512 getHashOf (uint64_t, ref const(Value), uint32_t, int32_t, ref const(NodeID))
+{
+    // todo: fixup
+    return uint512.init;
+}
 
 /// Ditto
-uint512 getHashOf (uint64_t, ref const(Value), uint32_t, int32_t, ref const(Value));
+uint512 getHashOf (uint64_t, ref const(Value), uint32_t, int32_t, ref const(Value))
+{
+    // todo: fixup
+    return uint512.init;
+}
