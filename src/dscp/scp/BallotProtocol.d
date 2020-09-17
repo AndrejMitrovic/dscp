@@ -9,6 +9,7 @@ import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
 import dscp.scp.Slot;
 import dscp.scp.QuorumSetUtils;
+import dscp.util.Log;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -80,9 +81,9 @@ class BallotProtocol
 
         if (!isStatementSane(envelope.statement, self))
         {
-            //if (self)
-                //CLOG(ERROR, "SCP") << "not sane statement from self, skipping "
-                //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
+            if (self)
+                log.info("not sane statement from self, skipping   e: ",
+                    mSlot.getSCP().envToStr(envelope));
 
             return SCP.EnvelopeState.INVALID;
         }
@@ -90,15 +91,10 @@ class BallotProtocol
         if (!isNewerStatement(envelope.statement.nodeID, envelope.statement))
         {
             if (self)
-            {
-                //CLOG(ERROR, "SCP") << "stale statement from self, skipping "
-                //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
-            }
+                log.error("stale statement from self, skipping   e: ",
+                    mSlot.getSCP().envToStr(envelope));
             else
-            {
-                //CLOG(TRACE, "SCP") << "stale statement, skipping "
-                //                   << " i: " << mSlot.getSlotIndex();
-            }
+                log.trace("stale statement, skipping  i: ", mSlot.getSlotIndex());
 
             return SCP.EnvelopeState.INVALID;
         }
@@ -107,12 +103,11 @@ class BallotProtocol
         if (validationRes == ValidationLevel.kInvalidValue)
         {
             // If the value is not valid, we just ignore it.
-            //if (self)
-                //CLOG(ERROR, "SCP") << "invalid value from self, skipping "
-                //                   << "  e: " << mSlot.getSCP().envToStr(envelope);
-            //else
-                //CLOG(TRACE, "SCP") << "invalid value "
-                //                   << " i: " << mSlot.getSlotIndex();
+            if (self)
+                log.error("invalid value from self, skipping   e: ",
+                    mSlot.getSCP().envToStr(envelope));
+            else
+                log.trace("invalid value  i: ", mSlot.getSlotIndex());
 
             return SCP.EnvelopeState.INVALID;
         }
@@ -126,18 +121,13 @@ class BallotProtocol
                 recordEnvelope(envelope);
                 return SCP.EnvelopeState.VALID;
             }
-            else
-            {
-                if (self)
-                {
-                    //CLOG(ERROR, "SCP")
-                    //    << "externalize statement with invalid value from "
-                    //       "self, skipping "
-                    //    << "  e: " << mSlot.getSCP().envToStr(envelope);
-                }
 
-                return SCP.EnvelopeState.INVALID;
-            }
+            if (self)
+                log.error("externalize statement with invalid value " ~
+                    "from self, skipping   e: ",
+                    mSlot.getSCP().envToStr(envelope));
+
+            return SCP.EnvelopeState.INVALID;
         }
         else
         {
@@ -159,7 +149,7 @@ class BallotProtocol
     // at counter `n` (or, if n == 0, increment current counter)
     public bool abandonBallot (uint32 n)
     {
-        //CLOG(TRACE, "SCP") << "BallotProtocol.abandonBallot";
+        //log.trace("BallotProtocol.abandonBallot";
         Value v = mSlot.getLatestCompositeCandidate().dup;
         if (v.empty())
         {
@@ -214,7 +204,7 @@ class BallotProtocol
         }
 
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.bumpState"
+        //    log.trace("BallotProtocol.bumpState"
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " v: " << mSlot.getSCP().ballotToStr(newb);
 
@@ -421,7 +411,7 @@ class BallotProtocol
     {
         mCurrentMessageLevel++;
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.advanceSlot "
+        //    log.trace("BallotProtocol.advanceSlot "
         //                       << mCurrentMessageLevel << " " << getLocalState();
 
         // TODO: verify the safety of this, it seems like it could cause a crash
@@ -456,7 +446,7 @@ class BallotProtocol
         }
 
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.advanceSlot "
+        //    log.trace("BallotProtocol.advanceSlot "
         //                       << mCurrentMessageLevel << " - exiting "
         //                       << getLocalState();
 
@@ -629,7 +619,7 @@ class BallotProtocol
     private bool setPreparedAccept (ref const(SCPBallot) ballot)
     {
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedAccept"
+        //    log.trace("BallotProtocol.setPreparedAccept"
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " b: " << mSlot.getSCP().ballotToStr(ballot);
 
@@ -737,7 +727,7 @@ class BallotProtocol
     private bool setPreparedConfirmed(ref const(SCPBallot) newC, ref const(SCPBallot) newH)
     {
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.setPreparedConfirmed"
+        //    log.trace("BallotProtocol.setPreparedConfirmed"
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " h: " << mSlot.getSCP().ballotToStr(newH);
 
@@ -913,7 +903,7 @@ class BallotProtocol
     private bool setAcceptCommit(ref const(SCPBallot) c, ref const(SCPBallot) h)
     {
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.setAcceptCommit"
+        //    log.trace("BallotProtocol.setAcceptCommit"
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " new c: " << mSlot.getSCP().ballotToStr(c)
         //                       << " new h: " << mSlot.getSCP().ballotToStr(h);
@@ -1049,7 +1039,7 @@ class BallotProtocol
         ref const(SCPBallot) h)
     {
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.setConfirmCommit"
+        //    log.trace("BallotProtocol.setConfirmCommit"
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " new c: " << mSlot.getSCP().ballotToStr(c)
         //                       << " new h: " << mSlot.getSCP().ballotToStr(h);
@@ -1664,7 +1654,7 @@ class BallotProtocol
 
             if (!isOK)
                 res = false;
-                //CLOG(TRACE, "SCP") << "Malformed PREPARE message";
+                //log.trace("Malformed PREPARE message";
 
             break;
         }
@@ -1678,7 +1668,7 @@ class BallotProtocol
             res = res && (c.nCommit <= c.nH);
             if (!res)
             {
-                //CLOG(TRACE, "SCP") << "Malformed CONFIRM message";
+                //log.trace("Malformed CONFIRM message";
             }
             break;
         }
@@ -1691,7 +1681,7 @@ class BallotProtocol
             res = res && e.nH >= e.commit.counter;
 
             //if (!res)
-                //CLOG(TRACE, "SCP") << "Malformed EXTERNALIZE message";
+                //log.trace("Malformed EXTERNALIZE message";
 
             break;
         }
@@ -1720,7 +1710,7 @@ class BallotProtocol
     private void bumpToBallot (ref const(SCPBallot) ballot, bool check)
     {
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "BallotProtocol.bumpToBallot"
+        //    log.trace("BallotProtocol.bumpToBallot"
         //                       << " i: " << mSlot.getSlotIndex()
         //                       << " b: " << mSlot.getSCP().ballotToStr(ballot);
 
@@ -1806,7 +1796,7 @@ class BallotProtocol
         }
 
         //if (updated)
-            //CLOG(TRACE, "SCP") << "BallotProtocol.updateCurrentValue updated";
+            //log.trace("BallotProtocol.updateCurrentValue updated";
 
         checkInvariants();
 

@@ -119,7 +119,7 @@ class LocalNode
     public static bool isQuorumSlice (ref const(SCPQuorumSet) qSet,
         const(NodeID)[] nodeSet)
     {
-        // CLOG(TRACE, "SCP") << "LocalNode.isQuorumSlice"
+        // log.trace("LocalNode.isQuorumSlice"
         //                    << " nodeSet.size: " << nodeSet.length;
 
         return isQuorumSliceInternal(qSet, nodeSet);

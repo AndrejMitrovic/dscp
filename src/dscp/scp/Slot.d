@@ -169,7 +169,7 @@ class Slot
         assert(envelope.statement.slotIndex == mSlotIndex);
 
         //if (Logging.logTrace("SCP"))
-        //    CLOG(TRACE, "SCP") << "Slot.processEnvelope"
+        //    log.trace("Slot.processEnvelope"
         //                       << " i: " << getSlotIndex() << " "
         //                       << mSCP.envToStr(envelope);
 
