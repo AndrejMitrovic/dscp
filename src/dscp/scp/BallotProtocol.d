@@ -42,8 +42,7 @@ ref const(uint32) second (ref const(Interval) interval)  { return interval.high;
 class BallotProtocol
 {
     Slot mSlot;
-
-    bool mHeardFromQuorum = false;
+    bool mHeardFromQuorum;
 
     // state tracking members
     enum SCPPhase
@@ -52,10 +51,7 @@ class BallotProtocol
         SCP_PHASE_CONFIRM,
         SCP_PHASE_EXTERNALIZE,
         SCP_PHASE_NUM
-    };
-
-    const string[SCPPhase.SCP_PHASE_NUM] phaseNames =
-        ["PREPARE", "FINISH", "EXTERNALIZE"];
+    }
 
     // todo: this was unique_ptr, keeping refcount..
     SCPBallot* mCurrentBallot;      // b
@@ -84,7 +80,7 @@ class BallotProtocol
     // the slot accordingly.
     // self: set to true when node feeds its own statements in order to
     // trigger more potential state changes
-    SCP.EnvelopeState processEnvelope(ref const(SCPEnvelope) envelope,
+    SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope,
         bool self)
     {
         SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
@@ -121,48 +117,8 @@ class BallotProtocol
         }
 
         auto validationRes = validateValues(statement);
-        if (validationRes != ValidationLevel.kInvalidValue)
-        {
-            bool processed = false;
 
-            if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
-            {
-                if (validationRes == ValidationLevel.kMaybeValidValue)
-                {
-                    mSlot.setFullyValidated(false);
-                }
-
-                recordEnvelope(envelope);
-                processed = true;
-                advanceSlot(statement);
-                res = SCP.EnvelopeState.VALID;
-            }
-
-            if (!processed)
-            {
-                // note: this handles also our own messages
-                // in particular our final EXTERNALIZE message
-                if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE &&
-                    mCommit.value == getWorkingBallot(statement).value)
-                {
-                    recordEnvelope(envelope);
-                    res = SCP.EnvelopeState.VALID;
-                }
-                else
-                {
-                    if (self)
-                    {
-                        //CLOG(ERROR, "SCP")
-                        //    << "externalize statement with invalid value from "
-                        //       "self, skipping "
-                        //    << "  e: " << mSlot.getSCP().envToStr(envelope);
-                    }
-
-                    res = SCP.EnvelopeState.INVALID;
-                }
-            }
-        }
-        else
+        if (validationRes == ValidationLevel.kInvalidValue)
         {
             // If the value is not valid, we just ignore it.
             if (self)
@@ -176,12 +132,43 @@ class BallotProtocol
                 //                   << " i: " << mSlot.getSlotIndex();
             }
 
-            res = SCP.EnvelopeState.INVALID;
+            return SCP.EnvelopeState.INVALID;
         }
-        return res;
+
+        if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
+        {
+            // note: this handles also our own messages
+            // in particular our final EXTERNALIZE message
+            if (mCommit.value == getWorkingBallot(statement).value)
+            {
+                recordEnvelope(envelope);
+                return SCP.EnvelopeState.VALID;
+            }
+            else
+            {
+                if (self)
+                {
+                    //CLOG(ERROR, "SCP")
+                    //    << "externalize statement with invalid value from "
+                    //       "self, skipping "
+                    //    << "  e: " << mSlot.getSCP().envToStr(envelope);
+                }
+
+                return SCP.EnvelopeState.INVALID;
+            }
+        }
+        else
+        {
+            if (validationRes == ValidationLevel.kMaybeValidValue)
+                mSlot.setFullyValidated(false);
+
+            recordEnvelope(envelope);
+            advanceSlot(statement);
+            return SCP.EnvelopeState.VALID;
+        }
     }
 
-    void ballotProtocolTimerExpired()
+    void ballotProtocolTimerExpired ()
     {
         abandonBallot(0);
     }
