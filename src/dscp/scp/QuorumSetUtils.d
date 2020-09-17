@@ -10,6 +10,8 @@ import dscp.xdr.Stellar_SCP;
 import std.array;
 import std.algorithm;
 
+import core.stdc.string;
+
 struct QuorumSetSanityChecker
 {
   public:
@@ -130,7 +132,6 @@ void normalizeQSet(ref SCPQuorumSet qSet, const(NodeID)* idToRemove = null)
 
 void normalizeQSetSimplify (ref SCPQuorumSet qSet, const(NodeID)* idToRemove)
 {
-    auto v = &qSet.validators;
     if (idToRemove)
     {
         auto old_len = qSet.validators.length;
@@ -142,27 +143,39 @@ void normalizeQSetSimplify (ref SCPQuorumSet qSet, const(NodeID)* idToRemove)
     //auto i = &qSet.innerSets;
     //auto it = i.begin();
     //while (it != i.end())
+    size_t idx;
+    while (idx < qSet.innerSets.length)
     {
         normalizeQSetSimplify(qSet.innerSets[idx], idToRemove);
         // merge singleton inner sets into validator list
-        if (it.threshold == 1 && it.validators.length == 1 &&
-            it.innerSets.length == 0)
+        if (qSet.innerSets[idx].threshold == 1 && qSet.innerSets[idx].validators.length == 1 &&
+            qSet.innerSets[idx].innerSets.length == 0)
         {
-            v ~= it.validators.front();
-            it = i.erase(it);
+            qSet.validators ~= qSet.innerSets[idx].validators.front();
+            qSet.innerSets.dropIndex(idx);
         }
-        else
-        {
-            it++;
-        }
+
+        idx++;
     }
 
     // simplify quorum set if needed
-    if (qSet.threshold == 1 && v.length == 0 && i.length == 1)
+    if (qSet.threshold == 1 && qSet.validators.length == 0 &&
+        qSet.innerSets.length == 1)
     {
         auto t = qSet.innerSets.back();
         qSet = t;
     }
+}
+
+private void dropIndex (T) (ref T[] arr, size_t index)
+{
+    assert(index < arr.length);
+    immutable newLen = arr.length - 1;
+
+    if (index != newLen)
+        memmove(&(arr[index]), &(arr[index + 1]), T.sizeof * (newLen - index));
+
+    arr.length = newLen;
 }
 
 // helper function that reorders validators and inner sets
@@ -170,36 +183,33 @@ void normalizeQSetSimplify (ref SCPQuorumSet qSet, const(NodeID)* idToRemove)
 void
 normalizeQuorumSetReorder(ref SCPQuorumSet qset)
 {
-    std.sort(qset.validators.begin(), qset.validators.end());
+    sort(qset.validators);
     foreach (qs; qset.innerSets)
-    {
         normalizeQuorumSetReorder(qs);
-    }
 
     // now, we can reorder the inner sets
     qset.innerSets.sort!((a, b) => qSetCompareInt(a, b) < 0);
 }
 
-int
-intLexicographicalCompare(InputIt1, InputIt2, Compare)(InputIt1 first1, InputIt1 last1, InputIt2 first2,
-                          InputIt2 last2, Compare comp)
+int intLexicographicalCompare(E, Compare)(E[] first, E[] last, Compare comp)
 {
-    for (; first1 != last1 && first2 != last2; first1++, first2++)
+    foreach (idx, lhs; first)
     {
-        auto c = comp(*first1, *first2);
-        if (c != 0)
+        if (idx < last.length)
         {
-            return c;
+            auto c = comp(lhs, last[idx]);
+            if (c != 0)
+                return c;
         }
     }
-    if (first1 == last1 && first2 != last2)
-    {
+
+    // todo: not sure about this
+    if (first.length > last.length)
         return -1;
-    }
-    if (first1 != last1 && first2 == last2)
-    {
+
+    if (last.length > first.length)
         return 1;
-    }
+
     return 0;
 }
 
@@ -209,39 +219,30 @@ intLexicographicalCompare(InputIt1, InputIt2, Compare)(InputIt1 first1, InputIt1
 int
 qSetCompareInt(ref const(SCPQuorumSet) l, ref const(SCPQuorumSet) r)
 {
-    auto lvals = &l.validators;
-    auto rvals = &r.validators;
-
     // compare by validators first
     auto res = intLexicographicalCompare(
-        lvals.begin(), lvals.end(), rvals.begin(), rvals.end(),
+        l.validators, r.validators,
         (ref const(PublicKey) l, ref const(PublicKey) r) {
             if (l < r)
-            {
                 return -1;
-            }
+
             if (r < l)
-            {
                 return 1;
-            }
+
             return 0;
         });
+
     if (res != 0)
-    {
         return res;
-    }
 
     // then compare by inner sets
     const li = &l.innerSets;
     const ri = &r.innerSets;
-    res = intLexicographicalCompare(li.begin(), li.end(), ri.begin(), ri.end(),
-                                    qSetCompareInt);
+    res = intLexicographicalCompare(l.innerSets, r.innerSets, &qSetCompareInt);
     if (res != 0)
-    {
         return res;
-    }
 
     // compare by threshold
     return (l.threshold < r.threshold) ? -1
-                                       : ((l.threshold == r.threshold) ? 0 : 1);
+        : ((l.threshold == r.threshold) ? 0 : 1);
 }
