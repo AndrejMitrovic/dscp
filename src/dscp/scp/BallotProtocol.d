@@ -50,7 +50,6 @@ class BallotProtocol
         SCP_PHASE_PREPARE,
         SCP_PHASE_CONFIRM,
         SCP_PHASE_EXTERNALIZE,
-        SCP_PHASE_NUM
     }
 
     // todo: this was unique_ptr, keeping refcount..
@@ -1433,8 +1432,8 @@ class BallotProtocol
     }
 
     // returns true if the statement commits the ballot in the range 'check'
-    static bool commitPredicate(ref const(SCPBallot) ballot, ref const(Interval) check,
-                                ref const(SCPStatement) st)
+    private static bool commitPredicate (ref const(SCPBallot) ballot,
+        ref const(Interval) check, ref const(SCPStatement) st)
     {
         bool res = false;
         const pl = &st.pledges;
@@ -1467,7 +1466,7 @@ class BallotProtocol
     }
 
     // attempts to update p to ballot (updating p' if needed)
-    bool setPrepared(ref const(SCPBallot) ballot)
+    private bool setPrepared (ref const(SCPBallot) ballot)
     {
         bool didWork = false;
 
@@ -1518,8 +1517,8 @@ class BallotProtocol
     // ** Helper methods to compare two ballots
 
     // ballot comparison (ordering)
-    static int compareBallots(ref const(SCPBallot*) b1,
-                              ref const(SCPBallot*) b2)
+    private static int compareBallots (ref const(SCPBallot*) b1,
+        ref const(SCPBallot*) b2)
     {
         int res;
         if (b1 && b2)
@@ -1541,7 +1540,8 @@ class BallotProtocol
         return res;
     }
 
-    static int compareBallots(ref const(SCPBallot) b1, ref const(SCPBallot) b2)
+    private static int compareBallots (ref const(SCPBallot) b1,
+        ref const(SCPBallot) b2)
     {
         if (b1.counter < b2.counter)
         {
@@ -1567,21 +1567,22 @@ class BallotProtocol
     }
 
     // b1 ~ b2
-    static bool areBallotsCompatible(ref const(SCPBallot) b1, ref const(SCPBallot) b2)
+    private static bool areBallotsCompatible (ref const(SCPBallot) b1,
+        ref const(SCPBallot) b2)
     {
         return b1.value == b2.value;
     }
 
     // b1 <= b2 && b1 !~ b2
-    static bool areBallotsLessAndIncompatible(ref const(SCPBallot) b1,
-                                              ref const(SCPBallot) b2)
+    private static bool areBallotsLessAndIncompatible (ref const(SCPBallot) b1,
+        ref const(SCPBallot) b2)
     {
         return (compareBallots(b1, b2) <= 0) && !areBallotsCompatible(b1, b2);
     }
 
     // b1 <= b2 && b1 ~ b2
-    static bool areBallotsLessAndCompatible(ref const(SCPBallot) b1,
-                                            ref const(SCPBallot) b2)
+    private static bool areBallotsLessAndCompatible (ref const(SCPBallot) b1,
+        ref const(SCPBallot) b2)
     {
         return (compareBallots(b1, b2) <= 0) && areBallotsCompatible(b1, b2);
     }
@@ -1590,7 +1591,8 @@ class BallotProtocol
 
     // returns true if the statement is newer than the one we know about
     // for a given node.
-    bool isNewerStatement(ref const(NodeID) nodeID, ref const(SCPStatement) st)
+    private bool isNewerStatement (ref const(NodeID) nodeID,
+        ref const(SCPStatement) st)
     {
         if (auto oldp = nodeID in mLatestEnvelopes)
             return isNewerStatement(oldp.statement, st);
@@ -1599,8 +1601,8 @@ class BallotProtocol
     }
 
     // returns true if st is newer than oldst
-    static bool isNewerStatement(ref const(SCPStatement) oldst,
-                                 ref const(SCPStatement) st)
+    private static bool isNewerStatement (ref const(SCPStatement) oldst,
+        ref const(SCPStatement) st)
     {
         bool res = false;
 
@@ -1681,7 +1683,7 @@ class BallotProtocol
     }
 
     // basic sanity check on statement
-    bool isStatementSane(ref const(SCPStatement) st, bool self)
+    private bool isStatementSane (ref const(SCPStatement) st, bool self)
     {
         auto qSet = mSlot.getQuorumSetFromStatement(st);
 
@@ -1700,7 +1702,7 @@ class BallotProtocol
             return false;
         }
 
-        switch (st.pledges.type)
+        final switch (st.pledges.type)
         {
         case SCPStatementType.SCP_ST_PREPARE:
         {
@@ -1720,12 +1722,12 @@ class BallotProtocol
                                           p.nH >= p.nC));
 
             if (!isOK)
-            {
-                //CLOG(TRACE, "SCP") << "Malformed PREPARE message";
                 res = false;
-            }
+                //CLOG(TRACE, "SCP") << "Malformed PREPARE message";
+
+            break;
         }
-        break;
+
         case SCPStatementType.SCP_ST_CONFIRM:
         {
             const c = &st.pledges.confirm_;
@@ -1737,8 +1739,9 @@ class BallotProtocol
             {
                 //CLOG(TRACE, "SCP") << "Malformed CONFIRM message";
             }
+            break;
         }
-        break;
+
         case SCPStatementType.SCP_ST_EXTERNALIZE:
         {
             const e = &st.pledges.externalize_;
@@ -1746,13 +1749,13 @@ class BallotProtocol
             res = e.commit.counter > 0;
             res = res && e.nH >= e.commit.counter;
 
-            if (!res)
-            {
+            //if (!res)
                 //CLOG(TRACE, "SCP") << "Malformed EXTERNALIZE message";
-            }
+
+            break;
         }
-        break;
-        default:
+
+        case SCPStatementType.SCP_ST_NOMINATE:
             assert(0);
         }
 
@@ -1760,7 +1763,7 @@ class BallotProtocol
     }
 
     // records the statement in the state machine
-    void recordEnvelope(ref const(SCPEnvelope) env)
+    private void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
         mLatestEnvelopes[st.nodeID] = env;
@@ -1773,7 +1776,7 @@ class BallotProtocol
     // this is the lowest level method to update the current ballot and as
     // such doesn't do any validation
     // check: verifies that ballot is greater than old one
-    void bumpToBallot(ref const(SCPBallot) ballot, bool check)
+    private void bumpToBallot (ref const(SCPBallot) ballot, bool check)
     {
         //if (Logging.logTrace("SCP"))
         //    CLOG(TRACE, "SCP") << "BallotProtocol.bumpToBallot"
@@ -1805,14 +1808,10 @@ class BallotProtocol
         // invariant: h.value = b.value
         if (mHighBallot !is null &&
             !areBallotsCompatible(*mCurrentBallot, *mHighBallot))
-        {
             mHighBallot = null;
-        }
 
         if (gotBumped)
-        {
             mHeardFromQuorum = false;
-        }
     }
 
     // switch the local node to the given ballot's value
@@ -1820,12 +1819,11 @@ class BallotProtocol
     // we have.
     // updates the local state based to the specified ballot
     // (that could be a prepared ballot) enforcing invariants
-    bool updateCurrentValue(ref const(SCPBallot) ballot)
+    private bool updateCurrentValue (ref const(SCPBallot) ballot)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
-        {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
-        }
 
         bool updated = false;
         if (!mCurrentBallot)
@@ -1866,10 +1864,8 @@ class BallotProtocol
             }
         }
 
-        if (updated)
-        {
+        //if (updated)
             //CLOG(TRACE, "SCP") << "BallotProtocol.updateCurrentValue updated";
-        }
 
         checkInvariants();
 
@@ -1878,23 +1874,23 @@ class BallotProtocol
 
     // emits a statement reflecting the nodes' current state
     // and attempts to make progress
-    void emitCurrentStateStatement()
+    private void emitCurrentStateStatement ()
     {
         SCPStatementType t;
 
-        switch (mPhase)
+        final switch (mPhase)
         {
-        case SCPPhase.SCP_PHASE_PREPARE:
-            t = SCPStatementType.SCP_ST_PREPARE;
-            break;
-        case SCPPhase.SCP_PHASE_CONFIRM:
-            t = SCPStatementType.SCP_ST_CONFIRM;
-            break;
-        case SCPPhase.SCP_PHASE_EXTERNALIZE:
-            t = SCPStatementType.SCP_ST_EXTERNALIZE;
-            break;
-        default:
-            assert(0);
+            case SCPPhase.SCP_PHASE_PREPARE:
+                t = SCPStatementType.SCP_ST_PREPARE;
+                break;
+
+            case SCPPhase.SCP_PHASE_CONFIRM:
+                t = SCPStatementType.SCP_ST_CONFIRM;
+                break;
+
+            case SCPPhase.SCP_PHASE_EXTERNALIZE:
+                t = SCPStatementType.SCP_ST_EXTERNALIZE;
+                break;
         }
 
         SCPStatement statement = createStatement(t);
@@ -1928,21 +1924,20 @@ class BallotProtocol
     }
 
     // verifies that the internal state is consistent
-    void checkInvariants()
+    private void checkInvariants()
     {
         if (mCurrentBallot)
-        {
             assert(mCurrentBallot.counter != 0);
-        }
+
         if (mPrepared && mPreparedPrime)
-        {
             assert(areBallotsLessAndIncompatible(*mPreparedPrime, *mPrepared));
-        }
+
         if (mHighBallot)
         {
             assert(mCurrentBallot);
             assert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
         }
+
         if (mCommit)
         {
             assert(mCurrentBallot);
@@ -1950,105 +1945,106 @@ class BallotProtocol
             assert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
         }
 
-        switch (mPhase)
+        final switch (mPhase)
         {
-        case SCPPhase.SCP_PHASE_PREPARE:
-            break;
-        case SCPPhase.SCP_PHASE_CONFIRM:
-            assert(mCommit);
-            break;
-        case SCPPhase.SCP_PHASE_EXTERNALIZE:
-            assert(mCommit);
-            assert(mHighBallot);
-            break;
-        default:
-            assert(0);
+            case SCPPhase.SCP_PHASE_PREPARE:
+                break;
+
+            case SCPPhase.SCP_PHASE_CONFIRM:
+                assert(mCommit);
+                break;
+
+            case SCPPhase.SCP_PHASE_EXTERNALIZE:
+                assert(mCommit);
+                assert(mHighBallot);
+                break;
         }
     }
 
     // create a statement of the given type using the local state
-    SCPStatement createStatement(ref const(SCPStatementType) type)
+    SCPStatement createStatement (ref const(SCPStatementType) type)
     {
         SCPStatement statement;
 
         checkInvariants();
 
         statement.pledges.type = type;
-        switch (type)
+
+        final switch (type)
         {
-        case SCPStatementType.SCP_ST_PREPARE:
-        {
-            auto p = &statement.pledges.prepare_;
-            p.quorumSetHash = getLocalNode().getQuorumSetHash();
-            if (mCurrentBallot)
+            case SCPStatementType.SCP_ST_PREPARE:
             {
-                p.ballot = *mCurrentBallot;
+                auto p = &statement.pledges.prepare_;
+                p.quorumSetHash = getLocalNode().getQuorumSetHash();
+                if (mCurrentBallot)
+                {
+                    p.ballot = *mCurrentBallot;
+                }
+                if (mCommit)
+                {
+                    p.nC = mCommit.counter;
+                }
+                if (mPrepared)
+                {
+                    p.prepared = new SCPBallot;
+                    *p.prepared = *mPrepared;
+                }
+                if (mPreparedPrime)
+                {
+                    p.preparedPrime = new SCPBallot;
+                    *p.preparedPrime = *mPreparedPrime;
+                }
+                if (mHighBallot)
+                {
+                    p.nH = mHighBallot.counter;
+                }
+                break;
             }
-            if (mCommit)
+
+            case SCPStatementType.SCP_ST_CONFIRM:
             {
-                p.nC = mCommit.counter;
+                auto c = &statement.pledges.confirm_;
+                c.quorumSetHash = getLocalNode().getQuorumSetHash();
+                c.ballot = *mCurrentBallot;
+                c.nPrepared = mPrepared.counter;
+                c.nCommit = mCommit.counter;
+                c.nH = mHighBallot.counter;
+                break;
             }
-            if (mPrepared)
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
-                p.prepared = new SCPBallot;
-                *p.prepared = *mPrepared;
+                auto e = &statement.pledges.externalize_;
+                e.commit = *mCommit;
+                e.nH = mHighBallot.counter;
+                e.commitQuorumSetHash = getLocalNode().getQuorumSetHash();
+                break;
             }
-            if (mPreparedPrime)
-            {
-                p.preparedPrime = new SCPBallot;
-                *p.preparedPrime = *mPreparedPrime;
-            }
-            if (mHighBallot)
-            {
-                p.nH = mHighBallot.counter;
-            }
-        }
-        break;
-        case SCPStatementType.SCP_ST_CONFIRM:
-        {
-            auto c = &statement.pledges.confirm_;
-            c.quorumSetHash = getLocalNode().getQuorumSetHash();
-            c.ballot = *mCurrentBallot;
-            c.nPrepared = mPrepared.counter;
-            c.nCommit = mCommit.counter;
-            c.nH = mHighBallot.counter;
-        }
-        break;
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-        {
-            auto e = &statement.pledges.externalize_;
-            e.commit = *mCommit;
-            e.nH = mHighBallot.counter;
-            e.commitQuorumSetHash = getLocalNode().getQuorumSetHash();
-        }
-        break;
-        default:
-            assert(0);
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+                assert(0);
         }
 
         return statement;
     }
 
-    // returns a string representing the slot's state
-    // used for log lines
-    string getLocalState() const;
-
-    LocalNode getLocalNode()
+    private LocalNode getLocalNode ()
     {
         return mSlot.getSCP().getLocalNode();
     }
 
-    bool federatedAccept(StatementPredicate voted, StatementPredicate accepted)
+    private bool federatedAccept (StatementPredicate voted,
+        StatementPredicate accepted)
     {
         return mSlot.federatedAccept(voted, accepted, mLatestEnvelopes);
     }
 
-    bool federatedRatify(StatementPredicate voted)
+    private bool federatedRatify (StatementPredicate voted)
     {
         return mSlot.federatedRatify(voted, mLatestEnvelopes);
     }
 
-    void startBallotProtocolTimer()
+    private void startBallotProtocolTimer ()
     {
         Duration timeout =
             mSlot.getSCPDriver().computeTimeout(mCurrentBallot.counter);
@@ -2058,14 +2054,14 @@ class BallotProtocol
             { mSlot.getBallotProtocol().ballotProtocolTimerExpired(); });
     }
 
-    void stopBallotProtocolTimer()
+    private void stopBallotProtocolTimer ()
     {
         mSlot.getSCPDriver().setupTimer(mSlot.getSlotIndex(),
                                         TimerID.BALLOT_PROTOCOL_TIMER,
                                         0.seconds, null);
     }
 
-    void checkHeardFromQuorum()
+    private void checkHeardFromQuorum ()
     {
         // this method is safe to call regardless of the transitions of the other
         // nodes on the network:
