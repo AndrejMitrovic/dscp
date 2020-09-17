@@ -280,7 +280,9 @@ class LocalNode
     {
         uint64 res;
         assert(threshold <= total);
-        bigDivide(res, m, threshold, total, Rounding.ROUND_UP);
+        // calculates A*B/C when A*B overflows 64bits
+        res = (m * threshold) / total;
+        //bigDivide(res, m, threshold, total, Rounding.ROUND_UP);
         return res;
     }
 
