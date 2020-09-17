@@ -667,7 +667,7 @@ class BallotProtocol
         if (didWork)
         {
             mSlot.getSCPDriver().acceptedBallotPrepared(mSlot.getSlotIndex(),
-                                                        ballot);
+                ballot);
             emitCurrentStateStatement();
         }
 
@@ -676,18 +676,14 @@ class BallotProtocol
 
     // step 2+3+8 from the SCP paper
     // ballot is the candidate to record as 'confirmed prepared'
-    private bool attemptPreparedConfirmed(ref const(SCPStatement) hint)
+    private bool attemptPreparedConfirmed (ref const(SCPStatement) hint)
     {
         if (mPhase != SCPPhase.SCP_PHASE_PREPARE)
-        {
             return false;
-        }
 
         // check if we could accept this ballot as prepared
         if (!mPrepared)
-        {
             return false;
-        }
 
         auto candidates = getPrepareCandidates(hint);
 
@@ -704,9 +700,7 @@ class BallotProtocol
 
             // only consider it if we can potentially raise h
             if (mHighBallot && compareBallots(*mHighBallot, ballot) >= 0)
-            {
                 break;
-            }
 
             bool ratified = federatedRatify(
                 (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
@@ -718,47 +712,39 @@ class BallotProtocol
             }
         }
 
-        bool res = false;
+        if (!newHfound)
+            return false;
 
-        if (newHfound)
+        SCPBallot newC;
+        // now, look for newC (left as 0 if no update)
+        // step (3) from the paper
+        SCPBallot b = mCurrentBallot ? *mCurrentBallot : SCPBallot();
+        if (!mCommit &&
+            (!mPrepared || !areBallotsLessAndIncompatible(newH, *mPrepared)) &&
+            (!mPreparedPrime ||
+             !areBallotsLessAndIncompatible(newH, *mPreparedPrime)))
         {
-            SCPBallot newC;
-            // now, look for newC (left as 0 if no update)
-            // step (3) from the paper
-            SCPBallot b = mCurrentBallot ? *mCurrentBallot : SCPBallot();
-            if (!mCommit &&
-                (!mPrepared || !areBallotsLessAndIncompatible(newH, *mPrepared)) &&
-                (!mPreparedPrime ||
-                 !areBallotsLessAndIncompatible(newH, *mPreparedPrime)))
+            // continue where we left off (cur is at newH at this point)
+            foreach (cur; range)
             {
-                // continue where we left off (cur is at newH at this point)
-                foreach (cur; range)
-                {
-                    SCPBallot ballot = *cast(SCPBallot*)&cur;
-                    if (compareBallots(ballot, b) < 0)
-                    {
-                        break;
-                    }
-                    // c and h must be compatible
-                    if (!areBallotsLessAndCompatible(cur, newH))
-                    {
-                        continue;
-                    }
-                    bool ratified = federatedRatify(
-                        (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
-                    if (ratified)
-                    {
-                        newC = ballot;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
+                SCPBallot ballot = *cast(SCPBallot*)&cur;
+                if (compareBallots(ballot, b) < 0)
+                    break;
+
+                // c and h must be compatible
+                if (!areBallotsLessAndCompatible(cur, newH))
+                    continue;
+
+                bool ratified = federatedRatify(
+                    (ref const(SCPStatement) st) => hasPreparedBallot(ballot, st));
+                if (ratified)
+                    newC = ballot;
+                else
+                    break;
             }
-            res = setPreparedConfirmed(newC, newH);
         }
-        return res;
+
+        return this.setPreparedConfirmed(newC, newH);
     }
 
     // newC, newH : low/high bounds prepared confirmed
