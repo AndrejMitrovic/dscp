@@ -110,7 +110,6 @@ class BallotProtocol
         }
 
         auto validationRes = validateValues(statement);
-
         if (validationRes == ValidationLevel.kInvalidValue)
         {
             // If the value is not valid, we just ignore it.
@@ -183,7 +182,7 @@ class BallotProtocol
             if (n == 0)
                 return bumpState(v, true);
             else
-                return bumpState(v, n);
+                return bumpState(v, n);  // overload
         }
 
         return false;
@@ -232,7 +231,7 @@ class BallotProtocol
         if (!updateCurrentValue(newb))
             return false;
 
-        emitCurrentStateStatement();
+        this.emitCurrentStateStatement();
         checkHeardFromQuorum();
         return true;
     }
@@ -446,15 +445,11 @@ class BallotProtocol
         // order
         // allowing the state to be updated properly
 
-        bool didWork = false;
-
-        didWork = attemptPreparedAccept(hint) || didWork;
-
-        didWork = attemptPreparedConfirmed(hint) || didWork;
-
-        didWork = attemptAcceptCommit(hint) || didWork;
-
-        didWork = attemptConfirmCommit(hint) || didWork;
+        bool didWork;
+        didWork |= attemptPreparedAccept(hint);
+        didWork |= attemptPreparedConfirmed(hint);
+        didWork |= attemptAcceptCommit(hint);
+        didWork |= attemptConfirmCommit(hint);
 
         // only bump after we're done with everything else
         if (mCurrentMessageLevel == 1)
@@ -559,7 +554,8 @@ class BallotProtocol
     // step 1 and 5 from the SCP paper
     private bool attemptPreparedAccept(ref const(SCPStatement) hint)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
 
         auto candidates = getPrepareCandidates(hint);
@@ -668,7 +664,7 @@ class BallotProtocol
         {
             mSlot.getSCPDriver().acceptedBallotPrepared(mSlot.getSlotIndex(),
                 ballot);
-            emitCurrentStateStatement();
+            this.emitCurrentStateStatement();
         }
 
         return didWork;
@@ -789,9 +785,7 @@ class BallotProtocol
         didWork = updateCurrentIfNeeded(newH) || didWork;
 
         if (didWork)
-        {
-            emitCurrentStateStatement();
-        }
+            this.emitCurrentStateStatement();
 
         return didWork;
     }
@@ -967,7 +961,7 @@ class BallotProtocol
             updateCurrentIfNeeded(*mHighBallot);
 
             mSlot.getSCPDriver().acceptedCommit(mSlot.getSlotIndex(), h);
-            emitCurrentStateStatement();
+            this.emitCurrentStateStatement();
         }
 
         return didWork;
@@ -1078,7 +1072,7 @@ class BallotProtocol
 
         mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
 
-        emitCurrentStateStatement();
+        this.emitCurrentStateStatement();
 
         mSlot.stopNomination();
 
@@ -1510,26 +1504,17 @@ class BallotProtocol
         ref const(SCPBallot) b2)
     {
         if (b1.counter < b2.counter)
-        {
             return -1;
-        }
         else if (b2.counter < b1.counter)
-        {
             return 1;
-        }
+
         // ballots are also strictly ordered by value
         if (b1.value < b2.value)
-        {
             return -1;
-        }
         else if (b2.value < b1.value)
-        {
             return 1;
-        }
         else
-        {
             return 0;
-        }
     }
 
     // b1 ~ b2
