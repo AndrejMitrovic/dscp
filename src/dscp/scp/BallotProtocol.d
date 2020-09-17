@@ -26,14 +26,9 @@ private enum MAX_ADVANCE_SLOT_RECURSION = 50;
 // An interval is [low,high] represented as a pair
 struct Interval
 {
-    uint32 low;
-    uint32 high;
+    uint32 first;
+    uint32 second;
 }
-
-ref uint32 first (ref Interval interval)  { return interval.low; }
-ref const(uint32) first (ref const(Interval) interval)  { return interval.low; }
-ref uint32 second (ref Interval interval)  { return interval.high; }
-ref const(uint32) second (ref const(Interval) interval)  { return interval.high; }
 
 /**
  * The Slot object is in charge of maintaining the state of the SCP protocol
