@@ -7,7 +7,6 @@ module dscp.scp.LocalNode;
 import dscp.crypto.Hash;
 import dscp.scp.SCP;
 import dscp.scp.QuorumSetUtils;
-import dscp.util.numeric;
 import dscp.util.Nullable;
 import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
