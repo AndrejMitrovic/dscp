@@ -175,7 +175,7 @@ class BallotProtocol
 
     // abandon's current ballot, move to a new ballot
     // at counter `n` (or, if n == 0, increment current counter)
-    bool abandonBallot(uint32 n)
+    bool abandonBallot (uint32 n)
     {
         //CLOG(TRACE, "SCP") << "BallotProtocol.abandonBallot";
         bool res = false;
@@ -183,21 +183,17 @@ class BallotProtocol
         if (v.empty())
         {
             if (mCurrentBallot)
-            {
                 v = mCurrentBallot.value;
-            }
         }
+
         if (!v.empty())
         {
             if (n == 0)
-            {
                 res = bumpState(v, true);
-            }
             else
-            {
                 res = bumpState(v, n);
-            }
         }
+
         return res;
     }
 
@@ -206,29 +202,23 @@ class BallotProtocol
     // otherwise, no-ops
     // force: when true, always bumps the value, otherwise only bumps
     // the state if no value was prepared
-    bool bumpState(ref const(Value) value, bool force)
+    bool bumpState (ref const(Value) value, bool force)
     {
-        uint32 n;
         if (!force && mCurrentBallot)
-        {
             return false;
-        }
 
-        n = mCurrentBallot ? (mCurrentBallot.counter + 1) : 1;
-
+        uint32 n = mCurrentBallot ? (mCurrentBallot.counter + 1) : 1;
         return bumpState(value, n);
     }
 
     // flavor that takes the actual desired counter value
-    bool bumpState(ref const(Value) value, uint32 n)
+    bool bumpState (ref const(Value) value, uint32 n)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE && mPhase != SCPPhase.SCP_PHASE_CONFIRM)
-        {
+        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
-        }
 
         SCPBallot newb;
-
         newb.counter = n;
 
         if (mValueOverride !is null)
@@ -264,49 +254,45 @@ class BallotProtocol
     // with the statement.
     // note: the companion hash for an EXTERNALIZE statement does
     // not match the hash of the QSet, but the hash of commitQuorumSetHash
-    static Hash getCompanionQuorumSetHashFromStatement(ref const(SCPStatement) st)
+    static Hash getCompanionQuorumSetHashFromStatement (ref const(SCPStatement) st)
     {
-        Hash h;
-        switch (st.pledges.type)
+        final switch (st.pledges.type)
         {
-        case SCPStatementType.SCP_ST_PREPARE:
-            h = st.pledges.prepare_.quorumSetHash;
-            break;
-        case SCPStatementType.SCP_ST_CONFIRM:
-            h = st.pledges.confirm_.quorumSetHash;
-            break;
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-            h = st.pledges.externalize_.commitQuorumSetHash;
-            break;
-        default:
-            assert(0);
+            case SCPStatementType.SCP_ST_PREPARE:
+                return st.pledges.prepare_.quorumSetHash;
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+                return st.pledges.confirm_.quorumSetHash;
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+                return st.pledges.externalize_.commitQuorumSetHash;
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+                assert(0);  // unexpected
         }
-        return h;
     }
 
     // helper function to retrieve b for PREPARE, P for CONFIRM or
     // c for EXTERNALIZE messages
-    static SCPBallot getWorkingBallot(ref const(SCPStatement) st)
+    static SCPBallot getWorkingBallot (ref const(SCPStatement) st)
     {
-        SCPBallot res;
-        switch (st.pledges.type)
+        final switch (st.pledges.type)
         {
-        case SCPStatementType.SCP_ST_PREPARE:
-            res = st.pledges.prepare_.ballot;
-            break;
-        case SCPStatementType.SCP_ST_CONFIRM:
-        {
-            const con = &st.pledges.confirm_;
-            res = SCPBallot(con.nCommit, con.ballot.value.dup);
+            case SCPStatementType.SCP_ST_PREPARE:
+                return st.pledges.prepare_.ballot;
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+            {
+                const con = &st.pledges.confirm_;
+                return SCPBallot(con.nCommit, con.ballot.value.dup);
+            }
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+                return st.pledges.externalize_.commit;
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+                assert(0);  // unexpected
         }
-        break;
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-            res = st.pledges.externalize_.commit;
-            break;
-        default:
-            assert(0);
-        }
-        return res;
     }
 
     const(SCPEnvelope)*
