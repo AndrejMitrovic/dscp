@@ -1614,7 +1614,7 @@ class BallotProtocol
                 isOK =
                     isOK && (p.nH == 0 || (p.prepared && p.nH <= p.prepared.counter));
 
-                // c != 0 . c <= h <= b
+                // c != 0 -> c <= h <= b
                 isOK = isOK && (p.nC == 0 || (p.nH != 0 && p.ballot.counter >= p.nH &&
                                               p.nH >= p.nC));
 
@@ -1982,7 +1982,7 @@ class BallotProtocol
             mHeardFromQuorum = true;
             if (!oldHQ)
             {
-                // if we transition from not heard . heard, we start the timer
+                // if we transition from not heard -> heard, we start the timer
                 mSlot.getSCPDriver().ballotDidHearFromQuorum(
                     mSlot.getSlotIndex(), *mCurrentBallot);
                 if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
