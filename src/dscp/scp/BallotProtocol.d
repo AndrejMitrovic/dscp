@@ -1643,7 +1643,7 @@ class BallotProtocol
             bool isOK = self || p.ballot.counter > 0;
 
             isOK = isOK &&
-                   ((!p.preparedPrime || !p.prepared) ||
+                   (!p.preparedPrime || !p.prepared ||
                     (areBallotsLessAndIncompatible(*p.preparedPrime, *p.prepared)));
 
             isOK =
