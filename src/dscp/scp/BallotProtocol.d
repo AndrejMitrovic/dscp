@@ -160,9 +160,9 @@ class BallotProtocol
         if (!v.empty())
         {
             if (n == 0)
-                return bumpState(v, true);
+                return this.bumpState(v, true);
             else
-                return bumpState(v, n);  // overload
+                return this.bumpState(v, n);  // overload
         }
 
         return false;
@@ -179,7 +179,7 @@ class BallotProtocol
             return false;
 
         uint32 n = mCurrentBallot ? (mCurrentBallot.counter + 1) : 1;
-        return bumpState(value, n);
+        return this.bumpState(value, n);
     }
 
     // flavor that takes the actual desired counter value
@@ -1115,7 +1115,7 @@ class BallotProtocol
                                                        n))
                 {
                     // Move to n.
-                    return abandonBallot(n);
+                    return this.abandonBallot(n);
                 }
             }
         }
