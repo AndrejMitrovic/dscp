@@ -356,6 +356,8 @@ class BallotProtocol
         return id in mLatestEnvelopes;
     }
 
+    /// returns messages that contributed to externalizing the given slot index
+    /// (or null if the slot didn't externalize)
     public SCPEnvelope[] getExternalizingState () const
     {
         if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
