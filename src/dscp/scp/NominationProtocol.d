@@ -263,6 +263,7 @@ class NominationProtocol
         return mLastEnvelope.get();
     }
 
+    /// Only used during boot-up if we want to load old SCP state
     public void setStateFromEnvelope (ref const(SCPEnvelope) e)
     {
         if (mNominationStarted)
