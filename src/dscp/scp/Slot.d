@@ -84,7 +84,8 @@ class Slot
         return mNominationProtocol.getLatestCompositeCandidate();
     }
 
-    // returns the latest messages the slot emitted
+    /// returns the latest messages the slot emitted
+    /// used externally by client code
     public SCPEnvelope[] getLatestMessagesSend () const
     {
         if (!mFullyValidated)

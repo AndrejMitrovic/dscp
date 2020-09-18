@@ -241,6 +241,7 @@ class BallotProtocol
         }
     }
 
+    /// used externally by client code
     public const(SCPEnvelope)* getLastMessageSend () const
     {
         return mLastEnvelopeEmit.get();
