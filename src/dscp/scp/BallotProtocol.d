@@ -1536,82 +1536,72 @@ class BallotProtocol
     private static bool isNewerStatement (ref const(SCPStatement) old_st,
         ref const(SCPStatement) new_st)
     {
-        bool res = false;
-
         // total ordering described in SCP paper.
-        auto t = new_st.pledges.type;
+        const st_type = new_st.pledges.type;
 
-        // statement type (PREPARE < CONFIRM < EXTERNALIZE)
-        if (old_st.pledges.type != t)
+        // if different type, must be (PREPARE < CONFIRM < EXTERNALIZE)
+        if (old_st.pledges.type != st_type)
+            return old_st.pledges.type < st_type;
+
+        // can't have duplicate EXTERNALIZE statements
+        if (st_type == SCPStatementType.SCP_ST_EXTERNALIZE)
+            return false;
+
+        if (st_type == SCPStatementType.SCP_ST_CONFIRM)
         {
-            res = (old_st.pledges.type < t);
+            // sorted by (b, p, p', h) (p' = 0 implicitely)
+            const oldC = &old_st.pledges.confirm_;
+            const c = &new_st.pledges.confirm_;
+            int compBallot = compareBallots(oldC.ballot, c.ballot);
+            if (compBallot < 0)
+                return true;  // oldC is older
+
+            if (compBallot > 0)
+                return false;  // oldC is newer
+
+            assert(compBallot == 0);
+            if (oldC.nPrepared == c.nPrepared)
+                return oldC.nH < c.nH;
+            else
+                return oldC.nPrepared < c.nPrepared;
         }
         else
         {
-            // can't have duplicate EXTERNALIZE statements
-            if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
-            {
-                res = false;
-            }
-            else if (t == SCPStatementType.SCP_ST_CONFIRM)
-            {
-                // sorted by (b, p, p', h) (p' = 0 implicitely)
-                const oldC = &old_st.pledges.confirm_;
-                const c = &new_st.pledges.confirm_;
-                int compBallot = compareBallots(oldC.ballot, c.ballot);
-                if (compBallot < 0)
-                {
-                    res = true;
-                }
-                else if (compBallot == 0)
-                {
-                    if (oldC.nPrepared == c.nPrepared)
-                    {
-                        res = (oldC.nH < c.nH);
-                    }
-                    else
-                    {
-                        res = (oldC.nPrepared < c.nPrepared);
-                    }
-                }
-            }
-            else
-            {
-                // Lexicographical order between PREPARE statements:
-                // (b, p, p', h)
-                const oldPrep = &old_st.pledges.prepare_;
-                const prep = &new_st.pledges.prepare_;
+            assert(st_type == SCPStatementType.SCP_ST_PREPARE);
 
-                int compBallot = compareBallots(oldPrep.ballot, prep.ballot);
-                if (compBallot < 0)
-                {
-                    res = true;
-                }
-                else if (compBallot == 0)
-                {
-                    compBallot = compareBallots(oldPrep.prepared, prep.prepared);
-                    if (compBallot < 0)
-                    {
-                        res = true;
-                    }
-                    else if (compBallot == 0)
-                    {
-                        compBallot = compareBallots(oldPrep.preparedPrime,
-                                                    prep.preparedPrime);
-                        if (compBallot < 0)
-                        {
-                            res = true;
-                        }
-                        else if (compBallot == 0)
-                        {
-                            res = (oldPrep.nH < prep.nH);
-                        }
-                    }
-                }
-            }
+            // Lexicographical order between PREPARE statements:
+            // (b, p, p', h)
+            const oldPrep = &old_st.pledges.prepare_;
+            const prep = &new_st.pledges.prepare_;
+
+            int compBallot = compareBallots(oldPrep.ballot, prep.ballot);
+            if (compBallot < 0)
+                return true;  // oldPrep ballot is older
+
+            if (compBallot > 0)
+                return false;  // oldPrep ballot is newer
+
+            assert(compBallot == 0);
+
+            compBallot = compareBallots(oldPrep.prepared, prep.prepared);
+            if (compBallot < 0)  // oldPrep prepared is older
+                return true;
+
+            if (compBallot > 0)  // oldPrep prepared is newer
+                return false;
+
+            assert(compBallot == 0);
+            compBallot = compareBallots(oldPrep.preparedPrime,
+                                        prep.preparedPrime);
+            if (compBallot < 0)
+                return true;  // oldPrep.preparedPrime is older
+
+            if (compBallot > 0)
+                return false;  // oldPrep.preparedPrime is newer
+
+            assert(compBallot == 0);
+            return oldPrep.nH < prep.nH;
         }
-
-        return res;
     }
 
     // basic sanity check on statement
