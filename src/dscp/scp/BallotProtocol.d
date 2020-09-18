@@ -118,6 +118,7 @@ class BallotProtocol
             // in particular our final EXTERNALIZE message
             if (mCommit.value == getWorkingBallot(envelope.statement).value)
             {
+                // note: the slot is not advanced, because externalize is final
                 recordEnvelope(envelope);
                 return SCP.EnvelopeState.VALID;
             }
@@ -135,7 +136,7 @@ class BallotProtocol
                 mSlot.setFullyValidated(false);
 
             recordEnvelope(envelope);
-            advanceSlot(envelope.statement);
+            this.advanceSlot(envelope.statement);
             return SCP.EnvelopeState.VALID;
         }
     }
