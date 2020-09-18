@@ -218,29 +218,6 @@ class BallotProtocol
 
     // ** status methods
 
-    // returns the hash of the QuorumSet that should be downloaded
-    // with the statement.
-    // note: the companion hash for an EXTERNALIZE statement does
-    // not match the hash of the QSet, but the hash of commitQuorumSetHash
-    public static Hash getCompanionQuorumSetHashFromStatement (
-        ref const(SCPStatement) st)
-    {
-        final switch (st.pledges.type)
-        {
-            case SCPStatementType.SCP_ST_PREPARE:
-                return st.pledges.prepare_.quorumSetHash;
-
-            case SCPStatementType.SCP_ST_CONFIRM:
-                return st.pledges.confirm_.quorumSetHash;
-
-            case SCPStatementType.SCP_ST_EXTERNALIZE:
-                return st.pledges.externalize_.commitQuorumSetHash;
-
-            case SCPStatementType.SCP_ST_NOMINATE:
-                assert(0);  // unexpected
-        }
-    }
-
     // helper function to retrieve b for PREPARE, P for CONFIRM or
     // c for EXTERNALIZE messages
     public static SCPBallot getWorkingBallot (ref const(SCPStatement) st)
