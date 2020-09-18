@@ -333,6 +333,7 @@ class BallotProtocol
         }
     }
 
+    /// only used by external code
     public SCPEnvelope[] getCurrentState () const
     {
         SCPEnvelope[] res;

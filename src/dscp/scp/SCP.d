@@ -199,7 +199,8 @@ class SCP
         return highest;
     }
 
-    // returns all messages for the slot
+    /// returns all messages for the slot
+    /// only used by external code
     public SCPEnvelope[] getCurrentState (uint64 slotIndex)
     {
         const DontCreateNew = false;

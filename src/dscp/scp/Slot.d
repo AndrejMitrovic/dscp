@@ -122,7 +122,8 @@ class Slot
         }
     }
 
-    // returns the latest messages known for this slot
+    /// returns the latest messages known for this slot
+    /// only used by external code
     public SCPEnvelope[] getCurrentState () const
     {
         SCPEnvelope[] res;
@@ -352,6 +353,7 @@ class Slot
         return mSCP.getLocalNode();
     }
 
+    /// only used by external code
     protected SCPEnvelope[] getEntireCurrentState ()
     {
         bool old = mFullyValidated;

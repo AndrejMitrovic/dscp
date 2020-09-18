@@ -282,6 +282,7 @@ class NominationProtocol
         mLastEnvelope.tupleof = e.tupleof;  // deep-dup
     }
 
+    /// only used by external code
     public SCPEnvelope[] getCurrentState () const
     {
         SCPEnvelope[] res;
