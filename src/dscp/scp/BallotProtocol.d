@@ -1617,81 +1617,69 @@ class BallotProtocol
     // basic sanity check on statement
     private bool isStatementSane (ref const(SCPStatement) st, bool self)
     {
-        auto qSet = mSlot.getQuorumSetFromStatement(st);
-
         const NoExtraChecks = false;
         const(char)* reason = null;
-        bool res = qSet.ok && isQuorumSetSane(qSet, NoExtraChecks, &reason);
-        if (!res)
+        auto qSet = mSlot.getQuorumSetFromStatement(st);
+        if (!qSet.ok || !isQuorumSetSane(qSet, NoExtraChecks, &reason))
         {
-            //CLOG(DEBUG, "SCP") << "Invalid quorum set received";
-            if (reason !is null)
-            {
-                //std.string msg(reason);
-                //CLOG(DEBUG, "SCP") << msg;
-            }
-
+            // todo: use 'reason'
+            log.info("Invalid quorum set received");
             return false;
         }
 
         final switch (st.pledges.type)
         {
-        case SCPStatementType.SCP_ST_PREPARE:
-        {
-            const p = &st.pledges.prepare_;
-            // self is allowed to have b = 0 (as long as it never gets emitted)
-            bool isOK = self || p.ballot.counter > 0;
-
-            isOK = isOK &&
-                   (!p.preparedPrime || !p.prepared ||
-                    (areBallotsLessAndIncompatible(*p.preparedPrime, *p.prepared)));
-
-            isOK =
-                isOK && (p.nH == 0 || (p.prepared && p.nH <= p.prepared.counter));
-
-            // c != 0 . c <= h <= b
-            isOK = isOK && (p.nC == 0 || (p.nH != 0 && p.ballot.counter >= p.nH &&
-                                          p.nH >= p.nC));
-
-            if (!isOK)
-                res = false;
-                //log.trace("Malformed PREPARE message";
-
-            break;
-        }
-
-        case SCPStatementType.SCP_ST_CONFIRM:
-        {
-            const c = &st.pledges.confirm_;
-            // c <= h <= b
-            res = c.ballot.counter > 0;
-            res = res && (c.nH <= c.ballot.counter);
-            res = res && (c.nCommit <= c.nH);
-            if (!res)
+            case SCPStatementType.SCP_ST_PREPARE:
             {
-                //log.trace("Malformed CONFIRM message";
+                const p = &st.pledges.prepare_;
+                // self is allowed to have b = 0 (as long as it never gets emitted)
+                bool isOK = self || p.ballot.counter > 0;
+
+                isOK = isOK &&
+                       (!p.preparedPrime || !p.prepared ||
+                        (areBallotsLessAndIncompatible(*p.preparedPrime, *p.prepared)));
+
+                isOK =
+                    isOK && (p.nH == 0 || (p.prepared && p.nH <= p.prepared.counter));
+
+                // c != 0 . c <= h <= b
+                isOK = isOK && (p.nC == 0 || (p.nH != 0 && p.ballot.counter >= p.nH &&
+                                              p.nH >= p.nC));
+
+                if (!isOK)
+                    log.trace("Malformed PREPARE message");
+
+                return isOK;
             }
-            break;
+
+            case SCPStatementType.SCP_ST_CONFIRM:
+            {
+                const c = &st.pledges.confirm_;
+                // c <= h <= b
+                bool isOK = c.ballot.counter > 0;
+                isOK = isOK && (c.nH <= c.ballot.counter);
+                isOK = isOK && (c.nCommit <= c.nH);
+                if (!isOK)
+                    log.trace("Malformed CONFIRM message");
+                return isOK;
+            }
+
+            case SCPStatementType.SCP_ST_EXTERNALIZE:
+            {
+                const e = &st.pledges.externalize_;
+
+                bool isOK = e.commit.counter > 0;
+                isOK = isOK && e.nH >= e.commit.counter;
+
+                if (!isOK)
+                    log.trace("Malformed EXTERNALIZE message");
+
+                return isOK;
+            }
+
+            case SCPStatementType.SCP_ST_NOMINATE:
+                assert(0);
         }
-
-        case SCPStatementType.SCP_ST_EXTERNALIZE:
-        {
-            const e = &st.pledges.externalize_;
-
-            res = e.commit.counter > 0;
-            res = res && e.nH >= e.commit.counter;
-
-            //if (!res)
-                //log.trace("Malformed EXTERNALIZE message";
-
-            break;
-        }
-
-        case SCPStatementType.SCP_ST_NOMINATE:
-            assert(0);
-        }
-
-        return res;
     }
 
     // records the statement in the state machine
