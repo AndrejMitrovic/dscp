@@ -1672,7 +1672,8 @@ class BallotProtocol
         }
     }
 
-    // records the statement in the state machine
+    // stores the statement in the state machine, it doesn't trigger
+    // any state changes alone however
     private void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
