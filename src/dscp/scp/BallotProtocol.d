@@ -1532,19 +1532,19 @@ class BallotProtocol
         return false;
     }
 
-    // returns true if st is newer than oldst
-    private static bool isNewerStatement (ref const(SCPStatement) oldst,
-        ref const(SCPStatement) st)
+    // returns true if new_st is newer than old_st
+    private static bool isNewerStatement (ref const(SCPStatement) old_st,
+        ref const(SCPStatement) new_st)
     {
         bool res = false;
 
         // total ordering described in SCP paper.
-        auto t = st.pledges.type;
+        auto t = new_st.pledges.type;
 
         // statement type (PREPARE < CONFIRM < EXTERNALIZE)
-        if (oldst.pledges.type != t)
+        if (old_st.pledges.type != t)
         {
-            res = (oldst.pledges.type < t);
+            res = (old_st.pledges.type < t);
         }
         else
         {
@@ -1556,8 +1556,8 @@ class BallotProtocol
             else if (t == SCPStatementType.SCP_ST_CONFIRM)
             {
                 // sorted by (b, p, p', h) (p' = 0 implicitely)
-                const oldC = &oldst.pledges.confirm_;
-                const c = &st.pledges.confirm_;
+                const oldC = &old_st.pledges.confirm_;
+                const c = &new_st.pledges.confirm_;
                 int compBallot = compareBallots(oldC.ballot, c.ballot);
                 if (compBallot < 0)
                 {
@@ -1579,8 +1579,8 @@ class BallotProtocol
             {
                 // Lexicographical order between PREPARE statements:
                 // (b, p, p', h)
-                const oldPrep = &oldst.pledges.prepare_;
-                const prep = &st.pledges.prepare_;
+                const oldPrep = &old_st.pledges.prepare_;
+                const prep = &new_st.pledges.prepare_;
 
                 int compBallot = compareBallots(oldPrep.ballot, prep.ballot);
                 if (compBallot < 0)
