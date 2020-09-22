@@ -1,0 +1,7 @@
+name "dscp"
+description "SCP port to D"
+targetType "library"
+sourcePaths "src"
+authors "Andrej Mitrovic"
+copyright "Copyright © 2020, Andrej Mitrovic"
+license "proprietary"
