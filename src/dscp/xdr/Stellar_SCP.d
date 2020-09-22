@@ -106,4 +106,17 @@ struct SCPQuorumSetT (PublicKey)
     alias nodes = validators;
     SCPQuorumSetT!PublicKey[] innerSets;
     alias quorums = innerSets;
+
+    public void computeHash (void delegate(scope const(ubyte)[]) dg)
+        const nothrow @safe @nogc
+    {
+        // todo
+        //hashPart(this.threshold, dg);
+
+        //foreach (const ref node; this.validators)
+        //    hashPart(node, dg);
+
+        //foreach (const ref quorum; this.innerSets)
+        //    hashPart(quorum, dg);
+    }
 }
