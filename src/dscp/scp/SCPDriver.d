@@ -187,29 +187,47 @@ abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias getH
     // is included in the candidate set, the value passed in is
     // a composite value
     public void updatedCandidateValue (uint64 slotIndex,
-        ref const(Value) value);
+        ref const(Value) value)
+    {
+
+    }
 
     // `startedBallotProtocol` is called when the ballot protocol is started
     // (ie attempts to prepare a new ballot)
     public void startedBallotProtocol (uint64 slotIndex,
-        ref const(SCPBallot) ballot);
+        ref const(SCPBallot) ballot)
+    {
+
+    }
 
     // `acceptedBallotPrepared` every time a ballot is accepted as prepared
     public void acceptedBallotPrepared (uint64 slotIndex,
-        ref const(SCPBallot) ballot);
+        ref const(SCPBallot) ballot)
+    {
+
+    }
 
     // `confirmedBallotPrepared` every time a ballot is confirmed prepared
     public void confirmedBallotPrepared (uint64 slotIndex,
-        ref const(SCPBallot) ballot);
+        ref const(SCPBallot) ballot)
+    {
+
+    }
 
     // `acceptedCommit` every time a ballot is accepted commit
-    public void acceptedCommit (uint64 slotIndex, ref const(SCPBallot) ballot);
+    public void acceptedCommit (uint64 slotIndex, ref const(SCPBallot) ballot)
+    {
+
+    }
 
     // `ballotDidHearFromQuorum` is called when we received messages related to
     // the current `mBallot` from a set of node that is a transitive quorum for
     // the local node.
     public void ballotDidHearFromQuorum (uint64 slotIndex,
-        ref const(SCPBallot) ballot);
+        ref const(SCPBallot) ballot)
+    {
+
+    }
 }
 
 unittest
