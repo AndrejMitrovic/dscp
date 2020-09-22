@@ -14,11 +14,19 @@ import dscp.xdr.Stellar_types;
 import std.conv ;
 import std.format;
 
-// todo: was shared_ptr. could be RefCounted
-alias SCPQuorumSetPtr = SCPQuorumSet*;
-
-class SCP
+class SCPT (NodeID, Hash, Value, Signature, alias getHashOf)
 {
+    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
+    public alias SCPBallot = SCPBallotT!Value;
+    public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
+
+    // todo: was shared_ptr. could be RefCounted
+    alias SCPQuorumSetPtr = SCPQuorumSet*;
+
     protected LocalNode mLocalNode;
     protected Slot[uint64] mKnownSlots;
     private SCPDriver mDriver;
@@ -334,4 +342,28 @@ class SCP
         else
             return mKnownSlots.get(slotIndex, null);
     }
+}
+
+unittest
+{
+    alias Hash = ubyte[64];
+    alias uint256 = ubyte[32];
+    alias uint512 = ubyte[64];
+    alias Value = ubyte[];
+
+    static struct PublicKey
+    {
+        int opCmp (const ref PublicKey rhs) inout
+        {
+            return this.ed25519 < rhs.ed25519;
+        }
+
+        uint256 ed25519;
+    }
+
+    alias NodeID = PublicKey;
+    alias Signature = ubyte[64];
+    static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+
+    alias SCPT!(NodeID, Hash, Value, Signature, getHashOf) SCP;
 }

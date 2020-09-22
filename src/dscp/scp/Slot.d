@@ -27,8 +27,18 @@ public enum TimerID
  * for a given slot index.
  */
 // todo: this used to be a shared_ptr to a struct
-class Slot
+class SlotT (NodeID, Hash, Value, Signature, alias getHashOf)
 {
+    public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
+    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias StatementPredicate = bool delegate (ref const(SCPStatement));
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf);
+
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
     public struct HistoricalStatement
@@ -363,4 +373,28 @@ class Slot
         mFullyValidated = old;
         return r;
     }
+}
+
+unittest
+{
+    alias Hash = ubyte[64];
+    alias uint256 = ubyte[32];
+    alias uint512 = ubyte[64];
+    alias Value = ubyte[];
+
+    static struct PublicKey
+    {
+        int opCmp (const ref PublicKey rhs) inout
+        {
+            return this.ed25519 < rhs.ed25519;
+        }
+
+        uint256 ed25519;
+    }
+
+    alias NodeID = PublicKey;
+    alias Signature = ubyte[64];
+    static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+
+    alias SlotT!(NodeID, Hash, Value, Signature, getHashOf) Slot;
 }

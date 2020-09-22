@@ -6,11 +6,11 @@ module dscp.xdr.Stellar_SCP;
 
 import dscp.xdr.Stellar_types;
 
-alias Value = ubyte[];
+//alias Value = ubyte[];
 
-struct SCPBallot
+struct SCPBallotT (Value)
 {
-    int opCmp (const ref SCPBallot rhs) inout
+    int opCmp (const ref SCPBallotT rhs) inout
     {
         if (this.counter < rhs.counter)
             return -1;
@@ -33,15 +33,18 @@ enum SCPStatementType
     SCP_ST_NOMINATE = 3
 }
 
-struct SCPNomination
+struct SCPNominationT (Hash, Value)
 {
     Hash quorumSetHash; // D
     Value[] votes;      // X
     Value[] accepted;   // Y
 }
 
-struct SCPStatement
+struct SCPStatementT (NodeID, Hash, Value)
 {
+    private alias SCPBallot = SCPBallotT!Value;
+    private alias SCPNomination = SCPNominationT!(Hash, Value);
+
     NodeID nodeID;    // v
     uint64 slotIndex; // i
 
@@ -87,17 +90,17 @@ struct SCPStatement
     _pledges_t pledges;
 }
 
-struct SCPEnvelope
+struct SCPEnvelopeT (NodeID, Hash, Value, Signature)
 {
-    SCPStatement statement;
+    SCPStatementT!(NodeID, Hash, Value) statement;
     Signature signature;
 }
 
 // supports things like: A,B,C,(D,E,F),(G,H,(I,J,K,L))
 // only allows 2 levels of nesting
-struct SCPQuorumSet
+struct SCPQuorumSetT (PublicKey)
 {
     uint32 threshold;
     PublicKey[] validators;
-    SCPQuorumSet[] innerSets;
+    SCPQuorumSetT!PublicKey[] innerSets;
 }

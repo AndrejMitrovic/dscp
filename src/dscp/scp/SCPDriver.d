@@ -22,7 +22,7 @@ private enum uint32 hash_N = 1;
 private enum uint32 hash_P = 2;
 private enum uint32 hash_K = 3;
 
-static uint64 hashHelper (ref const(uint512) hash)
+static uint64 hashHelper (T)(ref const(T) hash)
 {
     uint64 res = 0;
     for (size_t i = 0; i < res.sizeof; i++)
@@ -51,8 +51,13 @@ enum ValidationLevel
     kMaybeValidValue      // value may be valid
 }
 
-abstract class SCPDriver
+abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias getHashOf)
 {
+    public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
+    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias PublicKey = NodeID;
+    public alias SCPBallot = SCPBallotT!Value;
+
     // Envelope signature
     public abstract void signEnvelope (ref SCPEnvelope envelope);
 
@@ -109,7 +114,7 @@ abstract class SCPDriver
     // default implementation is the hash of the value
     public string getValueString (ref const(Value) v) const
     {
-        uint512 valueHash = getHashOf(v);
+        auto valueHash = getHashOf(v);
         return hexAbbrev(ByteSlice(valueHash));
     }
 
@@ -131,7 +136,7 @@ abstract class SCPDriver
     public uint64 computeHashNode (uint64 slotIndex, ref const(Value) prev,
         bool isPriority, int32_t roundNumber, ref const(NodeID) nodeID)
     {
-        uint512 hash = getHashOf(slotIndex, prev, isPriority ? hash_P : hash_N,
+        auto hash = getHashOf(slotIndex, prev, isPriority ? hash_P : hash_N,
             roundNumber, nodeID);
         return hashHelper(hash);
     }
@@ -141,7 +146,7 @@ abstract class SCPDriver
     public uint64 computeValueHash (uint64 slotIndex, ref const(Value) prev,
         int32_t roundNumber, ref const(Value) value)
     {
-        uint512 hash = getHashOf(slotIndex, prev, hash_K, roundNumber, value);
+        auto hash = getHashOf(slotIndex, prev, hash_K, roundNumber, value);
         return hashHelper(hash);
     }
 
@@ -206,4 +211,28 @@ abstract class SCPDriver
     // the local node.
     public void ballotDidHearFromQuorum (uint64 slotIndex,
         ref const(SCPBallot) ballot);
+}
+
+unittest
+{
+    alias Hash = ubyte[64];
+    alias uint256 = ubyte[32];
+    alias uint512 = ubyte[64];
+    alias Value = ubyte[];
+
+    static struct PublicKey
+    {
+        int opCmp (const ref PublicKey rhs) inout
+        {
+            return this.ed25519 < rhs.ed25519;
+        }
+
+        uint256 ed25519;
+    }
+
+    alias NodeID = PublicKey;
+    alias Signature = ubyte[64];
+    static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+
+    alias SCPDriverT!(NodeID, Hash, Value, Signature, getHashOf) SCP;
 }

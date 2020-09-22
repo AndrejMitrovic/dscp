@@ -18,9 +18,6 @@ import std.range;
 import core.stdc.stdint;
 import core.time;
 
-// used to filter statements
-alias StatementPredicate = bool delegate (ref const(SCPStatement));
-
 // max number of transitions that can occur from processing one message
 private enum MAX_ADVANCE_SLOT_RECURSION = 50;
 
@@ -35,8 +32,18 @@ struct Interval
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-class BallotProtocol
+class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
 {
+    public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
+    public alias SCPBallot = SCPBallotT!Value;
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf);
+
+    // used to filter statements
+    alias StatementPredicate = bool delegate (ref const(SCPStatement));
+
     private Slot mSlot;
     private bool mHeardFromQuorum;
 
@@ -2000,4 +2007,28 @@ class BallotProtocol
             stopBallotProtocolTimer();
         }
     }
+}
+
+unittest
+{
+    alias Hash = ubyte[64];
+    alias uint256 = ubyte[32];
+    alias uint512 = ubyte[64];
+    alias Value = ubyte[];
+
+    static struct PublicKey
+    {
+        int opCmp (const ref PublicKey rhs) inout
+        {
+            return this.ed25519 < rhs.ed25519;
+        }
+
+        uint256 ed25519;
+    }
+
+    alias NodeID = PublicKey;
+    alias Signature = ubyte[64];
+    static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+
+    alias BallotProtocolT!(NodeID, Hash, Value, Signature, getHashOf) BP;
 }
