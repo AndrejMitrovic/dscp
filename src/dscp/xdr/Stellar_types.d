@@ -6,9 +6,9 @@ module dscp.xdr.Stellar_types;
 
 import std.container;
 
-alias Hash = ubyte[64];
-alias uint256 = ubyte[32];
-alias uint512 = ubyte[64];
+package(dscp) alias Hash = ubyte[64];
+package(dscp) alias uint256 = ubyte[32];
+package(dscp) alias uint512 = ubyte[64];
 
 alias uint32 = uint;
 alias int32 = int;
