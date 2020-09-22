@@ -230,10 +230,10 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     // c for EXTERNALIZE messages
     public static SCPBallot getWorkingBallot (ref const(SCPStatement) st)
     {
-        final switch (st.pledges.type)
+        final switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
-                return st.pledges.prepare_.ballot;
+                return cast(SCPBallot)st.pledges.prepare_.ballot;
 
             case SCPStatementType.SCP_ST_CONFIRM:
             {
@@ -242,7 +242,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
             }
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
-                return st.pledges.externalize_.commit;
+                return cast(SCPBallot)st.pledges.externalize_.commit;
 
             case SCPStatementType.SCP_ST_NOMINATE:
                 assert(0);  // unexpected
@@ -264,12 +264,12 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
         recordEnvelope(e);
 
         mLastEnvelope = new SCPEnvelope;
-        *mLastEnvelope = e;
+        *mLastEnvelope = cast(SCPEnvelope)e;
         mLastEnvelopeEmit = mLastEnvelope;
 
         const pl = &e.statement.pledges;
 
-        final switch (pl.type)
+        final switch (pl.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -351,7 +351,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
             // only return messages for self if the slot is fully validated
             if (node_id != mSlot.getSCP().getLocalNodeID() ||
                 mSlot.isFullyValidated())
-                res ~= env;
+                res ~= cast(SCPEnvelope)env;
         }
 
         return res;
@@ -382,12 +382,12 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
                 // we could filter more using mConfirmedPrepared as well
                 auto work_ballot = getWorkingBallot(env.statement);
                 if (areBallotsCompatible(work_ballot, *mCommit))
-                    res ~= env;
+                    res ~= cast(SCPEnvelope)env;
             }
             else if (mSlot.isFullyValidated())
             {
                 // only return messages for self if the slot is fully validated
-                res ~= env;
+                res ~= cast(SCPEnvelope)env;
             }
         }
 
@@ -450,7 +450,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     private ValidationLevel validateValues(ref const(SCPStatement) st)
     {
         Set!Value values;
-        final switch (st.pledges.type)
+        final switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -567,7 +567,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
                 (ref const(SCPStatement) st) {
                     bool res;
 
-                    final switch (st.pledges.type)
+                    final switch (st.pledges.type_)
                     {
                         case SCPStatementType.SCP_ST_PREPARE:
                         {
@@ -772,7 +772,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
         // note: ballot.counter is only used for logging purpose as we're looking at
         // possible value to commit
         SCPBallot ballot;
-        switch (hint.pledges.type)
+        switch (hint.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -819,7 +819,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
                 (ref const(SCPStatement) st) {
                     bool res = false;
                     const pl = &st.pledges;
-                    switch (pl.type)
+                    switch (pl.type_)
                     {
                     case SCPStatementType.SCP_ST_PREPARE:
                     {
@@ -939,7 +939,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
 
     private static uint32 statementBallotCounter (ref const(SCPStatement) st)
     {
-        switch (st.pledges.type)
+        switch (st.pledges.type_)
         {
         case SCPStatementType.SCP_ST_PREPARE:
             return st.pledges.prepare_.ballot.counter;
@@ -977,7 +977,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
         // extracts value from hint
         // note: ballot.counter is only used for logging purpose
         SCPBallot ballot;
-        switch (hint.pledges.type)
+        switch (hint.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -1115,7 +1115,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     {
         Set!SCPBallot hintBallots;
 
-        switch (hint.pledges.type)
+        switch (hint.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -1161,7 +1161,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
             foreach (node_id, env; mLatestEnvelopes)
             {
                 const(SCPStatement)* st = &env.statement;
-                switch (st.pledges.type)
+                switch (st.pledges.type_)
                 {
                 case SCPStatementType.SCP_ST_PREPARE:
                 {
@@ -1274,7 +1274,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
         foreach (node_id, env; mLatestEnvelopes)
         {
             const pl = &env.statement.pledges;
-            switch (pl.type)
+            switch (pl.type_)
             {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -1326,7 +1326,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     {
         bool res;
 
-        final switch (st.pledges.type)
+        final switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -1366,7 +1366,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     {
         bool res = false;
         const pl = &st.pledges;
-        switch (pl.type)
+        switch (pl.type_)
         {
         case SCPStatementType.SCP_ST_PREPARE:
             break;
@@ -1525,11 +1525,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
         ref const(SCPStatement) new_st)
     {
         // total ordering described in SCP paper.
-        const st_type = new_st.pledges.type;
+        const st_type = new_st.pledges.type_;
 
         // if different type, must be (PREPARE < CONFIRM < EXTERNALIZE)
-        if (old_st.pledges.type != st_type)
-            return old_st.pledges.type < st_type;
+        if (old_st.pledges.type_ != st_type)
+            return old_st.pledges.type_ < st_type;
 
         // can't have duplicate EXTERNALIZE statements
         if (st_type == SCPStatementType.SCP_ST_EXTERNALIZE)
@@ -1605,7 +1605,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
             return false;
         }
 
-        final switch (st.pledges.type)
+        final switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
@@ -1665,7 +1665,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     private void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
-        mLatestEnvelopes[st.nodeID] = env;
+        mLatestEnvelopes[st.nodeID] = cast(SCPEnvelope)env;
         mSlot.recordStatement(env.statement);
     }
 
@@ -1867,7 +1867,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
 
         checkInvariants();
 
-        statement.pledges.type = type;
+        statement.pledges.type_ = type;
 
         final switch (type)
         {
@@ -1972,7 +1972,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
                 &mSlot.getQuorumSetFromStatement,
                 (ref const(SCPStatement) st) {
                     bool res;
-                    if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
+                    if (st.pledges.type_ == SCPStatementType.SCP_ST_PREPARE)
                     {
                         res = mCurrentBallot.counter <=
                               st.pledges.prepare_.ballot.counter;

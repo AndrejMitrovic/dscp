@@ -87,7 +87,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
     }
 
     // Update the quorum set of this node
-    public void updateLocalQuorumSet (ref SCPQuorumSet qSet)
+    public void updateLocalQuorumSet (ref SCPQuorumSet qSet) nothrow
     {
         mLocalNode.updateQuorumSet(qSet);
     }
@@ -266,7 +266,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
         string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
 
         string res = format("{ENV@%s | i: %s", nodeId, st.slotIndex);
-        switch (st.pledges.type)
+        switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {

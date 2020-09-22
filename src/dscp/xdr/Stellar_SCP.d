@@ -76,16 +76,16 @@ struct SCPStatementT (NodeID, Hash, Value)
             Hash commitQuorumSetHash; // D used before EXTERNALIZE
         }
 
-        static union
-        {
+        // todo: use union, or replace with something better
+        //static union
+        //{
             _prepare_t prepare_;
             _confirm_t confirm_;
             _externalize_t externalize_;
             SCPNomination nominate_;
-        }
+        //}
 
-        SCPStatementType type;
-        public alias type_ = type;
+        SCPStatementType type_;
     }
 
     _pledges_t pledges;
@@ -105,4 +105,5 @@ struct SCPQuorumSetT (PublicKey)
     PublicKey[] validators;
     alias nodes = validators;
     SCPQuorumSetT!PublicKey[] innerSets;
+    alias quorums = innerSets;
 }

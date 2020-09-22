@@ -57,8 +57,9 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
         return mNodeID;
     }
 
-    public void updateQuorumSet (ref SCPQuorumSet qSet)
+    public void updateQuorumSet (ref SCPQuorumSet qSet) nothrow
     {
+        scope (failure) assert(0);
         mQSetHash = getHashOf(qSet);
         mQSet = qSet;
     }

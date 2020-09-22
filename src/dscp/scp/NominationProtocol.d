@@ -292,7 +292,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getH
             mVotes.insert(v);
 
         mLastEnvelope = new SCPEnvelope();
-        mLastEnvelope.tupleof = e.tupleof;  // deep-dup
+        mLastEnvelope.tupleof = (cast(SCPEnvelope)e).tupleof;  // deep-dup
     }
 
     /// only used by external code
@@ -305,7 +305,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getH
             // only return messages for self if the slot is fully validated
             if (node_id != mSlot.getSCP().getLocalNodeID() ||
                 mSlot.isFullyValidated())
-                res ~= env;
+                res ~= cast(SCPEnvelope)env;
         }
 
         return res;
@@ -388,7 +388,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getH
     protected void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
-        mLatestNominations[st.nodeID] = env;
+        mLatestNominations[st.nodeID] = cast(SCPEnvelope)env;
         mSlot.recordStatement(env.statement);
     }
 
@@ -396,7 +396,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getH
     {
         SCPStatement st;
         st.nodeID = mSlot.getLocalNode().getNodeID();
-        st.pledges.type = SCPStatementType.SCP_ST_NOMINATE;
+        st.pledges.type_ = SCPStatementType.SCP_ST_NOMINATE;
         auto nom = &st.pledges.nominate_;
 
         nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();

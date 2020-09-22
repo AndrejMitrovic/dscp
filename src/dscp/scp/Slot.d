@@ -103,10 +103,10 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
 
         SCPEnvelope[] res;
         if (auto e = mNominationProtocol.getLastMessageSend())
-            res ~= *e;
+            res ~= cast(SCPEnvelope)*e;
 
         if (auto e = mBallotProtocol.getLastMessageSend())
-            res ~= *e;
+            res ~= cast(SCPEnvelope)*e;
 
         return res;
     }
@@ -118,7 +118,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
         if (e.statement.nodeID == getSCP().getLocalNodeID() &&
             e.statement.slotIndex == mSlotIndex)
         {
-            if (e.statement.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
+            if (e.statement.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
                 mNominationProtocol.setStateFromEnvelope(e);
             else
                 mBallotProtocol.setStateFromEnvelope(e);
@@ -163,7 +163,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
     public void recordStatement (ref const(SCPStatement) st)
     {
         mStatementsHistory ~=
-            HistoricalStatement(time(null), st, mFullyValidated);
+            HistoricalStatement(time(null), cast(SCPStatement)st, mFullyValidated);
 
         //CLOG(DEBUG, "SCP") << "new statement: "
         //                   << " i: " << getSlotIndex()
@@ -188,7 +188,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
         try
         {
 
-            if (envelope.statement.pledges.type ==
+            if (envelope.statement.pledges.type_ ==
                 SCPStatementType.SCP_ST_NOMINATE)
                 return mNominationProtocol.processEnvelope(envelope);
             else
@@ -264,7 +264,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
     public static Hash getCompanionQuorumSetHashFromStatement (
         ref const(SCPStatement) st)
     {
-        switch (st.pledges.type)
+        switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
                 return st.pledges.prepare_.quorumSetHash;
@@ -286,7 +286,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
     // returns the values associated with the statement
     public static Value[] getStatementValues (ref const(SCPStatement) st)
     {
-        if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
+        if (st.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
             return NominationProtocol.getStatementValues(st);
         else
             return [BallotProtocol.getWorkingBallot(st).value];
@@ -297,7 +297,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
     public Nullable!SCPQuorumSet getQuorumSetFromStatement (
         ref const(SCPStatement) st)
     {
-        SCPStatementType t = st.pledges.type;
+        SCPStatementType t = st.pledges.type_;
         if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
             return Nullable!SCPQuorumSet(LocalNode.getSingletonQSet(st.nodeID));
 
@@ -319,7 +319,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
     {
         SCPEnvelope envelope;
 
-        envelope.statement = statement;
+        envelope.statement = cast(SCPStatement)statement;
         auto mySt = &envelope.statement;
         mySt.nodeID = getSCP().getLocalNodeID();
         mySt.slotIndex = getSlotIndex();
