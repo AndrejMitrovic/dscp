@@ -32,14 +32,14 @@ struct Interval
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
+class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
     public alias SCPBallot = SCPBallotT!Value;
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, getHashOf);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, getHashOf);
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf);
 
     // used to filter statements
     alias StatementPredicate = bool delegate (ref const(SCPStatement));
@@ -449,7 +449,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
     // returns true if all values in statement are valid
     private ValidationLevel validateValues(ref const(SCPStatement) st)
     {
-        set!Value values;
+        Set!Value values;
         final switch (st.pledges.type)
         {
             case SCPStatementType.SCP_ST_PREPARE:
@@ -861,7 +861,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
         };
 
         // build the boundaries to scan
-        set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
+        Set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
 
         if (boundaries.empty())
         {
@@ -1004,7 +1004,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
             return false;
         }
 
-        set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
+        Set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
         Interval candidate;
 
         auto pred = (ref const(Interval) cur) {
@@ -1085,7 +1085,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
             }
 
             // Collect all possible counters we might need to advance to.
-            set!uint32 allCounters;
+            Set!uint32 allCounters;
             foreach (node_id, e; mLatestEnvelopes)
             {
                 uint32_t c = statementBallotCounter(e.statement);
@@ -1111,9 +1111,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
     }
 
     // computes a list of candidate values that may have been prepared
-    private set!SCPBallot getPrepareCandidates(ref const(SCPStatement) hint)
+    private Set!SCPBallot getPrepareCandidates(ref const(SCPStatement) hint)
     {
-        set!SCPBallot hintBallots;
+        Set!SCPBallot hintBallots;
 
         switch (hint.pledges.type)
         {
@@ -1148,7 +1148,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
                 assert(0);
         }
 
-        set!SCPBallot candidates;
+        Set!SCPBallot candidates;
 
         while (!hintBallots.length != 0)
         {
@@ -1229,7 +1229,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
     // predicate.
     // updates 'candidate' (or leave it unchanged)
     private static void findExtendedInterval (
-        ref Interval candidate, ref const(set!uint32) boundaries,
+        ref Interval candidate, ref const(Set!uint32) boundaries,
         bool delegate(ref const(Interval)) pred)
     {
         // iterate through interesting boundaries, starting from the top
@@ -1267,10 +1267,10 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
 
     // constructs the set of counters representing the
     // commit ballots compatible with the ballot
-    private set!uint32 getCommitBoundariesFromStatements (
+    private Set!uint32 getCommitBoundariesFromStatements (
         ref const(SCPBallot) ballot)
     {
-        set!uint32 res;
+        Set!uint32 res;
         foreach (node_id, env; mLatestEnvelopes)
         {
             const pl = &env.statement.pledges;
@@ -2029,6 +2029,8 @@ unittest
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+    import std.container;
+    alias Set (T) = RedBlackTree!(const(T));
 
-    alias BallotProtocolT!(NodeID, Hash, Value, Signature, getHashOf) BP;
+    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf) BP;
 }

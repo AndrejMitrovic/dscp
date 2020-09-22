@@ -27,17 +27,17 @@ public enum TimerID
  * for a given slot index.
  */
 // todo: this used to be a shared_ptr to a struct
-class SlotT (NodeID, Hash, Value, Signature, alias getHashOf)
+class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, getHashOf);
-    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, getHashOf);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, getHashOf);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
     public alias StatementPredicate = bool delegate (ref const(SCPStatement));
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf);
 
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
@@ -235,7 +235,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias getHashOf)
     }
 
     // returns the current nomination leaders
-    public const(set!NodeID) getNominationLeaders() const
+    public const(Set!NodeID) getNominationLeaders() const
     {
         return mNominationProtocol.getLeaders();
     }
@@ -395,6 +395,8 @@ unittest
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+    import std.container;
+    alias Set (T) = RedBlackTree!(const(T));
 
-    alias SlotT!(NodeID, Hash, Value, Signature, getHashOf) Slot;
+    alias SlotT!(NodeID, Hash, Value, Signature, Set, getHashOf) Slot;
 }

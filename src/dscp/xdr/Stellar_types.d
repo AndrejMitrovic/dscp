@@ -40,9 +40,6 @@ auto get (T)(T* val) { return val; }
 // workaround for std.vector.length
 auto size (T)(T[] val) { return val.length; }
 
-/// std.set equivalent
-public alias set (V) = RedBlackTree!(const(V));
-
 enum CryptoKeyType
 {
     KEY_TYPE_ED25519 = 0,

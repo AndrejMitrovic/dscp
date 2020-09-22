@@ -17,12 +17,12 @@ import std.range;
 
 import core.time;
 
-class NominationProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
+class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
 {
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, getHashOf);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPNomination = SCPNominationT!(Hash, Value);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
@@ -35,15 +35,15 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
     protected Slot mSlot;
 
     protected int32 mRoundNumber = 0;
-    protected set!Value mVotes;                       // X
-    protected set!Value mAccepted;                    // Y
-    protected set!Value mCandidates;                  // Z
+    protected Set!Value mVotes;                       // X
+    protected Set!Value mAccepted;                    // Y
+    protected Set!Value mCandidates;                  // Z
     protected SCPEnvelope[NodeID] mLatestNominations; // N
 
     protected SCPEnvelope* mLastEnvelope; // last envelope emitted by this node
 
     // nodes from quorum set that have the highest priority this round
-    protected set!NodeID mRoundLeaders;
+    protected Set!NodeID mRoundLeaders;
 
     // true if 'nominate' was called
     protected bool mNominationStarted = false;
@@ -261,7 +261,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
     }
 
     // return the current leaders
-    public const(set!NodeID) getLeaders () const
+    public const(Set!NodeID) getLeaders () const
     {
         return mRoundLeaders;
     }
@@ -464,7 +464,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias getHashOf)
         myQSet.innerSets = (cast(SCPQuorumSet[])localQset.innerSets).dup;
 
         // initialize priority with value derived from self
-        set!NodeID newRoundLeaders;
+        Set!NodeID newRoundLeaders;
         auto localID = mSlot.getLocalNode().getNodeID();
         normalizeQSet(myQSet, &localID);
 
@@ -593,6 +593,8 @@ unittest
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+    import std.container;
+    alias Set (T) = RedBlackTree!(const(T));
 
-    alias NominationProtocolT!(NodeID, Hash, Value, Signature, getHashOf) LN;
+    alias NominationProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf) LN;
 }

@@ -47,7 +47,10 @@ struct QuorumSetSanityCheckerT (NodeID)
 
   private:
     bool mExtraChecks;
-    set!NodeID mKnownNodes;
+    import std.container;
+    alias Set (T) = RedBlackTree!(const(NodeID));
+
+    Set!NodeID mKnownNodes;
     bool mIsSane;
     size_t mCount = 0;
 

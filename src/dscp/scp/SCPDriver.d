@@ -51,7 +51,7 @@ enum ValidationLevel
     kMaybeValidValue      // value may be valid
 }
 
-abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias getHashOf)
+abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
 {
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
@@ -85,7 +85,7 @@ abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias getHashOf)
     // `combineCandidates` computes the composite value based off a list
     // of candidate values.
     public abstract Value combineCandidates (uint64 slotIndex,
-        ref const(set!Value) candidates);
+        ref const(Set!Value) candidates);
 
     // `setupTimer`: requests to trigger 'cb' after timeout
     // if cb is null, the timer is cancelled
@@ -232,6 +232,8 @@ unittest
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
+    import std.container;
+    alias Set (T) = RedBlackTree!(const(T));
 
-    alias SCPDriverT!(NodeID, Hash, Value, Signature, getHashOf) SCP;
+    alias SCPDriverT!(NodeID, Hash, Value, Signature, Set, getHashOf) SCP;
 }

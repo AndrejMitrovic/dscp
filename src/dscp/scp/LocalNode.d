@@ -17,12 +17,12 @@ import std.range;
 /**
  * This is one Node in the stellar network
  */
-class LocalNodeT (NodeID, Hash, Value, Signature, alias getHashOf)
+class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
 {
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
 
     protected const NodeID mNodeID;
     protected const bool mIsValidator;
@@ -198,7 +198,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias getHashOf)
     // a set of nodes that agree (but can fail)
     // excluded, if set will be skipped altogether
     public static NodeID[] findClosestVBlocking (ref const(SCPQuorumSet) qset,
-        const(set!NodeID) nodes, const(NodeID)* excluded)
+        const(Set!NodeID) nodes, const(NodeID)* excluded)
     {
         size_t leftTillBlock =
             ((1 + qset.validators.length + qset.innerSets.length) - qset.threshold);
@@ -269,7 +269,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias getHashOf)
         bool delegate (ref const(SCPStatement)) filter,
         const(NodeID)* excluded = null)
     {
-        set!NodeID s;
+        Set!NodeID s;
         foreach (node_id, env; map)
         {
             if (filter(env.statement))
@@ -383,6 +383,7 @@ unittest
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
-
-    alias LocalNodeT!(NodeID, Hash, Value, Signature, getHashOf) LN;
+    import std.container;
+    alias Set (T) = RedBlackTree!(const(T));
+    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf) LN;
 }
