@@ -44,6 +44,7 @@ enum SignerKeyType
     SIGNER_KEY_TYPE_HASH_X = CryptoKeyType.KEY_TYPE_HASH_X
 }
 
+package(dscp)
 struct PublicKey
 {
     int opCmp (const ref PublicKey rhs) inout
