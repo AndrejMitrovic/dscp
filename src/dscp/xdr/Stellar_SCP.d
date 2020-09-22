@@ -85,6 +85,7 @@ struct SCPStatementT (NodeID, Hash, Value)
         }
 
         SCPStatementType type;
+        public alias type_ = type;
     }
 
     _pledges_t pledges;
