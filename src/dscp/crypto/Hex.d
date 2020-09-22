@@ -27,9 +27,3 @@ string hexAbbrev (in ubyte[64] bin)
 {
     return bin.to!string;
 }
-
-// Hex-decode bytes from a hex string.
-uint8_t[] hexToBin (string hex);
-
-// Hex-decode exactly 32 bytes from a hex string, throw if not 32 bytes.
-uint256 hexToBin256 (string encoded);
