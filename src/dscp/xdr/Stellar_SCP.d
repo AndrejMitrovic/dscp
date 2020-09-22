@@ -102,5 +102,6 @@ struct SCPQuorumSetT (PublicKey)
 {
     uint32 threshold;
     PublicKey[] validators;
+    alias nodes = validators;
     SCPQuorumSetT!PublicKey[] innerSets;
 }

@@ -27,3 +27,8 @@ string hexAbbrev (in ubyte[64] bin)
 {
     return bin.to!string;
 }
+
+string hexAbbrev (T)(T hash)
+{
+    return hash.to!string;
+}

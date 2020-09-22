@@ -26,7 +26,7 @@ static uint64 hashHelper (T)(ref const(T) hash)
 {
     uint64 res = 0;
     for (size_t i = 0; i < res.sizeof; i++)
-        res = (res << 8) | hash[i];
+        res = (res << 8) | hash[][i];
 
     return res;
 }
@@ -114,8 +114,7 @@ abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias getHashOf)
     // default implementation is the hash of the value
     public string getValueString (ref const(Value) v) const
     {
-        auto valueHash = getHashOf(v);
-        return hexAbbrev(ByteSlice(valueHash));
+        return v.to!string;
     }
 
     // `toStrKey` returns StrKey encoded string representation
