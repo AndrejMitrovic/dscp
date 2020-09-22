@@ -976,7 +976,6 @@ class BallotProtocol
             {
                 return false;
             }
-            break;
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const con = &hint.pledges.confirm_;
