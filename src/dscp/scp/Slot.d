@@ -133,9 +133,9 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
 
     /// returns the latest messages known for this slot
     /// only used by external code
-    public SCPEnvelope[] getCurrentState () const
+    public const(SCPEnvelope)[] getCurrentState () const
     {
-        SCPEnvelope[] res;
+        const(SCPEnvelope)[] res;
         res ~= mNominationProtocol.getCurrentState();
         res ~= mBallotProtocol.getCurrentState();
         return res;
@@ -161,8 +161,8 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     // records the statement in the historical record for this slot
     public void recordStatement (ref const(SCPStatement) st)
     {
-        mStatementsHistory ~=
-            HistoricalStatement(time(null), cast(SCPStatement)st, mFullyValidated);
+        mStatementsHistory ~= HistoricalStatement(time(null),
+            cast(SCPStatement)st, mFullyValidated);
 
         log.trace("new statement:  i: %s st: %s validated: ",
             getSlotIndex(), mSCP.envToStr(st, false),
@@ -358,7 +358,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     }
 
     /// only used by external code
-    protected SCPEnvelope[] getEntireCurrentState ()
+    protected const(SCPEnvelope)[] getEntireCurrentState ()
     {
         bool old = mFullyValidated;
         // fake fully validated to force returning all envelopes

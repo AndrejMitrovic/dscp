@@ -238,7 +238,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         Duration timeout =
             mSlot.getSCPDriver().computeTimeout(mRoundNumber);
 
-        mSlot.getSCPDriver().nominatingValue(mSlot.getSlotIndex(), nominatingValue);
+        mSlot.getSCPDriver()
+            .nominatingValue(mSlot.getSlotIndex(), nominatingValue);
 
         const bool HasTimedOut = true;
         mSlot.getSCPDriver().setupTimer(
@@ -291,20 +292,20 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             mVotes.insert(v);
 
         mLastEnvelope = new SCPEnvelope();
-        mLastEnvelope.tupleof = (cast(SCPEnvelope)e).tupleof;  // deep-dup
+        *mLastEnvelope = duplicate(e);
     }
 
     /// only used by external code
-    public SCPEnvelope[] getCurrentState () const
+    public const(SCPEnvelope)[] getCurrentState () const
     {
-        SCPEnvelope[] res;
+        const(SCPEnvelope)[] res;
         res.reserve(mLatestNominations.length);
         foreach (node_id, env; mLatestNominations)
         {
             // only return messages for self if the slot is fully validated
             if (node_id != mSlot.getSCP().getLocalNodeID() ||
                 mSlot.isFullyValidated())
-                res ~= cast(SCPEnvelope)env;
+                res ~= env;
         }
 
         return res;
@@ -317,7 +318,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         return id in mLatestNominations;
     }
 
-    protected bool isNewerStatement (ref const(NodeID) nodeID, ref const(SCPNomination) st)
+    protected bool isNewerStatement (ref const(NodeID) nodeID,
+        ref const(SCPNomination) st)
     {
         if (auto old = nodeID in mLatestNominations)
             return isNewerStatement(old.statement.pledges.nominate_, st);
@@ -326,7 +328,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     }
 
     protected static bool isNewerStatement(ref const(SCPNomination) oldst,
-                                 ref const(SCPNomination) st)
+        ref const(SCPNomination) st)
     {
         bool res = false;
         bool grows;
@@ -387,7 +389,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
-        mLatestNominations[st.nodeID] = cast(SCPEnvelope)env;
+        mLatestNominations[st.nodeID] = duplicate(env);
         mSlot.recordStatement(env.statement);
     }
 
@@ -430,7 +432,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     }
 
     // returns true if v is in the accepted list from the statement
-    protected static bool acceptPredicate (ref const(Value) v, ref const(SCPStatement) st)
+    protected static bool acceptPredicate (ref const(Value) v,
+        ref const(SCPStatement) st)
     {
         const nom = &st.pledges.nominate_;
         return nom.accepted.canFind(v);
@@ -455,10 +458,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         SCPQuorumSet[] innerSets;
 
         const localQset = mSlot.getLocalNode().getQuorumSet();
-        SCPQuorumSet myQSet;
-        myQSet.threshold = localQset.threshold;
-        myQSet.validators = localQset.validators.dup;
-        myQSet.innerSets = (cast(SCPQuorumSet[])localQset.innerSets).dup;
+        SCPQuorumSet myQSet = duplicate(localQset);
 
         // initialize priority with value derived from self
         Set!NodeID newRoundLeaders = makeSet!NodeID;
@@ -497,8 +497,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected uint64 hashNode (bool isPriority, ref const(NodeID) nodeID)
     {
         assert(!mPreviousValue.empty());
-        return mSlot.getSCPDriver().computeHashNode(
-            mSlot.getSlotIndex(), mPreviousValue, isPriority, mRoundNumber, nodeID);
+        return mSlot.getSCPDriver().computeHashNode(mSlot.getSlotIndex(),
+            mPreviousValue, isPriority, mRoundNumber, nodeID);
     }
 
     // computes Gi(K, prevValue, mRoundNumber, value)
@@ -509,7 +509,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             mSlot.getSlotIndex(), mPreviousValue, mRoundNumber, value);
     }
 
-    protected uint64 getNodePriority (ref const(NodeID) nodeID, ref const(SCPQuorumSet) qset)
+    protected uint64 getNodePriority (ref const(NodeID) nodeID,
+        ref const(SCPQuorumSet) qset)
     {
         uint64 res;
         uint64 w;

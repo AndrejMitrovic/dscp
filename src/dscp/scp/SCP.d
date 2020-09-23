@@ -209,7 +209,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
     /// returns all messages for the slot
     /// only used by external code
-    public SCPEnvelope[] getCurrentState (uint64 slotIndex)
+    public const(SCPEnvelope)[] getCurrentState (uint64 slotIndex)
     {
         const DontCreateNew = false;
         if (auto slot = getSlot(slotIndex, DontCreateNew))
