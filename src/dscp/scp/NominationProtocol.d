@@ -178,11 +178,11 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         return res;
     }
 
-    public static Value[] getStatementValues (ref const(SCPStatement) st)
+    public static const(Value)[] getStatementValues (ref const(SCPStatement) st)
     {
-        Value[] res;
+        const(Value)[] res;
         applyAll(st.pledges.nominate_,
-                 (ref const(Value) v) { res ~= cast(ubyte[])v; });
+                 (ref const(Value) v) { res ~= v; });
         return res;
     }
 

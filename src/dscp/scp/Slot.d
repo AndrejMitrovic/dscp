@@ -278,7 +278,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     }
 
     // returns the values associated with the statement
-    public static Value[] getStatementValues (ref const(SCPStatement) st)
+    public static const(Value)[] getStatementValues (ref const(SCPStatement) st)
     {
         if (st.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
             return NominationProtocol.getStatementValues(st);

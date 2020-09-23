@@ -158,7 +158,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     public bool abandonBallot (uint32 n)
     {
         //log.trace("BallotProtocol.abandonBallot";
-        Value v = mSlot.getLatestCompositeCandidate().dup;
+        Value v = mSlot.getLatestCompositeCandidate();
         if (v.empty())
         {
             if (mCurrentBallot)
@@ -208,7 +208,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         }
         else
         {
-            newb.value = value.dup;
+            newb.value = value;
         }
 
         //if (Logging.logTrace("SCP"))
@@ -228,21 +228,21 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
     // helper function to retrieve b for PREPARE, P for CONFIRM or
     // c for EXTERNALIZE messages
-    public static SCPBallot getWorkingBallot (ref const(SCPStatement) st)
+    public static const(SCPBallot) getWorkingBallot (ref const(SCPStatement) st)
     {
         final switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
-                return cast(SCPBallot)st.pledges.prepare_.ballot;
+                return st.pledges.prepare_.ballot;
 
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const con = &st.pledges.confirm_;
-                return SCPBallot(con.nCommit, con.ballot.value.dup);
+                return const(SCPBallot)(con.nCommit, con.ballot.value);
             }
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
-                return cast(SCPBallot)st.pledges.externalize_.commit;
+                return st.pledges.externalize_.commit;
 
             case SCPStatementType.SCP_ST_NOMINATE:
                 assert(0);  // unexpected
@@ -292,13 +292,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 if (prep.nH)
                 {
                     mHighBallot = new SCPBallot;
-                    *mHighBallot = SCPBallot(prep.nH, b.value.dup);
+                    *mHighBallot = SCPBallot(prep.nH, b.value);
                 }
 
                 if (prep.nC)
                 {
                     mCommit = new SCPBallot;
-                    *mCommit = SCPBallot(prep.nC, b.value.dup);
+                    *mCommit = SCPBallot(prep.nC, b.value);
                 }
 
                 mPhase = SCPPhase.SCP_PHASE_PREPARE;
@@ -311,11 +311,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 const v = &c.ballot.value;
                 bumpToBallot(c.ballot, true);
                 mPrepared = new SCPBallot;
-                *mPrepared = SCPBallot(c.nPrepared, (*v).dup);
+                *mPrepared = SCPBallot(c.nPrepared, *v);
                 mHighBallot = new SCPBallot;
-                *mHighBallot = SCPBallot(c.nH, (*v).dup);
+                *mHighBallot = SCPBallot(c.nH, *v);
                 mCommit = new SCPBallot;
-                *mCommit = SCPBallot(c.nCommit, (*v).dup);
+                *mCommit = SCPBallot(c.nCommit, *v);
                 mPhase = SCPPhase.SCP_PHASE_CONFIRM;
                 break;
             }
@@ -324,12 +324,12 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             {
                 const ext = &pl.externalize_;
                 const v = &ext.commit.value;
-                auto bump_ballot = SCPBallot(uint.max, (*v).dup);
+                auto bump_ballot = SCPBallot(uint.max, *v);
                 bumpToBallot(bump_ballot, true);
                 mPrepared = new SCPBallot;
-                *mPrepared = SCPBallot(uint.max, (*v).dup);
+                *mPrepared = SCPBallot(uint.max, *v);
                 mHighBallot = new SCPBallot;
-                *mHighBallot = SCPBallot(ext.nH, (*v).dup);
+                *mHighBallot = SCPBallot(ext.nH, *v);
                 mCommit = new SCPBallot;
                 *mCommit = *cast(SCPBallot*)&ext.commit;
                 mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
@@ -724,7 +724,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember newH's value
-        mValueOverride = newH.value.dup;
+        mValueOverride = newH.value;
 
         // we don't set c/h if we're not on a compatible ballot
         if (!mCurrentBallot || areBallotsCompatible(*mCurrentBallot, newH))
@@ -779,7 +779,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 const prep = &hint.pledges.prepare_;
                 if (prep.nC != 0)
                 {
-                    ballot = SCPBallot(prep.nH, prep.ballot.value.dup);
+                    ballot = SCPBallot(prep.nH, prep.ballot.value);
                 }
                 else
                 {
@@ -791,14 +791,14 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const con = &hint.pledges.confirm_;
-                ballot = SCPBallot(con.nH, con.ballot.value.dup);
+                ballot = SCPBallot(con.nH, con.ballot.value);
             }
             break;
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
                 const ext = &hint.pledges.externalize_;
-                ballot = SCPBallot(ext.nH, ext.commit.value.dup);
+                ballot = SCPBallot(ext.nH, ext.commit.value);
                 break;
             }
 
@@ -901,7 +901,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember h's value
-        mValueOverride = h.value.dup;
+        mValueOverride = h.value;
 
         if (!mHighBallot || !mCommit || compareBallots(*mHighBallot, h) != 0 ||
             compareBallots(*mCommit, c) != 0)
@@ -986,13 +986,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const con = &hint.pledges.confirm_;
-                ballot = SCPBallot(con.nH, con.ballot.value.dup);
+                ballot = SCPBallot(con.nH, con.ballot.value);
             }
             break;
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
                 const ext = &hint.pledges.externalize_;
-                ballot = SCPBallot(ext.nH, ext.commit.value.dup);
+                ballot = SCPBallot(ext.nH, ext.commit.value);
                 break;
             }
             default:
@@ -1111,9 +1111,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     }
 
     // computes a list of candidate values that may have been prepared
-    private Set!SCPBallot getPrepareCandidates(ref const(SCPStatement) hint)
+    private Set!(const(SCPBallot)) getPrepareCandidates(ref const(SCPStatement) hint)
     {
-        Set!SCPBallot hintBallots = makeSet!SCPBallot;
+        Set!(const(SCPBallot)) hintBallots = makeSet!(const(SCPBallot));
 
         switch (hint.pledges.type_)
         {
@@ -1134,21 +1134,21 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const con = &hint.pledges.confirm_;
-                hintBallots.insert(SCPBallot(con.nPrepared, con.ballot.value.dup));
-                hintBallots.insert(SCPBallot(uint.max, con.ballot.value.dup));
+                hintBallots.insert(const(SCPBallot)(con.nPrepared, con.ballot.value));
+                hintBallots.insert(const(SCPBallot)(uint.max, con.ballot.value));
             }
             break;
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
                 const ext = &hint.pledges.externalize_;
-                hintBallots.insert(SCPBallot(uint.max, ext.commit.value.dup));
+                hintBallots.insert(const(SCPBallot)(uint.max, ext.commit.value));
             }
             break;
             default:
                 assert(0);
         }
 
-        Set!SCPBallot candidates = makeSet!SCPBallot;
+        Set!(const(SCPBallot)) candidates = makeSet!(const(SCPBallot));
 
         while (!hintBallots.length != 0)
         {
@@ -1189,9 +1189,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                     {
                         candidates.insert(topVote);
                         if (con.nPrepared < topVote.counter)
-                        {
-                            candidates.insert(SCPBallot(con.nPrepared, (*val).dup));
-                        }
+                            candidates.insert(const(SCPBallot)(con.nPrepared, *val));
                     }
                 }
                 break;
@@ -1199,9 +1197,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 {
                     const ext = &st.pledges.externalize_;
                     if (areBallotsCompatible(topVote, ext.commit))
-                    {
                         candidates.insert(topVote);
-                    }
                 }
                 break;
                 default:
@@ -1341,7 +1337,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             case SCPStatementType.SCP_ST_CONFIRM:
             {
                 const c = &st.pledges.confirm_;
-                SCPBallot prepared = SCPBallot(c.nPrepared, c.ballot.value.dup);
+                const SCPBallot prepared = const(SCPBallot)(c.nPrepared, c.ballot.value);
                 res = areBallotsLessAndCompatible(ballot, prepared);
                 break;
             }
