@@ -32,14 +32,14 @@ struct Interval
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
+class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
     public alias SCPBallot = SCPBallotT!Value;
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
 
     // used to filter statements
     alias StatementPredicate = bool delegate (ref const(SCPStatement));
@@ -724,7 +724,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember newH's value
-        mValueOverride = newH.value;
+        mValueOverride = duplicate(newH.value);
 
         // we don't set c/h if we're not on a compatible ballot
         if (!mCurrentBallot || areBallotsCompatible(*mCurrentBallot, newH))
@@ -2027,6 +2027,6 @@ unittest
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
-
-    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) BP;
+    T duplicate (T)(T arg) { return arg; }
+    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) BP;
 }

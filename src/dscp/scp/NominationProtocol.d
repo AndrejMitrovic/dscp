@@ -18,12 +18,12 @@ import std.range;
 
 import core.time;
 
-class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
+class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
 {
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPNomination = SCPNominationT!(Hash, Value);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
@@ -415,12 +415,10 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                                  st.pledges.nominate_))
             {
                 mLastEnvelope = new SCPEnvelope();
-                mLastEnvelope.tupleof = envelope.tupleof;  // deep-dup
+                *mLastEnvelope = duplicate(envelope);
 
                 if (mSlot.isFullyValidated())
-                {
                     mSlot.getSCPDriver().emitEnvelope(envelope);
-                }
             }
         }
         else
@@ -590,5 +588,6 @@ unittest
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
-    alias NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) LN;
+    T duplicate (T)(T arg) { return arg; }
+    alias NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) LN;
 }

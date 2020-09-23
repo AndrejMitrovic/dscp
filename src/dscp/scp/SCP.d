@@ -14,12 +14,12 @@ import dscp.xdr.Stellar_types;
 import std.conv ;
 import std.format;
 
-class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
+class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
 {
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPBallot = SCPBallotT!Value;
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
@@ -367,5 +367,6 @@ unittest
     import std.container;
     alias Set (V) = RedBlackTree!(const(V));
     alias makeSet (T) = redBlackTree!(const(T));
-    alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) SCP;
+    T duplicate (T)(T arg) { return arg; }
+    alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) SCP;
 }
