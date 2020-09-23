@@ -10,7 +10,6 @@ import dscp.scp.NominationProtocol;
 import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
 import dscp.util.Log;
-import dscp.util.Nullable;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -153,7 +152,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     }
 
     // returns messages that helped this slot externalize
-    public SCPEnvelope[] getExternalizingState () const
+    public const(SCPEnvelope)[] getExternalizingState () const
     {
         return mBallotProtocol.getExternalizingState();
     }

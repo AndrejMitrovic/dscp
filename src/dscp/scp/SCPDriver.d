@@ -4,10 +4,8 @@
 
 module dscp.scp.SCPDriver;
 
-import dscp.crypto.ByteSlice;
 import dscp.crypto.Hex;
 import dscp.scp.SCP;
-import dscp.util.Nullable;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 

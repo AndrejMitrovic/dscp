@@ -233,7 +233,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
     // returns messages that contributed to externalizing the given slot index
     // (or null if the slot didn't externalize)
-    public SCPEnvelope[] getExternalizingState (uint64 slotIndex)
+    public const(SCPEnvelope)[] getExternalizingState (uint64 slotIndex)
     {
         const bool DontCreateNew = false;
         if (auto slot = getSlot(slotIndex, DontCreateNew))
