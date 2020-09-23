@@ -15,7 +15,6 @@ import dscp.xdr.Stellar_types;
 
 import std.algorithm;
 import std.range;
-import std.stdio;
 
 import core.time;
 
@@ -65,14 +64,10 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     {
         if (!this.isNewerStatement(envelope.statement.nodeID,
             envelope.statement.pledges.nominate_))
-        {
-            writeln("ERROR: Not newer");
             return SCP.EnvelopeState.INVALID;
-        }
 
         if (!this.isSane(envelope.statement))
         {
-            writeln("ERROR: Not sane");
             log.trace("NominationProtocol: message didn't pass sanity check");
             return SCP.EnvelopeState.INVALID;
         }
