@@ -144,8 +144,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             {
                 mVotes.insert(duplicate(newVote));
                 modified = true;
-                mSlot.getSCPDriver().nominatingValue(
-                    mSlot.getSlotIndex(), newVote);
+                this.mSlot.getSCPDriver().nominatingValue(
+                    this.mSlot.getSlotIndex(), newVote);
             }
         }
 
@@ -180,7 +180,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         ref const(Value) previousValue, bool timedout)
     {
         log.trace("NominationProtocol.nominate (%s) %s",
-            mRoundNumber, mSlot.getSCP().getValueString(value));
+            mRoundNumber, this.mSlot.getSCP().getValueString(value));
 
         if (timedout && !this.mNominationStarted)
         {
@@ -223,15 +223,15 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             }
         }
 
-        Duration timeout = mSlot.getSCPDriver().computeTimeout(mRoundNumber);
+        Duration timeout = this.mSlot.getSCPDriver().computeTimeout(mRoundNumber);
 
-        mSlot.getSCPDriver().nominatingValue(
+        this.mSlot.getSCPDriver().nominatingValue(
             this.mSlot.getSlotIndex(), nominatingValue);
 
         const bool HasTimedOut = true;
-        mSlot.getSCPDriver().setupTimer(
-            mSlot.getSlotIndex(), TimerID.NOMINATION_TIMER, timeout,
-            () { mSlot.nominate(value, previousValue, HasTimedOut); });
+        this.mSlot.getSCPDriver().setupTimer(
+            this.mSlot.getSlotIndex(), TimerID.NOMINATION_TIMER, timeout,
+            () { this.mSlot.nominate(value, previousValue, HasTimedOut); });
 
         if (updated)
             this.emitNomination();
@@ -353,13 +353,13 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     {
         const bool IsNomination = true;
         return this.mSlot.getSCPDriver().validateValue(
-            mSlot.getSlotIndex(), v, IsNomination);
+            this.mSlot.getSlotIndex(), v, IsNomination);
     }
 
     protected Value extractValidValue (ref const(Value) value)
     {
-        return mSlot.getSCPDriver().extractValidValue(
-            mSlot.getSlotIndex(), value);
+        return this.mSlot.getSCPDriver().extractValidValue(
+            this.mSlot.getSlotIndex(), value);
     }
 
     protected bool isSane (ref const(SCPStatement) st)
@@ -383,7 +383,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected void emitNomination ()
     {
         SCPStatement st;
-        st.nodeID = mSlot.getLocalNode().getNodeID();
+        st.nodeID = this.mSlot.getLocalNode().getNodeID();
         st.pledges.type_ = SCPStatementType.SCP_ST_NOMINATE;
         st.pledges.nominate_.quorumSetHash = this.mSlot.getLocalNode()
             .getQuorumSetHash();
@@ -397,7 +397,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         SCPEnvelope envelope = this.mSlot.createEnvelope(st);
 
         static bool IsFromSelf = true;
-        if (mSlot.processEnvelope(envelope, IsFromSelf) !=
+        if (this.mSlot.processEnvelope(envelope, IsFromSelf) !=
             SCP.EnvelopeState.VALID)
         {
             // there is a bug in the application if it queued up
@@ -447,7 +447,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
         // initialize priority with value derived from self
         Set!NodeID newRoundLeaders = makeSet!NodeID;
-        auto localID = mSlot.getLocalNode().getNodeID();
+        auto localID = this.mSlot.getLocalNode().getNodeID();
         normalizeQSet(myQSet, &localID);
 
         newRoundLeaders.insert(localID);
