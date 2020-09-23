@@ -26,7 +26,6 @@ public enum TimerID
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-// todo: this used to be a shared_ptr to a struct
 class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
