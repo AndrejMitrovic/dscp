@@ -9,6 +9,7 @@ import dscp.scp.BallotProtocol;
 import dscp.scp.NominationProtocol;
 import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
+import dscp.util.Log;
 import dscp.util.Nullable;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
@@ -125,10 +126,8 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         }
         else
         {
-            //if (Logging.logTrace("SCP"))
-            //    CLOG(TRACE, "SCP")
-            //        << "Slot.setStateFromEnvelope invalid envelope"
-            //        << " i: " << getSlotIndex() << " " << mSCP.envToStr(e);
+            log.trace("Slot.setStateFromEnvelope invalid envelope i: %s %s",
+                mSCP.envToStr(e), getSlotIndex());
         }
     }
 
@@ -165,10 +164,9 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         mStatementsHistory ~=
             HistoricalStatement(time(null), cast(SCPStatement)st, mFullyValidated);
 
-        //CLOG(DEBUG, "SCP") << "new statement: "
-        //                   << " i: " << getSlotIndex()
-        //                   << " st: " << mSCP.envToStr(st, false) << " validated: "
-        //                   << (mFullyValidated ? "true" : "false");
+        log.trace("new statement:  i: %s st: %s validated: ",
+            getSlotIndex(), mSCP.envToStr(st, false),
+            mFullyValidated ? "true" : "false");
     }
 
     // Process a newly received envelope for this slot and update the state of
@@ -180,14 +178,11 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     {
         assert(envelope.statement.slotIndex == mSlotIndex);
 
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("Slot.processEnvelope"
-        //                       << " i: " << getSlotIndex() << " "
-        //                       << mSCP.envToStr(envelope);
+        log.trace("Slot.processEnvelope i: %s %s",
+            getSlotIndex(), mSCP.envToStr(envelope));
 
         try
         {
-
             if (envelope.statement.pledges.type_ ==
                 SCPStatementType.SCP_ST_NOMINATE)
                 return mNominationProtocol.processEnvelope(envelope);
@@ -196,12 +191,11 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         }
         catch (Throwable thr)
         {
-            //CLOG(FATAL, "SCP") << "SCP context:";
-            //CLOG(FATAL, "SCP") << getJsonInfo().toStyledString();
-            //CLOG(FATAL, "SCP") << "Exception processing SCP messages at "
-            //                   << mSlotIndex
-            //                   << ", envelope: " << mSCP.envToStr(envelope);
-            //CLOG(FATAL, "SCP") << REPORT_INTERNAL_BUG;
+            log.error("SCP context: %s. Exception processing SCP messages " ~
+                "at %s, envelope: %s",
+                this,
+                mSlotIndex,
+                mSCP.envToStr(envelope));
 
             throw thr;
         }

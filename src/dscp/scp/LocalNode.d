@@ -7,6 +7,7 @@ module dscp.scp.LocalNode;
 import dscp.crypto.Hash;
 import dscp.scp.SCP;
 import dscp.scp.QuorumSetUtils;
+import dscp.util.Log;
 import dscp.util.Nullable;
 import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
@@ -44,10 +45,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
         normalizeQSet(mQSet);
         mQSetHash = getHashOf(mQSet);
 
-        //CLOG(INFO, "SCP") << "LocalNode.LocalNode"
-        //                  << "@" << KeyUtils.toShortString(mNodeID)
-        //                  << " qSet: " << hexAbbrev(mQSetHash);
-
+        log.info("LocalNode.LocalNode@%s qset: %s", mNodeID, mQSetHash);
         mSingleQSet = getSingletonQSet(mNodeID);
         gSingleQSetHash = getHashOf(mSingleQSet);
     }

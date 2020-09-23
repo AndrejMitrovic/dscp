@@ -9,6 +9,7 @@ import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
 import dscp.scp.Slot;
 import dscp.scp.QuorumSetUtils;
+import dscp.util.Log;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -75,8 +76,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
         if (!isSane(*st))
         {
-            //CLOG(TRACE, "SCP")
-            //    << "NominationProtocol: message didn't pass sanity check";
+            log.trace("NominationProtocol: message didn't pass sanity check");
             return SCP.EnvelopeState.INVALID;
         }
 
@@ -190,15 +190,14 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public bool nominate (ref const(Value) value,
         ref const(Value) previousValue, bool timedout)
     {
-        //if (Logging.logDebug("SCP"))
-        //    CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (" << mRoundNumber
-        //                       << ") " << mSlot.getSCP().getValueString(value);
+        log.trace("NominationProtocol.nominate (%s) %s",
+            mRoundNumber, mSlot.getSCP().getValueString(value));
 
         bool updated = false;
 
         if (timedout && !mNominationStarted)
         {
-            //CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (TIMED OUT)";
+            log.trace("NominationProtocol.nominate (TIMED OUT)");
             return false;
         }
 
@@ -247,13 +246,9 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             () { mSlot.nominate(value, previousValue, HasTimedOut); });
 
         if (updated)
-        {
             emitNomination();
-        }
         else
-        {
-            //CLOG(DEBUG, "SCP") << "NominationProtocol.nominate (SKIPPED)";
-        }
+            log.trace("NominationProtocol.nominate (SKIPPED)");
 
         return updated;
     }
@@ -492,16 +487,11 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         foreach (new_leader; newRoundLeaders[])
             mRoundLeaders.insert(new_leader);
 
-        //if (Logging.logDebug("SCP"))
-        //{
-        //    CLOG(DEBUG, "SCP") << "updateRoundLeaders: " << newRoundLeaders.length
-        //                       << " . " << mRoundLeaders.length;
-        //    foreach (rl; mRoundLeaders)
-        //    {
-        //        CLOG(DEBUG, "SCP")
-        //            << "    leader " << mSlot.getSCPDriver().toShortString(rl);
-        //    }
-        //}
+        log.trace("updateRoundLeaders: %s -> %s", newRoundLeaders.length,
+            mRoundLeaders.length);
+
+        foreach (rl; mRoundLeaders)
+            log.trace("    leader %s", mSlot.getSCPDriver().toShortString(rl));
     }
 
     // computes Gi(isPriority?P:N, prevValue, mRoundNumber, nodeID)

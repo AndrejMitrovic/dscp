@@ -1754,9 +1754,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 // following the protocol (and we end up with a smaller value)
                 // not sure what is the best way to deal
                 // with this situation
-                //CLOG(ERROR, "SCP")
-                //    << "BallotProtocol.updateCurrentValue attempt to bump to "
-                //       "a smaller value";
+                log.error("BallotProtocol.updateCurrentValue attempt to " ~
+                    "bump to a smaller value");
                 // can't just bump to the value as we may already have
                 // statements at counter+1
                 return false;
