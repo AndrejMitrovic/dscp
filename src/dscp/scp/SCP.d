@@ -268,11 +268,11 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
         //string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
 
         //string res = format("{ENV@%s | i: %s", nodeId, st.slotIndex);
-        //switch (st.pledges.type_)
+        //switch (st.pledges.type)
         //{
         //    case SCPStatementType.SCP_ST_PREPARE:
         //    {
-        //        const p = &st.pledges.prepare_;
+        //        const p = &st.pledges.prepare;
         //        res ~= " | PREPARE"
         //            ~ " | D: " ~ hexAbbrev(qSetHash)
         //            ~ " | b: " ~ ballotToStr(p.ballot)
@@ -284,7 +284,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
         //    case SCPStatementType.SCP_ST_CONFIRM:
         //    {
-        //        const c = &st.pledges.confirm_;
+        //        const c = &st.pledges.confirm;
         //        res ~= " | CONFIRM"
         //            ~ " | D: " ~ hexAbbrev(qSetHash)
         //            ~ " | b: " ~ ballotToStr(c.ballot) ~ " | p.n: " ~ c.nPrepared.to!string
@@ -294,7 +294,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
         //    case SCPStatementType.SCP_ST_EXTERNALIZE:
         //    {
-        //        const ex = &st.pledges.externalize_;
+        //        const ex = &st.pledges.externalize;
         //        res ~= " | EXTERNALIZE"
         //            ~ " | c: " ~ ballotToStr(ex.commit) ~ " | h.n: " ~ ex.nH.to!string
         //            ~ " | (lastD): " ~ hexAbbrev(qSetHash);
@@ -303,7 +303,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
         //    case SCPStatementType.SCP_ST_NOMINATE:
         //    {
-        //        const nom = &st.pledges.nominate_;
+        //        const nom = &st.pledges.nominate;
         //        res ~= " | NOMINATE"
         //            ~ " | D: " ~ hexAbbrev(qSetHash) ~ " | X: {";
         //        bool first = true;

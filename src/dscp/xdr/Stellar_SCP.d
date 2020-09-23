@@ -79,13 +79,13 @@ struct SCPStatementT (NodeID, Hash, Value)
         // todo: use union, or replace with something better
         //static union
         //{
-            _prepare_t prepare_;
-            _confirm_t confirm_;
-            _externalize_t externalize_;
-            SCPNomination nominate_;
+            _prepare_t prepare;
+            _confirm_t confirm;
+            _externalize_t externalize;
+            SCPNomination nominate;
         //}
 
-        SCPStatementType type_;
+        SCPStatementType type;
     }
 
     _pledges_t pledges;

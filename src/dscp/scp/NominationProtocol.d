@@ -63,7 +63,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope)
     {
         if (!this.isNewerStatement(envelope.statement.nodeID,
-            envelope.statement.pledges.nominate_))
+            envelope.statement.pledges.nominate))
             return SCP.EnvelopeState.INVALID;
 
         if (!this.isSane(envelope.statement))
@@ -82,14 +82,14 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         bool newCandidates = false;
 
         // attempts to promote some of the votes to accepted
-        foreach (vote; envelope.statement.pledges.nominate_.votes)
+        foreach (vote; envelope.statement.pledges.nominate.votes)
         {
             if (vote in this.mAccepted)
                 continue;  // vote is already accepted
 
             if (this.mSlot.federatedAccept(
                 (ref const(SCPStatement) st) {
-                    return st.pledges.nominate_.votes.canFind(vote);
+                    return st.pledges.nominate.votes.canFind(vote);
                 },
                 (ref const(SCPStatement) st) => acceptPredicate(vote, st),
                 mLatestNominations))
@@ -139,7 +139,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         // candidates
         if (mCandidates.empty() && envelope.statement.nodeID in mRoundLeaders)
         {
-            Value newVote = getNewValueFromNomination(envelope.statement.pledges.nominate_);
+            Value newVote = getNewValueFromNomination(envelope.statement.pledges.nominate);
             if (!newVote.empty())
             {
                 mVotes.insert(duplicate(newVote));
@@ -171,7 +171,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public static const(Value)[] getStatementValues (ref const(SCPStatement) st)
     {
         const(Value)[] res;
-        applyAll(st.pledges.nominate_, (ref const(Value) v) { res ~= v; });
+        applyAll(st.pledges.nominate, (ref const(Value) v) { res ~= v; });
         return res;
     }
 
@@ -214,7 +214,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             if (auto nom_value = leader in this.mLatestNominations)
             {
                 nominatingValue = this.getNewValueFromNomination(
-                    nom_value.statement.pledges.nominate_);
+                    nom_value.statement.pledges.nominate);
                 if (!nominatingValue.empty())
                 {
                     this.mVotes.insert(duplicate(nominatingValue));
@@ -271,10 +271,10 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             assert(0, "Cannot set state after nomination is started");
 
         this.recordEnvelope(e);
-        foreach (a; e.statement.pledges.nominate_.accepted)
+        foreach (a; e.statement.pledges.nominate.accepted)
             this.mAccepted.insert(a);
 
-        foreach (v; e.statement.pledges.nominate_.votes)
+        foreach (v; e.statement.pledges.nominate.votes)
             this.mVotes.insert(v);
 
         this.mLastEnvelope = new SCPEnvelope();
@@ -308,7 +308,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         ref const(SCPNomination) st)
     {
         if (auto old = nodeID in this.mLatestNominations)
-            return isNewerStatement(old.statement.pledges.nominate_, st);
+            return isNewerStatement(old.statement.pledges.nominate, st);
 
         return true;
     }
@@ -359,12 +359,12 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
     protected bool isSane (ref const(SCPStatement) st)
     {
-        if (st.pledges.nominate_.votes.length +
-            st.pledges.nominate_.accepted.length == 0)
+        if (st.pledges.nominate.votes.length +
+            st.pledges.nominate.accepted.length == 0)
             return false;
 
-        return st.pledges.nominate_.votes.isStrictlyMonotonic() &&
-            st.pledges.nominate_.accepted.isStrictlyMonotonic();
+        return st.pledges.nominate.votes.isStrictlyMonotonic() &&
+            st.pledges.nominate.accepted.isStrictlyMonotonic();
     }
 
     // only called after a call to isNewerStatement so safe to replace the
@@ -379,15 +379,15 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     {
         SCPStatement st;
         st.nodeID = this.mSlot.getLocalNode().getNodeID();
-        st.pledges.type_ = SCPStatementType.SCP_ST_NOMINATE;
-        st.pledges.nominate_.quorumSetHash = this.mSlot.getLocalNode()
+        st.pledges.type = SCPStatementType.SCP_ST_NOMINATE;
+        st.pledges.nominate.quorumSetHash = this.mSlot.getLocalNode()
             .getQuorumSetHash();
 
         foreach (v; mVotes[])
-            st.pledges.nominate_.votes ~= duplicate(v);
+            st.pledges.nominate.votes ~= duplicate(v);
 
         foreach (a; mAccepted[])
-            st.pledges.nominate_.accepted ~= duplicate(a);
+            st.pledges.nominate.accepted ~= duplicate(a);
 
         SCPEnvelope envelope = this.mSlot.createEnvelope(st);
 
@@ -401,8 +401,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         if (!this.mLastEnvelope ||
-            isNewerStatement(mLastEnvelope.statement.pledges.nominate_,
-                             st.pledges.nominate_))
+            isNewerStatement(mLastEnvelope.statement.pledges.nominate,
+                             st.pledges.nominate))
         {
             this.mLastEnvelope = new SCPEnvelope();
             *this.mLastEnvelope = duplicate(envelope);
@@ -416,7 +416,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected static bool acceptPredicate (ref const(Value) v,
         ref const(SCPStatement) st)
     {
-        return st.pledges.nominate_.accepted.canFind(v);
+        return st.pledges.nominate.accepted.canFind(v);
     }
 
     // applies 'processor' to all values from the passed in nomination

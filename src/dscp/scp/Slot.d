@@ -117,7 +117,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         if (e.statement.nodeID == getSCP().getLocalNodeID() &&
             e.statement.slotIndex == mSlotIndex)
         {
-            if (e.statement.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
+            if (e.statement.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
                 mNominationProtocol.setStateFromEnvelope(e);
             else
                 mBallotProtocol.setStateFromEnvelope(e);
@@ -181,7 +181,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
 
         try
         {
-            if (envelope.statement.pledges.type_ ==
+            if (envelope.statement.pledges.type ==
                 SCPStatementType.SCP_ST_NOMINATE)
                 return mNominationProtocol.processEnvelope(envelope);
             else
@@ -256,19 +256,19 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     public static Hash getCompanionQuorumSetHashFromStatement (
         ref const(SCPStatement) st)
     {
-        switch (st.pledges.type_)
+        switch (st.pledges.type)
         {
             case SCPStatementType.SCP_ST_PREPARE:
-                return st.pledges.prepare_.quorumSetHash;
+                return st.pledges.prepare.quorumSetHash;
 
             case SCPStatementType.SCP_ST_CONFIRM:
-                return st.pledges.confirm_.quorumSetHash;
+                return st.pledges.confirm.quorumSetHash;
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
-                return st.pledges.externalize_.commitQuorumSetHash;
+                return st.pledges.externalize.commitQuorumSetHash;
 
             case SCPStatementType.SCP_ST_NOMINATE:
-                return st.pledges.nominate_.quorumSetHash;
+                return st.pledges.nominate.quorumSetHash;
 
             default:
                 assert(0);
@@ -278,7 +278,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     // returns the values associated with the statement
     public static const(Value)[] getStatementValues (ref const(SCPStatement) st)
     {
-        if (st.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
+        if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
             return NominationProtocol.getStatementValues(st);
         else
             return [BallotProtocol.getWorkingBallot(st).value];
@@ -289,16 +289,16 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     public SCPQuorumSet* getQuorumSetFromStatement (
         ref const(SCPStatement) st)
     {
-        if (st.pledges.type_ == SCPStatementType.SCP_ST_EXTERNALIZE)
+        if (st.pledges.type == SCPStatementType.SCP_ST_EXTERNALIZE)
             return LocalNode.getSingletonQSet(st.nodeID);
 
         Hash h;
-        if (st.pledges.type_ == SCPStatementType.SCP_ST_PREPARE)
-            h = st.pledges.prepare_.quorumSetHash;
-        else if (st.pledges.type_ == SCPStatementType.SCP_ST_CONFIRM)
-            h = st.pledges.confirm_.quorumSetHash;
-        else if (st.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
-            h = st.pledges.nominate_.quorumSetHash;
+        if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
+            h = st.pledges.prepare.quorumSetHash;
+        else if (st.pledges.type == SCPStatementType.SCP_ST_CONFIRM)
+            h = st.pledges.confirm.quorumSetHash;
+        else if (st.pledges.type == SCPStatementType.SCP_ST_NOMINATE)
+            h = st.pledges.nominate.quorumSetHash;
         else
             assert(0);
 
