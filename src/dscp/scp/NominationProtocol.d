@@ -123,7 +123,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                     {
                         if (toVote !in mVotes)
                         {
-                            mVotes.insert(toVote.idup);
+                            mVotes.insert(duplicate(toVote));
                             modified = true;
                         }
                     }
@@ -153,7 +153,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             Value newVote = getNewValueFromNomination(*nom);
             if (!newVote.empty())
             {
-                mVotes.insert(newVote.idup);
+                mVotes.insert(duplicate(newVote));
                 modified = true;
                 mSlot.getSCPDriver().nominatingValue(
                     mSlot.getSlotIndex(), newVote);
@@ -202,7 +202,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         mNominationStarted = true;
-        mPreviousValue = previousValue.dup;
+        mPreviousValue = duplicate(previousValue);
         mRoundNumber++;
         updateRoundLeaders();
 
@@ -217,7 +217,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                 updated = true;
             }
 
-            nominatingValue = value.dup;
+            nominatingValue = duplicate(value);
         }
 
         // add a few more values from other leaders
@@ -229,7 +229,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                     nom_value.statement.pledges.nominate_);
                 if (!nominatingValue.empty())
                 {
-                    mVotes.insert(nominatingValue.idup);
+                    mVotes.insert(duplicate(nominatingValue));
                     updated = true;
                 }
             }
@@ -401,10 +401,10 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
 
         foreach (v; mVotes[])
-            nom.votes ~= cast(ubyte[])v;
+            nom.votes ~= duplicate(v);
 
         foreach (a; mAccepted[])
-            nom.accepted ~= cast(ubyte[])a;
+            nom.accepted ~= duplicate(a);
 
         SCPEnvelope envelope = mSlot.createEnvelope(st);
 
@@ -543,7 +543,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             Value valueToNominate;
             auto vl = validateValue(value);
             if (vl == ValidationLevel.kFullyValidatedValue)
-                valueToNominate = value.dup;
+                valueToNominate = duplicate(value);
             else
                 valueToNominate = extractValidValue(value);
 
