@@ -62,8 +62,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope)
     {
-        if (!this.isNewerStatement(envelope.statement.nodeID,
-            envelope.statement.pledges.nominate))
+        if (!this.isNewerEnvelope(envelope))
             return SCP.EnvelopeState.INVALID;
 
         if (!this.isSane(envelope.statement))
@@ -299,6 +298,12 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const
     {
         return id in this.mLatestNominations;
+    }
+
+    protected bool isNewerEnvelope (ref const(SCPEnvelope) envelope)
+    {
+        return this.isNewerStatement(envelope.statement.nodeID,
+            envelope.statement.pledges.nominate);
     }
 
     protected bool isNewerStatement (ref const(NodeID) nodeID,
