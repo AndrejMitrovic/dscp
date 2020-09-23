@@ -97,17 +97,17 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
 
     /// returns the latest messages the slot emitted
     /// used externally by client code
-    public SCPEnvelope[] getLatestMessagesSend () const
+    public const(SCPEnvelope)[] getLatestMessagesSend () const
     {
         if (!mFullyValidated)
             return null;
 
-        SCPEnvelope[] res;
+        const(SCPEnvelope)[] res;
         if (auto e = mNominationProtocol.getLastMessageSend())
-            res ~= cast(SCPEnvelope)*e;
+            res ~= *e;
 
         if (auto e = mBallotProtocol.getLastMessageSend())
-            res ~= cast(SCPEnvelope)*e;
+            res ~= *e;
 
         return res;
     }
@@ -162,7 +162,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     public void recordStatement (ref const(SCPStatement) st)
     {
         mStatementsHistory ~= HistoricalStatement(time(null),
-            cast(SCPStatement)st, mFullyValidated);
+            duplicate(st), mFullyValidated);
 
         log.trace("new statement:  i: %s st: %s validated: ",
             getSlotIndex(), mSCP.envToStr(st, false),
@@ -312,10 +312,9 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     {
         SCPEnvelope envelope;
 
-        envelope.statement = cast(SCPStatement)statement;
-        auto mySt = &envelope.statement;
-        mySt.nodeID = getSCP().getLocalNodeID();
-        mySt.slotIndex = getSlotIndex();
+        envelope.statement = duplicate(statement);
+        envelope.statement.nodeID = getSCP().getLocalNodeID();
+        envelope.statement.slotIndex = getSlotIndex();
         mSCP.getDriver().signEnvelope(envelope);
 
         return envelope;

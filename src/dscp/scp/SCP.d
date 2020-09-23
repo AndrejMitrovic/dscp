@@ -155,7 +155,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
     }
 
     // returns the latest messages sent for the given slot
-    public SCPEnvelope[] getLatestMessagesSend (uint64 slotIndex)
+    public const(SCPEnvelope)[] getLatestMessagesSend (uint64 slotIndex)
     {
         const bool DontCreateNew = false;
         if (auto slot = getSlot(slotIndex, DontCreateNew))
