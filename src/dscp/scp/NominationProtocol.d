@@ -333,15 +333,15 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         return false;
     }
 
-    // returns true if 'p' is a subset of 'v'
-    // also sets 'notEqual' if p and v differ
-    // note: p and v must be sorted
-    protected static bool isSubsetHelper (const(Value)[] p,
-        const(Value)[] v, ref bool notEqual)
+    // returns true if 'prev' is a subset of 'next'
+    // also sets 'notEqual' if prev and next differ
+    // note: prev and next must be sorted
+    protected static bool isSubsetHelper (const(Value)[] prev,
+        const(Value)[] next, ref bool notEqual)
     {
-        if (p.length <= v.length && v.canFind(p))
+        if (prev.length <= next.length && next.canFind(prev))
         {
-            notEqual = p.length != v.length;
+            notEqual = prev.length != next.length;
             return true;
         }
 
