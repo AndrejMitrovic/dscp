@@ -82,23 +82,23 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         bool newCandidates = false;
 
         // attempts to promote some of the votes to accepted
-        foreach (v; envelope.statement.pledges.nominate_.votes)
+        foreach (vote; envelope.statement.pledges.nominate_.votes)
         {
-            if (v in this.mAccepted)
-                continue;  // v is already accepted
+            if (vote in this.mAccepted)
+                continue;  // vote is already accepted
 
             if (this.mSlot.federatedAccept(
                 (ref const(SCPStatement) st) {
-                    return st.pledges.nominate_.votes.canFind(v);
+                    return st.pledges.nominate_.votes.canFind(vote);
                 },
-                (ref const(SCPStatement) st) => acceptPredicate(v, st),
+                (ref const(SCPStatement) st) => acceptPredicate(vote, st),
                 mLatestNominations))
             {
-                auto vl = this.validateValue(v);
+                auto vl = this.validateValue(vote);
                 if (vl == ValidationLevel.kFullyValidatedValue)
                 {
-                    this.mAccepted.insert(v);
-                    this.mVotes.insert(v);
+                    this.mAccepted.insert(vote);
+                    this.mVotes.insert(vote);
                     modified = true;
                 }
                 else
@@ -107,7 +107,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                     // see if we can vote for a variation that
                     // we consider valid
                     Value toVote;
-                    toVote = this.extractValidValue(v);
+                    toVote = this.extractValidValue(vote);
                     if (!toVote.empty())
                     {
                         if (toVote !in this.mVotes)
