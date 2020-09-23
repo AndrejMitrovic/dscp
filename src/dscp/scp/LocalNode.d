@@ -11,6 +11,7 @@ import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
 
 import std.algorithm;
+import std.conv;
 import std.range;
 
 /**
@@ -333,8 +334,8 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
             return false;
 
         int leftTillBlock =
-            cast(int)((1 + qset.validators.length + qset.innerSets.length) -
-                       qset.threshold);
+            to!int((1 + qset.validators.length + qset.innerSets.length) -
+                    qset.threshold);
 
         foreach (validator; qset.validators)
         {

@@ -157,7 +157,7 @@ abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias make
         if (roundNumber > MAX_TIMEOUT_SECONDS)
             timeoutInSeconds = MAX_TIMEOUT_SECONDS;
         else
-            timeoutInSeconds = cast(int)roundNumber;
+            timeoutInSeconds = roundNumber.to!int;
 
         return timeoutInSeconds.seconds;
     }
