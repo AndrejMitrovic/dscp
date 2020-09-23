@@ -62,50 +62,44 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope)
     {
-        const st = &envelope.statement;
-        const nom = &st.pledges.nominate_;
-
-        SCP.EnvelopeState res = SCP.EnvelopeState.INVALID;
-
-        if (!isNewerStatement(st.nodeID, *nom))
+        if (!this.isNewerStatement(envelope.statement.nodeID,
+            envelope.statement.pledges.nominate_))
             return SCP.EnvelopeState.INVALID;
 
-        if (!isSane(*st))
+        if (!this.isSane(envelope.statement))
         {
             log.trace("NominationProtocol: message didn't pass sanity check");
             return SCP.EnvelopeState.INVALID;
         }
 
-        recordEnvelope(envelope);
-        res = SCP.EnvelopeState.VALID;
+        this.recordEnvelope(envelope);
 
         // valid, but message came too soon -> we're not interested in it
-        if (!mNominationStarted)
+        if (!this.mNominationStarted)
             return SCP.EnvelopeState.VALID;
 
-        bool modified =
-            false; // tracks if we should emit a new nomination message
+        bool modified; // tracks if we should emit a new nomination message
         bool newCandidates = false;
 
         // attempts to promote some of the votes to accepted
-        foreach (v; nom.votes)
+        foreach (v; envelope.statement.pledges.nominate_.votes)
         {
-            if (v in mAccepted)
+            if (v in this.mAccepted)
                 continue;  // v is already accepted
 
-            if (mSlot.federatedAccept(
-                    (ref const(SCPStatement) st) {
-                        const nom = &st.pledges.nominate_;
-                        return nom.votes.canFind(v);
-                    },
-                    (ref const(SCPStatement) st) => acceptPredicate(v, st),
-                    mLatestNominations))
+            if (this.mSlot.federatedAccept(
+                (ref const(SCPStatement) st) {
+                    const nom = &st.pledges.nominate_;
+                    return nom.votes.canFind(v);
+                },
+                (ref const(SCPStatement) st) => acceptPredicate(v, st),
+                mLatestNominations))
             {
-                auto vl = validateValue(v);
+                auto vl = this.validateValue(v);
                 if (vl == ValidationLevel.kFullyValidatedValue)
                 {
-                    mAccepted.insert(v);
-                    mVotes.insert(v);
+                    this.mAccepted.insert(v);
+                    this.mVotes.insert(v);
                     modified = true;
                 }
                 else
@@ -114,12 +108,12 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                     // see if we can vote for a variation that
                     // we consider valid
                     Value toVote;
-                    toVote = extractValidValue(v);
+                    toVote = this.extractValidValue(v);
                     if (!toVote.empty())
                     {
-                        if (toVote !in mVotes)
+                        if (toVote !in this.mVotes)
                         {
-                            mVotes.insert(duplicate(toVote));
+                            this.mVotes.insert(duplicate(toVote));
                             modified = true;
                         }
                     }
@@ -128,12 +122,12 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         // attempts to promote accepted values to candidates
-        foreach (a; mAccepted[])
+        foreach (a; this.mAccepted[])
         {
-            if (a in mCandidates)
+            if (a in this.mCandidates)
                 continue;
 
-            if (mSlot.federatedRatify(
+            if (this.mSlot.federatedRatify(
                 (ref const(SCPStatement) st) => acceptPredicate(a, st),
                 mLatestNominations))
             {
@@ -144,9 +138,9 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
         // only take round leader votes if we're still looking for
         // candidates
-        if (mCandidates.empty() && st.nodeID in mRoundLeaders)
+        if (mCandidates.empty() && envelope.statement.nodeID in mRoundLeaders)
         {
-            Value newVote = getNewValueFromNomination(*nom);
+            Value newVote = getNewValueFromNomination(envelope.statement.pledges.nominate_);
             if (!newVote.empty())
             {
                 mVotes.insert(duplicate(newVote));
@@ -157,28 +151,28 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         if (modified)
-            emitNomination();
+            this.emitNomination();
 
         if (newCandidates)
         {
-            mLatestCompositeCandidate =
-                mSlot.getSCPDriver().combineCandidates(
-                    mSlot.getSlotIndex(), mCandidates);
+            this.mLatestCompositeCandidate =
+                this.mSlot.getSCPDriver().combineCandidates(
+                    this.mSlot.getSlotIndex(), this.mCandidates);
 
-            mSlot.getSCPDriver().updatedCandidateValue(
-                mSlot.getSlotIndex(), mLatestCompositeCandidate);
+            this.mSlot.getSCPDriver().updatedCandidateValue(
+                this.mSlot.getSlotIndex(), this.mLatestCompositeCandidate);
 
-            mSlot.bumpState(mLatestCompositeCandidate, false);
+            const bool DontForce = false;
+            this.mSlot.bumpState(this.mLatestCompositeCandidate, DontForce);
         }
 
-        return res;
+        return SCP.EnvelopeState.VALID;
     }
 
     public static const(Value)[] getStatementValues (ref const(SCPStatement) st)
     {
         const(Value)[] res;
-        applyAll(st.pledges.nominate_,
-                 (ref const(Value) v) { res ~= v; });
+        applyAll(st.pledges.nominate_, (ref const(Value) v) { res ~= v; });
         return res;
     }
 
@@ -189,27 +183,26 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         log.trace("NominationProtocol.nominate (%s) %s",
             mRoundNumber, mSlot.getSCP().getValueString(value));
 
-        bool updated = false;
-
-        if (timedout && !mNominationStarted)
+        if (timedout && !this.mNominationStarted)
         {
             log.trace("NominationProtocol.nominate (TIMED OUT)");
             return false;
         }
 
-        mNominationStarted = true;
-        mPreviousValue = duplicate(previousValue);
-        mRoundNumber++;
-        updateRoundLeaders();
+        this.mNominationStarted = true;
+        this.mPreviousValue = duplicate(previousValue);
+        this.mRoundNumber++;
+        this.updateRoundLeaders();
 
+        bool updated = false;
         Value nominatingValue;
 
         // if we're leader, add our value
-        if (mSlot.getLocalNode().getNodeID() in mRoundLeaders)
+        if (this.mSlot.getLocalNode().getNodeID() in this.mRoundLeaders)
         {
-            if (value !in mVotes)
+            if (value !in this.mVotes)
             {
-                mVotes.insert(value);
+                this.mVotes.insert(value);
                 updated = true;
             }
 
@@ -217,25 +210,24 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         // add a few more values from other leaders
-        foreach (leader; mRoundLeaders[])
+        foreach (leader; this.mRoundLeaders[])
         {
-            if (auto nom_value = leader in mLatestNominations)
+            if (auto nom_value = leader in this.mLatestNominations)
             {
-                nominatingValue = getNewValueFromNomination(
+                nominatingValue = this.getNewValueFromNomination(
                     nom_value.statement.pledges.nominate_);
                 if (!nominatingValue.empty())
                 {
-                    mVotes.insert(duplicate(nominatingValue));
+                    this.mVotes.insert(duplicate(nominatingValue));
                     updated = true;
                 }
             }
         }
 
-        Duration timeout =
-            mSlot.getSCPDriver().computeTimeout(mRoundNumber);
+        Duration timeout = mSlot.getSCPDriver().computeTimeout(mRoundNumber);
 
-        mSlot.getSCPDriver()
-            .nominatingValue(mSlot.getSlotIndex(), nominatingValue);
+        mSlot.getSCPDriver().nominatingValue(
+            this.mSlot.getSlotIndex(), nominatingValue);
 
         const bool HasTimedOut = true;
         mSlot.getSCPDriver().setupTimer(
@@ -243,7 +235,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             () { mSlot.nominate(value, previousValue, HasTimedOut); });
 
         if (updated)
-            emitNomination();
+            this.emitNomination();
         else
             log.trace("NominationProtocol.nominate (SKIPPED)");
 
@@ -253,54 +245,53 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     // stops the nomination protocol
     public void stopNomination ()
     {
-        mNominationStarted = false;
+        this.mNominationStarted = false;
     }
 
     // return the current leaders
     public const(Set!NodeID) getLeaders () const
     {
-        return mRoundLeaders;
+        return this.mRoundLeaders;
     }
 
     public ref const(Value) getLatestCompositeCandidate () const
     {
-        return mLatestCompositeCandidate;
+        return this.mLatestCompositeCandidate;
     }
 
     /// used externally by client code
     public const(SCPEnvelope)* getLastMessageSend () const
     {
-        return mLastEnvelope.get();
+        return this.mLastEnvelope.get();
     }
 
     /// Only used during boot-up if we want to load old SCP state
     public void setStateFromEnvelope (ref const(SCPEnvelope) e)
     {
-        if (mNominationStarted)
+        if (this.mNominationStarted)
             assert(0, "Cannot set state after nomination is started");
 
-        recordEnvelope(e);
-        const nom = &e.statement.pledges.nominate_;
-        foreach (a; nom.accepted)
-            mAccepted.insert(a);
+        this.recordEnvelope(e);
+        foreach (a; e.statement.pledges.nominate_.accepted)
+            this.mAccepted.insert(a);
 
-        foreach (v; nom.votes)
-            mVotes.insert(v);
+        foreach (v; e.statement.pledges.nominate_.votes)
+            this.mVotes.insert(v);
 
-        mLastEnvelope = new SCPEnvelope();
-        *mLastEnvelope = duplicate(e);
+        this.mLastEnvelope = new SCPEnvelope();
+        *this.mLastEnvelope = duplicate(e);
     }
 
     /// only used by external code
     public const(SCPEnvelope)[] getCurrentState () const
     {
         const(SCPEnvelope)[] res;
-        res.reserve(mLatestNominations.length);
-        foreach (node_id, env; mLatestNominations)
+        res.reserve(this.mLatestNominations.length);
+        foreach (node_id, env; this.mLatestNominations)
         {
             // only return messages for self if the slot is fully validated
-            if (node_id != mSlot.getSCP().getLocalNodeID() ||
-                mSlot.isFullyValidated())
+            if (node_id != this.mSlot.getSCP().getLocalNodeID() ||
+                this.mSlot.isFullyValidated())
                 res ~= env;
         }
 
@@ -311,13 +302,13 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     // or null if not found
     public const(SCPEnvelope)* getLatestMessage(ref const(NodeID) id) const
     {
-        return id in mLatestNominations;
+        return id in this.mLatestNominations;
     }
 
     protected bool isNewerStatement (ref const(NodeID) nodeID,
         ref const(SCPNomination) st)
     {
-        if (auto old = nodeID in mLatestNominations)
+        if (auto old = nodeID in this.mLatestNominations)
             return isNewerStatement(old.statement.pledges.nominate_, st);
 
         return true;
@@ -361,32 +352,33 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
     protected ValidationLevel validateValue (ref const(Value) v)
     {
-        return mSlot.getSCPDriver().validateValue(mSlot.getSlotIndex(), v, true);
+        const bool IsNomination = true;
+        return this.mSlot.getSCPDriver().validateValue(
+            mSlot.getSlotIndex(), v, IsNomination);
     }
 
     protected Value extractValidValue (ref const(Value) value)
     {
-        return mSlot.getSCPDriver().extractValidValue(mSlot.getSlotIndex(), value);
+        return mSlot.getSCPDriver().extractValidValue(
+            mSlot.getSlotIndex(), value);
     }
 
     protected bool isSane (ref const(SCPStatement) st)
     {
-        const nom = &st.pledges.nominate_;
-
-        if (nom.votes.length + nom.accepted.length == 0)
+        if (st.pledges.nominate_.votes.length +
+            st.pledges.nominate_.accepted.length == 0)
             return false;
 
-        return nom.votes.isStrictlyMonotonic() &&
-            nom.accepted.isStrictlyMonotonic();
+        return st.pledges.nominate_.votes.isStrictlyMonotonic() &&
+            st.pledges.nominate_.accepted.isStrictlyMonotonic();
     }
 
     // only called after a call to isNewerStatement so safe to replace the
     // mLatestNomination
     protected void recordEnvelope (ref const(SCPEnvelope) env)
     {
-        const st = &env.statement;
-        mLatestNominations[st.nodeID] = duplicate(env);
-        mSlot.recordStatement(env.statement);
+        this.mLatestNominations[env.statement.nodeID] = duplicate(env);
+        this.mSlot.recordStatement(env.statement);
     }
 
     protected void emitNomination ()
@@ -394,36 +386,35 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         SCPStatement st;
         st.nodeID = mSlot.getLocalNode().getNodeID();
         st.pledges.type_ = SCPStatementType.SCP_ST_NOMINATE;
-        auto nom = &st.pledges.nominate_;
-
-        nom.quorumSetHash = mSlot.getLocalNode().getQuorumSetHash();
+        st.pledges.nominate_.quorumSetHash = this.mSlot.getLocalNode()
+            .getQuorumSetHash();
 
         foreach (v; mVotes[])
-            nom.votes ~= duplicate(v);
+            st.pledges.nominate_.votes ~= duplicate(v);
 
         foreach (a; mAccepted[])
-            nom.accepted ~= duplicate(a);
+            st.pledges.nominate_.accepted ~= duplicate(a);
 
-        SCPEnvelope envelope = mSlot.createEnvelope(st);
+        SCPEnvelope envelope = this.mSlot.createEnvelope(st);
 
-        if (mSlot.processEnvelope(envelope, true) == SCP.EnvelopeState.VALID)
-        {
-            if (!mLastEnvelope ||
-                isNewerStatement(mLastEnvelope.statement.pledges.nominate_,
-                                 st.pledges.nominate_))
-            {
-                mLastEnvelope = new SCPEnvelope();
-                *mLastEnvelope = duplicate(envelope);
-
-                if (mSlot.isFullyValidated())
-                    mSlot.getSCPDriver().emitEnvelope(envelope);
-            }
-        }
-        else
+        static bool IsFromSelf = true;
+        if (mSlot.processEnvelope(envelope, IsFromSelf) !=
+            SCP.EnvelopeState.VALID)
         {
             // there is a bug in the application if it queued up
             // a statement for itself that it considers invalid
             assert(0, "moved to a bad state (nomination)");
+        }
+
+        if (!this.mLastEnvelope ||
+            isNewerStatement(mLastEnvelope.statement.pledges.nominate_,
+                             st.pledges.nominate_))
+        {
+            this.mLastEnvelope = new SCPEnvelope();
+            *this.mLastEnvelope = duplicate(envelope);
+
+            if (this.mSlot.isFullyValidated())
+                this.mSlot.getSCPDriver().emitEnvelope(envelope);
         }
     }
 
@@ -431,8 +422,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected static bool acceptPredicate (ref const(Value) v,
         ref const(SCPStatement) st)
     {
-        const nom = &st.pledges.nominate_;
-        return nom.accepted.canFind(v);
+        return st.pledges.nominate_.accepted.canFind(v);
     }
 
     // applies 'processor' to all values from the passed in nomination
@@ -453,7 +443,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         PublicKey[] validators;
         SCPQuorumSet[] innerSets;
 
-        const localQset = mSlot.getLocalNode().getQuorumSet();
+        const localQset = this.mSlot.getLocalNode().getQuorumSet();
         SCPQuorumSet myQSet = duplicate(localQset);
 
         // initialize priority with value derived from self
@@ -462,62 +452,63 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         normalizeQSet(myQSet, &localID);
 
         newRoundLeaders.insert(localID);
-        uint64 topPriority = getNodePriority(localID, myQSet);
+        uint64 topPriority = this.getNodePriority(localID, myQSet);
 
         LocalNode.forAllNodes(myQSet, (ref const(NodeID) cur) {
-            uint64 w = getNodePriority(cur, myQSet);
+            uint64 w = this.getNodePriority(cur, myQSet);
             if (w > topPriority)
             {
                 topPriority = w;
                 newRoundLeaders.clear();
             }
+
             if (w == topPriority && w > 0)
-            {
                 newRoundLeaders.insert(cur);
-            }
         });
 
         // expand mRoundLeaders with the newly computed leaders
         foreach (new_leader; newRoundLeaders[])
-            mRoundLeaders.insert(new_leader);
+            this.mRoundLeaders.insert(new_leader);
 
         log.trace("updateRoundLeaders: %s -> %s", newRoundLeaders.length,
-            mRoundLeaders.length);
+            this.mRoundLeaders.length);
 
-        foreach (rl; mRoundLeaders)
-            log.trace("    leader %s", mSlot.getSCPDriver().toShortString(rl));
+        foreach (rl; this.mRoundLeaders)
+            log.trace("    leader %s",
+                this.mSlot.getSCPDriver().toShortString(rl));
     }
 
     // computes Gi(isPriority?P:N, prevValue, mRoundNumber, nodeID)
     // from the paper
     protected uint64 hashNode (bool isPriority, ref const(NodeID) nodeID)
     {
-        assert(!mPreviousValue.empty());
-        return mSlot.getSCPDriver().computeHashNode(mSlot.getSlotIndex(),
-            mPreviousValue, isPriority, mRoundNumber, nodeID);
+        assert(!this.mPreviousValue.empty());
+        return this.mSlot.getSCPDriver().computeHashNode(
+            this.mSlot.getSlotIndex(), this.mPreviousValue,
+            isPriority, this.mRoundNumber, nodeID);
     }
 
     // computes Gi(K, prevValue, mRoundNumber, value)
     protected uint64 hashValue (ref const(Value) value)
     {
-        assert(!mPreviousValue.empty());
-        return mSlot.getSCPDriver().computeValueHash(
-            mSlot.getSlotIndex(), mPreviousValue, mRoundNumber, value);
+        assert(!this.mPreviousValue.empty());
+        return this.mSlot.getSCPDriver().computeValueHash(
+            this.mSlot.getSlotIndex(), this.mPreviousValue, this.mRoundNumber,
+            value);
     }
 
     protected uint64 getNodePriority (ref const(NodeID) nodeID,
         ref const(SCPQuorumSet) qset)
     {
-        uint64 res;
         uint64 w;
-
-        if (nodeID == mSlot.getLocalNode().getNodeID())
+        if (nodeID == this.mSlot.getLocalNode().getNodeID())
             w = ulong.max;  // local node is in all quorum sets
         else
             w = LocalNode.getNodeWeight(nodeID, qset);
 
         // if w > 0; w is inclusive here as
         // 0 <= hashNode <= ulong.max
+        uint64 res;
         if (w > 0 && hashNode(false, nodeID) <= w)
             res = hashNode(true, nodeID);
         else
