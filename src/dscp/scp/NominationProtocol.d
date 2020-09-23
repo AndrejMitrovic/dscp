@@ -28,13 +28,9 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public alias SCPNomination = SCPNominationT!(Hash, Value);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
     public alias PublicKey = NodeID;
-    //public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature);
-    //public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature);
-
     public alias StatementPredicate = bool delegate (ref const(SCPStatement));
 
     protected Slot mSlot;
-
     protected int32 mRoundNumber = 0;
     protected Set!Value mVotes;                       // X
     protected Set!Value mAccepted;                    // Y
