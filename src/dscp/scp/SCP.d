@@ -260,76 +260,80 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
     public string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const
     {
-        const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
-        string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
+        return st.to!string;
 
-        string res = format("{ENV@%s | i: %s", nodeId, st.slotIndex);
-        switch (st.pledges.type_)
-        {
-            case SCPStatementType.SCP_ST_PREPARE:
-            {
-                const p = &st.pledges.prepare_;
-                res ~= " | PREPARE"
-                    ~ " | D: " ~ hexAbbrev(qSetHash)
-                    ~ " | b: " ~ ballotToStr(p.ballot)
-                    ~ " | p: " ~ ballotToStr(*p.prepared)
-                    ~ " | p': " ~ ballotToStr(*p.preparedPrime) ~ " | c.n: " ~ p.nC.to!string
-                    ~ " | h.n: " ~ p.nH.to!string;
-            }
-            break;
+        // todo: there's a segfault in here somewhere, null pointer
 
-            case SCPStatementType.SCP_ST_CONFIRM:
-            {
-                const c = &st.pledges.confirm_;
-                res ~= " | CONFIRM"
-                    ~ " | D: " ~ hexAbbrev(qSetHash)
-                    ~ " | b: " ~ ballotToStr(c.ballot) ~ " | p.n: " ~ c.nPrepared.to!string
-                    ~ " | c.n: " ~ c.nCommit.to!string ~ " | h.n: " ~ c.nH.to!string;
-            }
-            break;
+        //const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
+        //string nodeId = mDriver.toStrKey(st.nodeID, fullKeys);
 
-            case SCPStatementType.SCP_ST_EXTERNALIZE:
-            {
-                const ex = &st.pledges.externalize_;
-                res ~= " | EXTERNALIZE"
-                    ~ " | c: " ~ ballotToStr(ex.commit) ~ " | h.n: " ~ ex.nH.to!string
-                    ~ " | (lastD): " ~ hexAbbrev(qSetHash);
-            }
-            break;
+        //string res = format("{ENV@%s | i: %s", nodeId, st.slotIndex);
+        //switch (st.pledges.type_)
+        //{
+        //    case SCPStatementType.SCP_ST_PREPARE:
+        //    {
+        //        const p = &st.pledges.prepare_;
+        //        res ~= " | PREPARE"
+        //            ~ " | D: " ~ hexAbbrev(qSetHash)
+        //            ~ " | b: " ~ ballotToStr(p.ballot)
+        //            ~ " | p: " ~ ballotToStr(*p.prepared)
+        //            ~ " | p': " ~ ballotToStr(*p.preparedPrime) ~ " | c.n: " ~ p.nC.to!string
+        //            ~ " | h.n: " ~ p.nH.to!string;
+        //    }
+        //    break;
 
-            case SCPStatementType.SCP_ST_NOMINATE:
-            {
-                const nom = &st.pledges.nominate_;
-                res ~= " | NOMINATE"
-                    ~ " | D: " ~ hexAbbrev(qSetHash) ~ " | X: {";
-                bool first = true;
-                foreach (const v; nom.votes)
-                {
-                    if (!first)
-                        res ~= " ,";
-                    res ~= "'" ~ getValueString(v) ~ "'";
-                    first = false;
-                }
-                res ~= "}"
-                    ~ " | Y: {";
-                first = true;
-                foreach (const a; nom.accepted)
-                {
-                    if (!first)
-                        res ~= " ,";
-                    res ~= "'" ~ getValueString(a) ~ "'";
-                    first = false;
-                }
-                res ~= "}";
-            }
-            break;
+        //    case SCPStatementType.SCP_ST_CONFIRM:
+        //    {
+        //        const c = &st.pledges.confirm_;
+        //        res ~= " | CONFIRM"
+        //            ~ " | D: " ~ hexAbbrev(qSetHash)
+        //            ~ " | b: " ~ ballotToStr(c.ballot) ~ " | p.n: " ~ c.nPrepared.to!string
+        //            ~ " | c.n: " ~ c.nCommit.to!string ~ " | h.n: " ~ c.nH.to!string;
+        //    }
+        //    break;
 
-            default:
-                assert(0);
-        }
+        //    case SCPStatementType.SCP_ST_EXTERNALIZE:
+        //    {
+        //        const ex = &st.pledges.externalize_;
+        //        res ~= " | EXTERNALIZE"
+        //            ~ " | c: " ~ ballotToStr(ex.commit) ~ " | h.n: " ~ ex.nH.to!string
+        //            ~ " | (lastD): " ~ hexAbbrev(qSetHash);
+        //    }
+        //    break;
 
-        res ~= " }";
-        return res;
+        //    case SCPStatementType.SCP_ST_NOMINATE:
+        //    {
+        //        const nom = &st.pledges.nominate_;
+        //        res ~= " | NOMINATE"
+        //            ~ " | D: " ~ hexAbbrev(qSetHash) ~ " | X: {";
+        //        bool first = true;
+        //        foreach (const v; nom.votes)
+        //        {
+        //            if (!first)
+        //                res ~= " ,";
+        //            res ~= "'" ~ getValueString(v) ~ "'";
+        //            first = false;
+        //        }
+        //        res ~= "}"
+        //            ~ " | Y: {";
+        //        first = true;
+        //        foreach (const a; nom.accepted)
+        //        {
+        //            if (!first)
+        //                res ~= " ,";
+        //            res ~= "'" ~ getValueString(a) ~ "'";
+        //            first = false;
+        //        }
+        //        res ~= "}";
+        //    }
+        //    break;
+
+        //    default:
+        //        assert(0);
+        //}
+
+        //res ~= " }";
+        //return res;
     }
 
     // Slot getter
