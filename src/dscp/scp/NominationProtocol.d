@@ -15,6 +15,7 @@ import dscp.xdr.Stellar_types;
 
 import std.algorithm;
 import std.range;
+import std.stdio;
 
 import core.time;
 
@@ -64,10 +65,14 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     {
         if (!this.isNewerStatement(envelope.statement.nodeID,
             envelope.statement.pledges.nominate_))
+        {
+            writeln("ERROR: Not newer");
             return SCP.EnvelopeState.INVALID;
+        }
 
         if (!this.isSane(envelope.statement))
         {
+            writeln("ERROR: Not sane");
             log.trace("NominationProtocol: message didn't pass sanity check");
             return SCP.EnvelopeState.INVALID;
         }
@@ -316,21 +321,16 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected static bool isNewerStatement(ref const(SCPNomination) oldst,
         ref const(SCPNomination) st)
     {
-        bool res = false;
-        bool grows;
-        bool g = false;
-
-        if (isSubsetHelper(oldst.votes, st.votes, g))
+        // true if both are subsets and at least one grew
+        bool grown_votes = false;
+        if (isSubsetHelper(oldst.votes, st.votes, grown_votes))
         {
-            grows = g;
-            if (isSubsetHelper(oldst.accepted, st.accepted, g))
-            {
-                grows = grows || g;
-                res = grows; //  true only if one of the sets grew
-            }
+            bool grown_accepted = false;
+            if (isSubsetHelper(oldst.accepted, st.accepted, grown_accepted))
+                return grown_votes || grown_accepted;
         }
 
-        return res;
+        return false;
     }
 
     // returns true if 'p' is a subset of 'v'
