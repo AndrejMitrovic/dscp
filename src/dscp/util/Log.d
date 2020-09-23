@@ -1,13 +1,20 @@
 module dscp.util.Log;
 
+import std.stdio;
+
 struct Log
 {
-    public void info (T...)(T args)
+    template log (string type)
     {
+        public void log (T...)(T args)
+        {
+            writefln("[%s] " ~ args[0], type, args[1 .. $]);
+        }
     }
 
-    alias error = info;
-    alias trace = info;
+    alias error = log!"error";
+    alias trace = log!"trace";
+    alias info = log!"info";
 }
 
 Log log;
