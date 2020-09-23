@@ -90,7 +90,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             if (this.mSlot.federatedAccept(
                 (ref const(SCPStatement) st) => st.pledges.nominate.votes.canFind(vote),
                 (ref const(SCPStatement) st) => acceptPredicate(vote, st),
-                mLatestNominations))
+                this.mLatestNominations))
             {
                 auto vl = this.validateValue(vote);
                 if (vl == ValidationLevel.kFullyValidatedValue)
@@ -122,22 +122,23 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
             if (this.mSlot.federatedRatify(
                 (ref const(SCPStatement) st) => acceptPredicate(a, st),
-                mLatestNominations))
+                this.mLatestNominations))
             {
-                mCandidates.insert(a);
+                this.mCandidates.insert(a);
                 newCandidates = true;
             }
         }
 
         // only take round leader votes if we're still looking for candidates,
         // and if the node in the statement is one of the leaders
-        if (mCandidates.empty() && envelope.statement.nodeID in mRoundLeaders)
+        if (this.mCandidates.empty() &&
+            envelope.statement.nodeID in this.mRoundLeaders)
         {
             Value newVote = getNewValueFromNomination(
                 envelope.statement.pledges.nominate);
             if (!newVote.empty())
             {
-                mVotes.insert(duplicate(newVote));
+                this.mVotes.insert(duplicate(newVote));
                 modified = true;
                 this.mSlot.getSCPDriver().nominatingValue(
                     this.mSlot.getSlotIndex(), newVote);
@@ -175,7 +176,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         ref const(Value) previousValue, bool timedout)
     {
         log.trace("NominationProtocol.nominate (%s) %s",
-            mRoundNumber, this.mSlot.getSCP().getValueString(value));
+            this.mRoundNumber, this.mSlot.getSCP().getValueString(value));
 
         if (timedout && !this.mNominationStarted)
         {
@@ -218,7 +219,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             }
         }
 
-        Duration timeout = this.mSlot.getSCPDriver().computeTimeout(mRoundNumber);
+        Duration timeout = this.mSlot.getSCPDriver().computeTimeout(
+            this.mRoundNumber);
 
         this.mSlot.getSCPDriver().nominatingValue(
             this.mSlot.getSlotIndex(), nominatingValue);
@@ -378,10 +380,10 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         st.pledges.nominate.quorumSetHash = this.mSlot.getLocalNode()
             .getQuorumSetHash();
 
-        foreach (v; mVotes[])
+        foreach (v; this.mVotes[])
             st.pledges.nominate.votes ~= duplicate(v);
 
-        foreach (a; mAccepted[])
+        foreach (a; this.mAccepted[])
             st.pledges.nominate.accepted ~= duplicate(a);
 
         SCPEnvelope envelope = this.mSlot.createEnvelope(st);
@@ -396,7 +398,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         if (!this.mLastEnvelope ||
-            isNewerStatement(mLastEnvelope.statement.pledges.nominate,
+            isNewerStatement(this.mLastEnvelope.statement.pledges.nominate,
                              st.pledges.nominate))
         {
             this.mLastEnvelope = new SCPEnvelope();
@@ -526,7 +528,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
             if (!valueToNominate.empty())
             {
-                if (valueToNominate !in mVotes)
+                if (valueToNominate !in this.mVotes)
                 {
                     uint64 curHash = hashValue(valueToNominate);
                     if (curHash >= newHash)
