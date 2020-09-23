@@ -32,7 +32,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
 
     // alternative qset used during externalize {{mNodeID}}
     protected Hash gSingleQSetHash;      // hash of the singleton qset
-    protected SCPQuorumSet mSingleQSet;  // {{mNodeID}}
+    protected SCPQuorumSet* mSingleQSet;  // {{mNodeID}}
     protected SCP mSCP;
 
     public this (ref const(NodeID) nodeID, bool isValidator,
@@ -47,7 +47,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
 
         log.info("LocalNode.LocalNode@%s qset: %s", mNodeID, mQSetHash);
         mSingleQSet = getSingletonQSet(mNodeID);
-        gSingleQSetHash = getHashOf(mSingleQSet);
+        gSingleQSetHash = getHashOf(*mSingleQSet);
     }
 
     public ref const(NodeID) getNodeID () inout
@@ -160,7 +160,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
     // (required for transitivity)
     public static bool isQuorum (ref const(SCPQuorumSet) qSet,
         const(SCPEnvelope[NodeID]) map,
-        Nullable!SCPQuorumSet delegate (ref const(SCPStatement)) qfun,
+        SCPQuorumSet* delegate (ref const(SCPStatement)) qfun,
         bool delegate (ref const(SCPStatement)) filter)
     {
         NodeID[] pNodes;
@@ -178,7 +178,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
             auto quorumFilter = (NodeID nodeID)
             {
                 if (auto qSetPtr = qfun(map[nodeID].statement))
-                    return isQuorumSlice(qSetPtr, pNodes);
+                    return isQuorumSlice(*qSetPtr, pNodes);
                 else
                     return false;
             };
@@ -290,9 +290,9 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
     }
 
     // returns a quorum set {{ nodeID }}
-    public static SCPQuorumSet getSingletonQSet (ref const(NodeID) nodeID)
+    public static SCPQuorumSet* getSingletonQSet (ref const(NodeID) nodeID)
     {
-        SCPQuorumSet qSet;
+        SCPQuorumSet* qSet = new SCPQuorumSet;
         qSet.threshold = 1;
         qSet.validators ~= nodeID;
         return qSet;

@@ -288,19 +288,18 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
 
     // returns the QuorumSet that should be used for a node given the
     // statement (singleton for externalize)
-    public Nullable!SCPQuorumSet getQuorumSetFromStatement (
+    public SCPQuorumSet* getQuorumSetFromStatement (
         ref const(SCPStatement) st)
     {
-        SCPStatementType t = st.pledges.type_;
-        if (t == SCPStatementType.SCP_ST_EXTERNALIZE)
-            return Nullable!SCPQuorumSet(LocalNode.getSingletonQSet(st.nodeID));
+        if (st.pledges.type_ == SCPStatementType.SCP_ST_EXTERNALIZE)
+            return LocalNode.getSingletonQSet(st.nodeID);
 
         Hash h;
-        if (t == SCPStatementType.SCP_ST_PREPARE)
+        if (st.pledges.type_ == SCPStatementType.SCP_ST_PREPARE)
             h = st.pledges.prepare_.quorumSetHash;
-        else if (t == SCPStatementType.SCP_ST_CONFIRM)
+        else if (st.pledges.type_ == SCPStatementType.SCP_ST_CONFIRM)
             h = st.pledges.confirm_.quorumSetHash;
-        else if (t == SCPStatementType.SCP_ST_NOMINATE)
+        else if (st.pledges.type_ == SCPStatementType.SCP_ST_NOMINATE)
             h = st.pledges.nominate_.quorumSetHash;
         else
             assert(0);

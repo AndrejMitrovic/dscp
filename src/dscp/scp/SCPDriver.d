@@ -71,7 +71,7 @@ abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias make
     //
     // `null` is a valid return value which cause the statement to be
     // considered invalid.
-    public abstract Nullable!SCPQuorumSet getQSet (ref const(Hash) qSetHash);
+    public abstract SCPQuorumSet* getQSet (ref const(Hash) qSetHash);
 
     // Users of the SCP library should inherit from SCPDriver and implement the
     // public methods which are called by the SCP implementation to

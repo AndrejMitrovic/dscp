@@ -40,6 +40,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
     public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
 
     // used to filter statements
     alias StatementPredicate = bool delegate (ref const(SCPStatement));
@@ -1591,8 +1592,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     {
         const NoExtraChecks = false;
         const(char)* reason = null;
-        auto qSet = mSlot.getQuorumSetFromStatement(st);
-        if (!qSet.ok || !isQuorumSetSane(qSet, NoExtraChecks, &reason))
+        SCPQuorumSet* qSet = mSlot.getQuorumSetFromStatement(st);
+        if (qSet is null || !isQuorumSetSane(*qSet, NoExtraChecks, &reason))
         {
             // todo: use 'reason'
             log.info("Invalid quorum set received");
