@@ -78,7 +78,6 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             return SCP.EnvelopeState.VALID;
 
         bool modified; // tracks if we should emit a new nomination message
-        bool newCandidates = false;
 
         // attempts to promote some of the votes to accepted
         foreach (vote; envelope.statement.pledges.nominate.votes)
@@ -114,6 +113,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         }
 
         // attempts to promote accepted values to candidates
+        bool newCandidates = false;
         foreach (a; this.mAccepted[])
         {
             if (a in this.mCandidates)  // already promote
