@@ -32,14 +32,14 @@ struct Interval
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
+class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
     public alias SCPBallot = SCPBallotT!Value;
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
 
     // used to filter statements
     alias StatementPredicate = bool delegate (ref const(SCPStatement));
@@ -449,7 +449,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     // returns true if all values in statement are valid
     private ValidationLevel validateValues(ref const(SCPStatement) st)
     {
-        Set!Value values;
+        Set!Value values = makeSet!Value;
         final switch (st.pledges.type_)
         {
             case SCPStatementType.SCP_ST_PREPARE:
@@ -1085,7 +1085,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
             }
 
             // Collect all possible counters we might need to advance to.
-            Set!uint32 allCounters;
+            Set!uint32 allCounters = makeSet!uint32;
             foreach (node_id, e; mLatestEnvelopes)
             {
                 uint32_t c = statementBallotCounter(e.statement);
@@ -1113,7 +1113,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     // computes a list of candidate values that may have been prepared
     private Set!SCPBallot getPrepareCandidates(ref const(SCPStatement) hint)
     {
-        Set!SCPBallot hintBallots;
+        Set!SCPBallot hintBallots = makeSet!SCPBallot;
 
         switch (hint.pledges.type_)
         {
@@ -1148,7 +1148,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
                 assert(0);
         }
 
-        Set!SCPBallot candidates;
+        Set!SCPBallot candidates = makeSet!SCPBallot;
 
         while (!hintBallots.length != 0)
         {
@@ -1270,7 +1270,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashO
     private Set!uint32 getCommitBoundariesFromStatements (
         ref const(SCPBallot) ballot)
     {
-        Set!uint32 res;
+        Set!uint32 res = makeSet!uint32;
         foreach (node_id, env; mLatestEnvelopes)
         {
             const pl = &env.statement.pledges;
@@ -2031,6 +2031,7 @@ unittest
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
+    alias makeSet (T) = redBlackTree!(const(T));
 
-    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf) BP;
+    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) BP;
 }

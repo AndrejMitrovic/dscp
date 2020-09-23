@@ -17,12 +17,12 @@ import std.range;
 
 import core.time;
 
-class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
+class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
 {
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, getHashOf);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPNomination = SCPNominationT!(Hash, Value);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
@@ -57,6 +57,10 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getH
     public this (Slot slot)
     {
         mSlot = slot;
+        mVotes = makeSet!Value;
+        mAccepted = makeSet!Value;
+        mCandidates = makeSet!Value;
+        mRoundLeaders = makeSet!NodeID;
     }
 
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope)
@@ -464,7 +468,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias getH
         myQSet.innerSets = (cast(SCPQuorumSet[])localQset.innerSets).dup;
 
         // initialize priority with value derived from self
-        Set!NodeID newRoundLeaders;
+        Set!NodeID newRoundLeaders = makeSet!NodeID;
         auto localID = mSlot.getLocalNode().getNodeID();
         normalizeQSet(myQSet, &localID);
 
@@ -595,6 +599,6 @@ unittest
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
-
-    alias NominationProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf) LN;
+    alias makeSet (T) = redBlackTree!(const(T));
+    alias NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) LN;
 }

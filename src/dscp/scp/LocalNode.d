@@ -17,12 +17,12 @@ import std.range;
 /**
  * This is one Node in the stellar network
  */
-class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
+class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
 {
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
 
     protected const NodeID mNodeID;
     protected const bool mIsValidator;
@@ -270,7 +270,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
         bool delegate (ref const(SCPStatement)) filter,
         const(NodeID)* excluded = null)
     {
-        Set!NodeID s;
+        Set!NodeID s = makeSet!NodeID;
         foreach (node_id, env; map)
         {
             if (filter(env.statement))
@@ -386,5 +386,6 @@ unittest
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
-    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf) LN;
+    alias makeSet (T) = redBlackTree!(const(T));
+    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) LN;
 }

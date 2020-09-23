@@ -27,17 +27,17 @@ public enum TimerID
  * for a given slot index.
  */
 // todo: this used to be a shared_ptr to a struct
-class SlotT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
+class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf);
-    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, getHashOf);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
     public alias StatementPredicate = bool delegate (ref const(SCPStatement));
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, getHashOf);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf);
 
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
@@ -397,6 +397,6 @@ unittest
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
-
-    alias SlotT!(NodeID, Hash, Value, Signature, Set, getHashOf) Slot;
+    alias makeSet (T) = redBlackTree!(const(T));
+    alias SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) Slot;
 }

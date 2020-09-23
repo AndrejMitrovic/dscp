@@ -51,7 +51,7 @@ enum ValidationLevel
     kMaybeValidValue      // value may be valid
 }
 
-abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias getHashOf)
+abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf)
 {
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
@@ -252,6 +252,6 @@ unittest
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
-
-    alias SCPDriverT!(NodeID, Hash, Value, Signature, Set, getHashOf) SCP;
+    alias makeSet (T) = redBlackTree!(const(T));
+    alias SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf) SCP;
 }
