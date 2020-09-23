@@ -5,7 +5,6 @@
 module dscp.scp.SCPDriver;
 
 import dscp.crypto.ByteSlice;
-import dscp.crypto.Hash;
 import dscp.crypto.Hex;
 import dscp.scp.SCP;
 import dscp.util.Nullable;
@@ -51,10 +50,10 @@ enum ValidationLevel
     kMaybeValidValue      // value may be valid
 }
 
-abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
+abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
 {
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
     public alias PublicKey = NodeID;
     public alias SCPBallot = SCPBallotT!Value;
 
@@ -254,5 +253,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    alias SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) SCP;
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    alias SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) SCP;
 }

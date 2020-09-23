@@ -12,9 +12,9 @@ import std.algorithm;
 
 import core.stdc.string;
 
-struct QuorumSetSanityCheckerT (NodeID)
+struct QuorumSetSanityCheckerT (NodeID, alias hashPart)
 {
-    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
 
   public:
     this (ref const(SCPQuorumSet) qSet, bool extraChecks, const(char)** reason)
@@ -110,15 +110,18 @@ struct QuorumSetSanityCheckerT (NodeID)
     }
 }
 
-bool isQuorumSetSane(PublicKey)(ref const(SCPQuorumSetT!PublicKey) qSet,
+bool isQuorumSetSane(PublicKey, alias hashPart)(
+    ref const(SCPQuorumSetT!(PublicKey, hashPart)) qSet,
     bool extraChecks, const(char)** reason = null)
 {
-    auto checker = QuorumSetSanityCheckerT!PublicKey(qSet, extraChecks, reason);
+    auto checker = QuorumSetSanityCheckerT!(PublicKey, hashPart)(
+        qSet, extraChecks, reason);
     return checker.isSane();
 }
 
 // normalize the quorum set, optionally removing idToRemove
-void normalizeQSet(PublicKey)(ref SCPQuorumSetT!PublicKey qSet,
+void normalizeQSet(PublicKey, alias hashPart)(
+    ref SCPQuorumSetT!(PublicKey, hashPart) qSet,
     const(PublicKey)* idToRemove = null)
 {
     normalizeQSetSimplify(qSet, idToRemove);
@@ -136,7 +139,8 @@ void normalizeQSet(PublicKey)(ref SCPQuorumSetT!PublicKey qSet,
 //  * simplifies singleton innersets
 //      { t:1, { innerSet } } into innerSet
 
-void normalizeQSetSimplify (PublicKey)(ref SCPQuorumSetT!PublicKey qSet,
+void normalizeQSetSimplify (PublicKey, alias hashPart)(
+    ref SCPQuorumSetT!(PublicKey, hashPart) qSet,
     const(PublicKey)* idToRemove)
 {
     if (idToRemove)
@@ -187,7 +191,8 @@ private void dropIndex (T) (ref T[] arr, size_t index)
 
 // helper function that reorders validators and inner sets
 // in a standard way
-void normalizeQuorumSetReorder(PublicKey)(ref SCPQuorumSetT!PublicKey qset)
+void normalizeQuorumSetReorder(PublicKey, alias hashPart)(
+    ref SCPQuorumSetT!(PublicKey, hashPart) qset)
 {
     sort(qset.validators);
     foreach (qs; qset.innerSets)
@@ -222,8 +227,9 @@ int intLexicographicalCompare(E, Compare)(E[] first, E[] last, Compare comp)
 // returns -1 if l < r ; 0 if l == r ; 1 if l > r
 // lexicographical sort
 // looking at, in order: validators, innerSets, threshold
-int qSetCompareInt(PublicKey)(ref const(SCPQuorumSetT!PublicKey) l,
-    ref const(SCPQuorumSetT!PublicKey) r)
+int qSetCompareInt(PublicKey, alias hashPart)
+    (ref const(SCPQuorumSetT!(PublicKey, hashPart)) l,
+    ref const(SCPQuorumSetT!(PublicKey, hashPart)) r)
 {
     // compare by validators first
     auto res = intLexicographicalCompare(

@@ -28,17 +28,17 @@ public enum TimerID
  * for a given slot index.
  */
 // todo: this used to be a shared_ptr to a struct
-class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
+class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
-    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
-    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
     public alias StatementPredicate = bool delegate (ref const(SCPStatement));
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
 
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
@@ -391,5 +391,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    alias SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) Slot;
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    alias SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) Slot;
 }

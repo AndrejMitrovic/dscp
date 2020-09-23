@@ -14,17 +14,15 @@ import dscp.xdr.Stellar_types;
 import std.conv ;
 import std.format;
 
-class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
+class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
 {
-    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPBallot = SCPBallotT!Value;
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-
-    // todo: was shared_ptr. could be RefCounted
     alias SCPQuorumSetPtr = SCPQuorumSet*;
 
     protected LocalNode mLocalNode;
@@ -368,5 +366,6 @@ unittest
     alias Set (V) = RedBlackTree!(const(V));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) SCP;
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) SCP;
 }

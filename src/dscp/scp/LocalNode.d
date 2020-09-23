@@ -4,7 +4,6 @@
 
 module dscp.scp.LocalNode;
 
-import dscp.crypto.Hash;
 import dscp.scp.SCP;
 import dscp.scp.QuorumSetUtils;
 import dscp.util.Log;
@@ -18,12 +17,12 @@ import std.range;
 /**
  * This is one Node in the stellar network
  */
-class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias duplicate)
+class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
 {
-    public alias SCPQuorumSet = SCPQuorumSetT!NodeID;
+    public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
 
     protected const NodeID mNodeID;
     protected const bool mIsValidator;
@@ -386,5 +385,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, duplicate) LN;
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) LN;
 }

@@ -99,24 +99,24 @@ struct SCPEnvelopeT (NodeID, Hash, Value, Signature)
 
 // supports things like: A,B,C,(D,E,F),(G,H,(I,J,K,L))
 // only allows 2 levels of nesting
-struct SCPQuorumSetT (PublicKey)
+struct SCPQuorumSetT (PublicKey, alias hashPart)
 {
     uint32 threshold;
     PublicKey[] validators;
     alias nodes = validators;
-    SCPQuorumSetT!PublicKey[] innerSets;
+    SCPQuorumSetT[] innerSets;
     alias quorums = innerSets;
 
-    public void computeHash (void delegate(scope const(ubyte)[]) dg)
-        const nothrow @safe @nogc
+    public alias HashDg = void delegate(scope const(ubyte)[]) /*pure*/ nothrow @safe @nogc;
+
+    public void computeHash (HashDg dg) const nothrow @trusted @nogc
     {
-        // todo
-        //hashPart(this.threshold, dg);
+        hashPart(this.threshold, dg);
 
-        //foreach (const ref node; this.validators)
-        //    hashPart(node, dg);
+        foreach (const ref node; this.validators)
+            hashPart(node, dg);
 
-        //foreach (const ref quorum; this.innerSets)
-        //    hashPart(quorum, dg);
+        foreach (const ref quorum; this.innerSets)
+            hashPart(quorum, dg);
     }
 }
