@@ -257,7 +257,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     /// used externally by client code
     public const(SCPEnvelope)* getLastMessageSend () const
     {
-        return this.mLastEnvelope.get();
+        return this.mLastEnvelope;
     }
 
     /// Only used during boot-up if we want to load old SCP state

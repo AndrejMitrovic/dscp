@@ -6,36 +6,11 @@ module dscp.xdr.Stellar_types;
 
 import std.container;
 
-//package(dscp) alias Hash = ubyte[64];
-//package(dscp) alias uint256 = ubyte[32];
-//package(dscp) alias uint512 = ubyte[64];
-
-//// fixed size as we use a 64-byte Signature in Agora
-//alias Signature = ubyte[64];
-
-//alias SignatureHint = ubyte[4];
-
-//alias NodeID = PublicKey;
-
-//package(dscp)
-//struct PublicKey
-//{
-//    int opCmp (const ref PublicKey rhs) inout
-//    {
-//        return this.ed25519 < rhs.ed25519;
-//    }
-
-//    uint256 ed25519;
-//}
-
 alias uint32 = uint;
 alias int32 = int;
 
 alias uint64 = ulong;
 alias int64 = long;
-
-// workaround for shared_ptr.get()
-auto get (T)(T* val) { return val; }
 
 // workaround for std.vector.length
 auto size (T)(T[] val) { return val.length; }

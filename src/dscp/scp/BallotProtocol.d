@@ -249,7 +249,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     /// used externally by client code
     public const(SCPEnvelope)* getLastMessageSend () const
     {
-        return mLastEnvelopeEmit.get();
+        return mLastEnvelopeEmit;
     }
 
     /// Only used during boot-up if we want to load old SCP state
@@ -260,7 +260,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
         recordEnvelope(e);
 
-        mLastEnvelope = new SCPEnvelope;
+        if (mLastEnvelope is null)
+            mLastEnvelope = new SCPEnvelope;
         *mLastEnvelope = duplicate(e);
         mLastEnvelopeEmit = mLastEnvelope;
 
