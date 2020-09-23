@@ -13,6 +13,7 @@ import dscp.util.Log;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
+import std.conv;
 import std.range;
 
 import core.stdc.stdint;
@@ -155,7 +156,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // at counter `n` (or, if n == 0, increment current counter)
     public bool abandonBallot (uint32 n)
     {
-        //log.trace("BallotProtocol.abandonBallot";
+        log.trace("BallotProtocol.abandonBallot");
         Value v = duplicate(mSlot.getLatestCompositeCandidate());
         if (v.empty())
         {
@@ -209,10 +210,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             newb.value = duplicate(value);
         }
 
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.bumpState"
-        //                       << " i: " << mSlot.getSlotIndex()
-        //                       << " v: " << mSlot.getSCP().ballotToStr(newb);
+        log.trace("BallotProtocol.bumpState i: %s v: ",
+            mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(newb));
 
         if (!updateCurrentValue(newb))
             return false;
@@ -398,9 +397,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private void advanceSlot (ref const(SCPStatement) hint)
     {
         mCurrentMessageLevel++;
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.advanceSlot "
-        //                       << mCurrentMessageLevel << " " << getLocalState();
+        log.trace("BallotProtocol.advanceSlot %s %s",
+            mCurrentMessageLevel, this);
 
         // TODO: verify the safety of this, it seems like it could cause a crash
         if (mCurrentMessageLevel >= MAX_ADVANCE_SLOT_RECURSION)
@@ -433,10 +431,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             checkHeardFromQuorum();
         }
 
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.advanceSlot "
-        //                       << mCurrentMessageLevel << " - exiting "
-        //                       << getLocalState();
+        log.trace("BallotProtocol.advanceSlot %s - exiting %s",
+            mCurrentMessageLevel, this);
 
         --mCurrentMessageLevel;
 
@@ -606,10 +602,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // prepared: ballot that should be prepared
     private bool setPreparedAccept (ref const(SCPBallot) ballot)
     {
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.setPreparedAccept"
-        //                       << " i: " << mSlot.getSlotIndex()
-        //                       << " b: " << mSlot.getSCP().ballotToStr(ballot);
+        log.trace("BallotProtocol.setPreparedAccept i: %s b: %s",
+            mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(ballot));
 
         // update our state
         bool didWork = setPrepared(ballot);
@@ -714,10 +708,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // newC, newH : low/high bounds prepared confirmed
     private bool setPreparedConfirmed(ref const(SCPBallot) newC, ref const(SCPBallot) newH)
     {
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.setPreparedConfirmed"
-        //                       << " i: " << mSlot.getSlotIndex()
-        //                       << " h: " << mSlot.getSCP().ballotToStr(newH);
+        log.trace("BallotProtocol.setPreparedConfirmed i: %s h: ",
+            mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(newH));
 
         bool didWork = false;
 
@@ -887,11 +879,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // new values for c and h
     private bool setAcceptCommit(ref const(SCPBallot) c, ref const(SCPBallot) h)
     {
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.setAcceptCommit"
-        //                       << " i: " << mSlot.getSlotIndex()
-        //                       << " new c: " << mSlot.getSCP().ballotToStr(c)
-        //                       << " new h: " << mSlot.getSCP().ballotToStr(h);
+        log.trace("BallotProtocol.setAcceptCommit i: %s new c: %s new h: %s",
+            mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(c),
+            mSlot.getSCP().ballotToStr(h));
 
         bool didWork = false;
 
@@ -1023,11 +1013,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private bool setConfirmCommit (ref const(SCPBallot) c,
         ref const(SCPBallot) h)
     {
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.setConfirmCommit"
-        //                       << " i: " << mSlot.getSlotIndex()
-        //                       << " new c: " << mSlot.getSCP().ballotToStr(c)
-        //                       << " new h: " << mSlot.getSCP().ballotToStr(h);
+        log.trace("BallotProtocol.setConfirmCommit i: %s new c: %s new h: %s",
+            mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(c),
+            mSlot.getSCP().ballotToStr(h));
 
         mCommit = new SCPBallot;
         *mCommit = duplicate(c);
@@ -1592,8 +1580,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         SCPQuorumSet* qSet = mSlot.getQuorumSetFromStatement(st);
         if (qSet is null || !isQuorumSetSane(*qSet, NoExtraChecks, &reason))
         {
-            // todo: use 'reason'
-            log.info("Invalid quorum set received");
+            log.info("Invalid quorum set received: %s", reason.to!string);
             return false;
         }
 
@@ -1669,10 +1656,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // check: verifies that ballot is greater than old one
     private void bumpToBallot (ref const(SCPBallot) ballot, bool check)
     {
-        //if (Logging.logTrace("SCP"))
-        //    log.trace("BallotProtocol.bumpToBallot"
-        //                       << " i: " << mSlot.getSlotIndex()
-        //                       << " b: " << mSlot.getSCP().ballotToStr(ballot);
+        log.trace("BallotProtocol.bumpToBallot i: %s b: %s",
+            mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(ballot));
 
         // `bumpToBallot` should be never called once we committed.
         assert(mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE);
@@ -1754,8 +1739,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             }
         }
 
-        //if (updated)
-            //log.trace("BallotProtocol.updateCurrentValue updated";
+        if (updated)
+            log.trace("BallotProtocol.updateCurrentValue updated");
 
         checkInvariants();
 
