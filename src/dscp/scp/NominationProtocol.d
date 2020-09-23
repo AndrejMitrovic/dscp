@@ -318,7 +318,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         return true;
     }
 
-    protected static bool isNewerStatement(ref const(SCPNomination) oldst,
+    protected static bool isNewerStatement (ref const(SCPNomination) oldst,
         ref const(SCPNomination) st)
     {
         // true if both are subsets and at least one grew
