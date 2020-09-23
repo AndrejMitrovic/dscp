@@ -31,7 +31,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public alias StatementPredicate = bool delegate (ref const(SCPStatement));
 
     protected Slot mSlot;
-    protected int32 mRoundNumber = 0;
+    protected int32 mRoundNumber;
     protected Set!Value mVotes;                       // X
     protected Set!Value mAccepted;                    // Y
     protected Set!Value mCandidates;                  // Z
@@ -43,7 +43,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     protected Set!NodeID mRoundLeaders;
 
     // true if 'nominate' was called
-    protected bool mNominationStarted = false;
+    protected bool mNominationStarted;
 
     // the latest (if any) candidate value
     protected Value mLatestCompositeCandidate;
@@ -53,11 +53,11 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
     public this (Slot slot)
     {
-        mSlot = slot;
-        mVotes = makeSet!Value;
-        mAccepted = makeSet!Value;
-        mCandidates = makeSet!Value;
-        mRoundLeaders = makeSet!NodeID;
+        this.mSlot = slot;
+        this.mVotes = makeSet!Value;
+        this.mAccepted = makeSet!Value;
+        this.mCandidates = makeSet!Value;
+        this.mRoundLeaders = makeSet!NodeID;
     }
 
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope)
@@ -89,8 +89,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
             if (this.mSlot.federatedAccept(
                 (ref const(SCPStatement) st) {
-                    const nom = &st.pledges.nominate_;
-                    return nom.votes.canFind(v);
+                    return st.pledges.nominate_.votes.canFind(v);
                 },
                 (ref const(SCPStatement) st) => acceptPredicate(v, st),
                 mLatestNominations))
