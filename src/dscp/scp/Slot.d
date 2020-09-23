@@ -323,28 +323,28 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     // returns true if the statement defined by voted and accepted
     // should be accepted
     public bool federatedAccept (StatementPredicate voted,
-        StatementPredicate accepted, const(SCPEnvelope[NodeID]) envs)
+        StatementPredicate accepted, const(SCPEnvelope[NodeID]) node_msgs)
     {
         // Checks if the nodes that claimed to accept the statement form a
         // v-blocking set
-        if (LocalNode.isVBlocking(getLocalNode().getQuorumSet(), envs, accepted))
+        if (LocalNode.isVBlocking(getLocalNode().getQuorumSet(), node_msgs,
+            accepted))
             return true;
 
         return LocalNode.isQuorum(
-            getLocalNode().getQuorumSet(), envs,
+            getLocalNode().getQuorumSet(), node_msgs,
             &this.getQuorumSetFromStatement,
             // ratify filter - accepted / voted form a quorum
-            (ref const(SCPStatement) st) => (accepted(st) || voted(st))
-        );
+            (ref const(SCPStatement) st) => (accepted(st) || voted(st)));
     }
 
     // returns true if the statement defined by voted
     // is ratified
     public bool federatedRatify (StatementPredicate voted,
-        const(SCPEnvelope[NodeID]) envs)
+        const(SCPEnvelope[NodeID]) node_msgs)
     {
         return LocalNode.isQuorum(
-            getLocalNode().getQuorumSet(), envs,
+            getLocalNode().getQuorumSet(), node_msgs,
             &this.getQuorumSetFromStatement, voted);
     }
 

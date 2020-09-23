@@ -88,9 +88,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                 continue;  // vote is already accepted
 
             if (this.mSlot.federatedAccept(
-                (ref const(SCPStatement) st) {
-                    return st.pledges.nominate.votes.canFind(vote);
-                },
+                (ref const(SCPStatement) st) => st.pledges.nominate.votes.canFind(vote),
                 (ref const(SCPStatement) st) => acceptPredicate(vote, st),
                 mLatestNominations))
             {
@@ -106,15 +104,11 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
                     // the value made it pretty far:
                     // see if we can vote for a variation that
                     // we consider valid
-                    Value toVote;
-                    toVote = this.extractValidValue(vote);
-                    if (!toVote.empty())
+                    Value toVote = this.extractValidValue(vote);
+                    if (!toVote.empty() && toVote !in this.mVotes)
                     {
-                        if (toVote !in this.mVotes)
-                        {
-                            this.mVotes.insert(duplicate(toVote));
-                            modified = true;
-                        }
+                        this.mVotes.insert(duplicate(toVote));
+                        modified = true;
                     }
                 }
             }
@@ -123,7 +117,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         // attempts to promote accepted values to candidates
         foreach (a; this.mAccepted[])
         {
-            if (a in this.mCandidates)
+            if (a in this.mCandidates)  // already promote
                 continue;
 
             if (this.mSlot.federatedRatify(
@@ -135,11 +129,12 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
             }
         }
 
-        // only take round leader votes if we're still looking for
-        // candidates
+        // only take round leader votes if we're still looking for candidates,
+        // and if the node in the statement is one of the leaders
         if (mCandidates.empty() && envelope.statement.nodeID in mRoundLeaders)
         {
-            Value newVote = getNewValueFromNomination(envelope.statement.pledges.nominate);
+            Value newVote = getNewValueFromNomination(
+                envelope.statement.pledges.nominate);
             if (!newVote.empty())
             {
                 mVotes.insert(duplicate(newVote));
