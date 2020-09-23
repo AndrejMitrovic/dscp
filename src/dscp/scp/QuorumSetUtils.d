@@ -56,6 +56,8 @@ struct QuorumSetSanityCheckerT (NodeID, alias hashPart)
 
     bool checkSanity(ref const(SCPQuorumSet) qSet, int depth, const(char)** reason)
     {
+        mKnownNodes = new Set!NodeID;
+
         if (depth > 2)
         {
             *reason = "Cannot have sub-quorums with depth exceeding 2 levels";
