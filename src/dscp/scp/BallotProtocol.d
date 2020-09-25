@@ -119,11 +119,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             return SCP.EnvelopeState.INVALID;
         }
 
-        if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
+        if (this.mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
         {
             // note: this handles also our own messages
             // in particular our final EXTERNALIZE message
-            if (mCommit.value == getWorkingBallot(envelope.statement).value)
+            if (this.mCommit.value == getWorkingBallot(envelope.statement).value)
             {
                 // note: the slot is not advanced, because externalize is final
                 recordEnvelope(envelope);
@@ -161,8 +161,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         Value v = duplicate(this.mSlot.getLatestCompositeCandidate());
         if (v.empty())
         {
-            if (mCurrentBallot)
-                v = mCurrentBallot.value;
+            if (this.mCurrentBallot)
+                v = this.mCurrentBallot.value;
         }
 
         if (!v.empty())
@@ -183,28 +183,28 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // the state if no value was prepared
     public bool bumpState (ref const(Value) value, bool force)
     {
-        if (!force && mCurrentBallot)
+        if (!force && this.mCurrentBallot)
             return false;
 
-        uint32 n = mCurrentBallot ? (mCurrentBallot.counter + 1) : 1;
+        uint32 n = this.mCurrentBallot ? (this.mCurrentBallot.counter + 1) : 1;
         return this.bumpState(value, n);
     }
 
     // flavor that takes the actual desired counter value
     public bool bumpState (ref const(Value) value, uint32 n)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
-            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            this.mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
 
         SCPBallot newb;
         newb.counter = n;
 
-        if (mValueOverride !is null)
+        if (this.mValueOverride !is null)
         {
             // we use the value that we saw confirmed prepared
             // or that we at least voted to commit to
-            newb.value = *mValueOverride;
+            newb.value = *this.mValueOverride;
         }
         else
         {
@@ -250,21 +250,21 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     /// used externally by client code
     public const(SCPEnvelope)* getLastMessageSend () const
     {
-        return mLastEnvelopeEmit;
+        return this.mLastEnvelopeEmit;
     }
 
     /// Only used during boot-up if we want to load old SCP state
     public void setStateFromEnvelope (ref const(SCPEnvelope) e)
     {
-        if (mCurrentBallot !is null)
+        if (this.mCurrentBallot !is null)
             assert(0, "Cannot set state after starting ballot protocol");
 
         recordEnvelope(e);
 
-        if (mLastEnvelope is null)
-            mLastEnvelope = new SCPEnvelope;
-        *mLastEnvelope = duplicate(e);
-        mLastEnvelopeEmit = mLastEnvelope;
+        if (this.mLastEnvelope is null)
+            this.mLastEnvelope = new SCPEnvelope;
+        *this.mLastEnvelope = duplicate(e);
+        this.mLastEnvelopeEmit = this.mLastEnvelope;
 
         const pl = &e.statement.pledges;
 
@@ -278,29 +278,29 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
                 if (prep.prepared)
                 {
-                    mPrepared = new SCPBallot;
-                    *mPrepared = duplicate(*prep.prepared);
+                    this.mPrepared = new SCPBallot;
+                    *this.mPrepared = duplicate(*prep.prepared);
                 }
 
                 if (prep.preparedPrime)
                 {
-                    mPreparedPrime = new SCPBallot;
-                    *mPreparedPrime = duplicate(*prep.preparedPrime);
+                    this.mPreparedPrime = new SCPBallot;
+                    *this.mPreparedPrime = duplicate(*prep.preparedPrime);
                 }
 
                 if (prep.nH)
                 {
-                    mHighBallot = new SCPBallot;
-                    *mHighBallot = SCPBallot(prep.nH, duplicate(b.value));
+                    this.mHighBallot = new SCPBallot;
+                    *this.mHighBallot = SCPBallot(prep.nH, duplicate(b.value));
                 }
 
                 if (prep.nC)
                 {
-                    mCommit = new SCPBallot;
-                    *mCommit = SCPBallot(prep.nC, duplicate(b.value));
+                    this.mCommit = new SCPBallot;
+                    *this.mCommit = SCPBallot(prep.nC, duplicate(b.value));
                 }
 
-                mPhase = SCPPhase.SCP_PHASE_PREPARE;
+                this.mPhase = SCPPhase.SCP_PHASE_PREPARE;
                 break;
             }
 
@@ -309,13 +309,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 const c = &pl.confirm;
                 const v = &c.ballot.value;
                 bumpToBallot(c.ballot, true);
-                mPrepared = new SCPBallot;
-                *mPrepared = SCPBallot(c.nPrepared, duplicate(*v));
-                mHighBallot = new SCPBallot;
-                *mHighBallot = SCPBallot(c.nH, duplicate(*v));
-                mCommit = new SCPBallot;
-                *mCommit = SCPBallot(c.nCommit, duplicate(*v));
-                mPhase = SCPPhase.SCP_PHASE_CONFIRM;
+                this.mPrepared = new SCPBallot;
+                *this.mPrepared = SCPBallot(c.nPrepared, duplicate(*v));
+                this.mHighBallot = new SCPBallot;
+                *this.mHighBallot = SCPBallot(c.nH, duplicate(*v));
+                this.mCommit = new SCPBallot;
+                *this.mCommit = SCPBallot(c.nCommit, duplicate(*v));
+                this.mPhase = SCPPhase.SCP_PHASE_CONFIRM;
                 break;
             }
 
@@ -325,13 +325,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 const v = &ext.commit.value;
                 auto bump_ballot = SCPBallot(uint.max, duplicate(*v));
                 bumpToBallot(bump_ballot, true);
-                mPrepared = new SCPBallot;
-                *mPrepared = SCPBallot(uint.max, duplicate(*v));
-                mHighBallot = new SCPBallot;
-                *mHighBallot = SCPBallot(ext.nH, duplicate(*v));
-                mCommit = new SCPBallot;
-                *mCommit = duplicate(ext.commit);
-                mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
+                this.mPrepared = new SCPBallot;
+                *this.mPrepared = SCPBallot(uint.max, duplicate(*v));
+                this.mHighBallot = new SCPBallot;
+                *this.mHighBallot = SCPBallot(ext.nH, duplicate(*v));
+                this.mCommit = new SCPBallot;
+                *this.mCommit = duplicate(ext.commit);
+                this.mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
                 break;
             }
 
@@ -344,8 +344,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     public const(SCPEnvelope)[] getCurrentState () const
     {
         const(SCPEnvelope)[] res;
-        res.reserve(mLatestEnvelopes.length);
-        foreach (node_id, env; mLatestEnvelopes)
+        res.reserve(this.mLatestEnvelopes.length);
+        foreach (node_id, env; this.mLatestEnvelopes)
         {
             // only return messages for self if the slot is fully validated
             if (node_id != this.mSlot.getSCP().getLocalNodeID() ||
@@ -360,19 +360,19 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // or null if not found
     public const(SCPEnvelope)* getLatestMessage (ref const(NodeID) id) const
     {
-        return id in mLatestEnvelopes;
+        return id in this.mLatestEnvelopes;
     }
 
     /// returns messages that contributed to externalizing the given slot index
     /// (or null if the slot didn't externalize)
     public const(SCPEnvelope)[] getExternalizingState () const
     {
-        if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
+        if (this.mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
             return null;
 
         const(SCPEnvelope)[] res;
-        res.reserve(mLatestEnvelopes.length);
-        foreach (node_id, env; mLatestEnvelopes)
+        res.reserve(this.mLatestEnvelopes.length);
+        foreach (node_id, env; this.mLatestEnvelopes)
         {
             if (node_id != this.mSlot.getSCP().getLocalNodeID())
             {
@@ -380,7 +380,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 // externalized
                 // we could filter more using mConfirmedPrepared as well
                 auto work_ballot = getWorkingBallot(env.statement);
-                if (areBallotsCompatible(work_ballot, *mCommit))
+                if (areBallotsCompatible(work_ballot, *this.mCommit))
                     res ~= env;
             }
             else if (this.mSlot.isFullyValidated())
@@ -398,12 +398,12 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // to make progress
     private void advanceSlot (ref const(SCPStatement) hint)
     {
-        mCurrentMessageLevel++;
+        this.mCurrentMessageLevel++;
         log.trace("BallotProtocol.advanceSlot %s %s",
-            mCurrentMessageLevel, this);
+            this.mCurrentMessageLevel, this);
 
         // TODO: verify the safety of this, it seems like it could cause a crash
-        if (mCurrentMessageLevel >= MAX_ADVANCE_SLOT_RECURSION)
+        if (this.mCurrentMessageLevel >= MAX_ADVANCE_SLOT_RECURSION)
             assert(0, "maximum number of transitions reached in advanceSlot");
 
         // attempt* methods will queue up messages, causing advanceSlot to be
@@ -420,7 +420,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         didWork |= attemptConfirmCommit(hint);
 
         // only bump after we're done with everything else
-        if (mCurrentMessageLevel == 1)
+        if (this.mCurrentMessageLevel == 1)
         {
             bool didBump = false;
             do
@@ -434,9 +434,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         }
 
         log.trace("BallotProtocol.advanceSlot %s - exiting %s",
-            mCurrentMessageLevel, this);
+            this.mCurrentMessageLevel, this);
 
-        --mCurrentMessageLevel;
+        --this.mCurrentMessageLevel;
 
         if (didWork)
             sendLatestEnvelope();
@@ -494,13 +494,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private void sendLatestEnvelope()
     {
         // emit current envelope if needed
-        if (mCurrentMessageLevel == 0 && mLastEnvelope &&
+        if (this.mCurrentMessageLevel == 0 && this.mLastEnvelope &&
             this.mSlot.isFullyValidated())
         {
-            if (!mLastEnvelopeEmit || mLastEnvelope != mLastEnvelopeEmit)
+            if (!this.mLastEnvelopeEmit || this.mLastEnvelope != this.mLastEnvelopeEmit)
             {
-                mLastEnvelopeEmit = mLastEnvelope;
-                this.mSlot.getSCPDriver().emitEnvelope(*mLastEnvelopeEmit);
+                this.mLastEnvelopeEmit = this.mLastEnvelope;
+                this.mSlot.getSCPDriver().emitEnvelope(*this.mLastEnvelopeEmit);
             }
         }
     }
@@ -521,8 +521,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // step 1 and 5 from the SCP paper
     private bool attemptPreparedAccept(ref const(SCPStatement) hint)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
-            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            this.mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
 
         auto candidates = getPrepareCandidates(hint);
@@ -534,26 +534,26 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         {
             const(SCPBallot) ballot = cur;
 
-            if (mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+            if (this.mPhase == SCPPhase.SCP_PHASE_CONFIRM)
             {
                 // only consider the ballot if it may help us increase
                 // p (note: at this point, p ~ c)
-                if (!areBallotsLessAndCompatible(*mPrepared, ballot))
+                if (!areBallotsLessAndCompatible(*this.mPrepared, ballot))
                     continue;
 
-                assert(areBallotsCompatible(*mCommit, ballot));
+                assert(areBallotsCompatible(*this.mCommit, ballot));
             }
 
             // if we already prepared this ballot, don't bother checking again
 
             // if ballot <= p' ballot is neither a candidate for p nor p'
-            if (mPreparedPrime && compareBallots(ballot, *mPreparedPrime) <= 0)
+            if (this.mPreparedPrime && compareBallots(ballot, *this.mPreparedPrime) <= 0)
                 continue;
 
-            if (mPrepared)
+            if (this.mPrepared)
             {
                 // if ballot is already covered by p, skip
-                if (areBallotsLessAndCompatible(ballot, *mPrepared))
+                if (areBallotsLessAndCompatible(ballot, *this.mPrepared))
                     continue;
 
                 // otherwise, there is a chance it increases p'
@@ -612,15 +612,15 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = setPrepared(ballot);
 
         // check if we also need to clear 'c'
-        if (mCommit && mHighBallot)
+        if (this.mCommit && this.mHighBallot)
         {
-            if ((mPrepared &&
-                 areBallotsLessAndIncompatible(*mHighBallot, *mPrepared)) ||
-                (mPreparedPrime &&
-                 areBallotsLessAndIncompatible(*mHighBallot, *mPreparedPrime)))
+            if ((this.mPrepared &&
+                 areBallotsLessAndIncompatible(*this.mHighBallot, *this.mPrepared)) ||
+                (this.mPreparedPrime &&
+                 areBallotsLessAndIncompatible(*this.mHighBallot, *this.mPreparedPrime)))
             {
-                assert(mPhase == SCPPhase.SCP_PHASE_PREPARE);
-                mCommit = null;
+                assert(this.mPhase == SCPPhase.SCP_PHASE_PREPARE);
+                this.mCommit = null;
                 didWork = true;
             }
         }
@@ -639,11 +639,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // ballot is the candidate to record as 'confirmed prepared'
     private bool attemptPreparedConfirmed (ref const(SCPStatement) hint)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE)
+        if (this.mPhase != SCPPhase.SCP_PHASE_PREPARE)
             return false;
 
         // check if we could accept this ballot as prepared
-        if (!mPrepared)
+        if (!this.mPrepared)
             return false;
 
         auto candidates = getPrepareCandidates(hint);
@@ -660,7 +660,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             SCPBallot ballot = duplicate(cur);
 
             // only consider it if we can potentially raise h
-            if (mHighBallot && compareBallots(*mHighBallot, ballot) >= 0)
+            if (this.mHighBallot && compareBallots(*this.mHighBallot, ballot) >= 0)
                 break;
 
             bool ratified = federatedRatify(
@@ -679,11 +679,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         SCPBallot newC;
         // now, look for newC (left as 0 if no update)
         // step (3) from the paper
-        SCPBallot b = mCurrentBallot ? *mCurrentBallot : SCPBallot();
-        if (!mCommit &&
-            (!mPrepared || !areBallotsLessAndIncompatible(newH, *mPrepared)) &&
-            (!mPreparedPrime ||
-             !areBallotsLessAndIncompatible(newH, *mPreparedPrime)))
+        SCPBallot b = this.mCurrentBallot ? *this.mCurrentBallot : SCPBallot();
+        if (!this.mCommit &&
+            (!this.mPrepared || !areBallotsLessAndIncompatible(newH, *this.mPrepared)) &&
+            (!this.mPreparedPrime ||
+             !areBallotsLessAndIncompatible(newH, *this.mPreparedPrime)))
         {
             // continue where we left off (cur is at newH at this point)
             foreach (cur; range)
@@ -718,24 +718,24 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember newH's value
-        mValueOverride = new Value;
-        *mValueOverride = duplicate(newH.value);
+        this.mValueOverride = new Value;
+        *this.mValueOverride = duplicate(newH.value);
 
         // we don't set c/h if we're not on a compatible ballot
-        if (!mCurrentBallot || areBallotsCompatible(*mCurrentBallot, newH))
+        if (!this.mCurrentBallot || areBallotsCompatible(*this.mCurrentBallot, newH))
         {
-            if (!mHighBallot || compareBallots(newH, *mHighBallot) > 0)
+            if (!this.mHighBallot || compareBallots(newH, *this.mHighBallot) > 0)
             {
                 didWork = true;
-                mHighBallot = new SCPBallot;
-                *mHighBallot = duplicate(newH);
+                this.mHighBallot = new SCPBallot;
+                *this.mHighBallot = duplicate(newH);
             }
 
             if (newC.counter != 0)
             {
-                assert(!mCommit);
-                mCommit = new SCPBallot;
-                *mCommit = duplicate(newC);
+                assert(!this.mCommit);
+                this.mCommit = new SCPBallot;
+                *this.mCommit = duplicate(newC);
                 didWork = true;
             }
 
@@ -758,8 +758,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // step (4 and 6)+8 from the SCP paper
     private bool attemptAcceptCommit(ref const(SCPStatement) hint)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
-            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            this.mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
 
         // extracts value from hint
@@ -796,9 +796,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 assert(0);
         }
 
-        if (mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase == SCPPhase.SCP_PHASE_CONFIRM)
         {
-            if (!areBallotsCompatible(ballot, *mHighBallot))
+            if (!areBallotsCompatible(ballot, *this.mHighBallot))
             {
                 return false;
             }
@@ -867,8 +867,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
         if (candidate.first != 0)
         {
-            if (mPhase != SCPPhase.SCP_PHASE_CONFIRM ||
-                candidate.second > mHighBallot.counter)
+            if (this.mPhase != SCPPhase.SCP_PHASE_CONFIRM ||
+                candidate.second > this.mHighBallot.counter)
             {
                 SCPBallot c = SCPBallot(candidate.first, ballot.value);
                 SCPBallot h = SCPBallot(candidate.second, ballot.value);
@@ -889,33 +889,33 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember h's value
-        mValueOverride = new Value;
-        *mValueOverride = duplicate(h.value);
+        this.mValueOverride = new Value;
+        *this.mValueOverride = duplicate(h.value);
 
-        if (!mHighBallot || !mCommit || compareBallots(*mHighBallot, h) != 0 ||
-            compareBallots(*mCommit, c) != 0)
+        if (!this.mHighBallot || !this.mCommit || compareBallots(*this.mHighBallot, h) != 0 ||
+            compareBallots(*this.mCommit, c) != 0)
         {
-            mCommit = new SCPBallot;
-            *mCommit = duplicate(c);
-            mHighBallot = new SCPBallot;
-            *mHighBallot = duplicate(h);
+            this.mCommit = new SCPBallot;
+            *this.mCommit = duplicate(c);
+            this.mHighBallot = new SCPBallot;
+            *this.mHighBallot = duplicate(h);
 
             didWork = true;
         }
 
-        if (mPhase == SCPPhase.SCP_PHASE_PREPARE)
+        if (this.mPhase == SCPPhase.SCP_PHASE_PREPARE)
         {
-            mPhase = SCPPhase.SCP_PHASE_CONFIRM;
-            if (mCurrentBallot && !areBallotsLessAndCompatible(h, *mCurrentBallot))
+            this.mPhase = SCPPhase.SCP_PHASE_CONFIRM;
+            if (this.mCurrentBallot && !areBallotsLessAndCompatible(h, *this.mCurrentBallot))
                 bumpToBallot(h, false);
 
-            mPreparedPrime = null;
+            this.mPreparedPrime = null;
             didWork = true;
         }
 
         if (didWork)
         {
-            updateCurrentIfNeeded(*mHighBallot);
+            updateCurrentIfNeeded(*this.mHighBallot);
             this.mSlot.getSCPDriver().acceptedCommit(
                 this.mSlot.getSlotIndex(), h);
             this.emitCurrentStateStatement();
@@ -952,10 +952,10 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // step 7+8 from the SCP paper
     private bool attemptConfirmCommit (ref const(SCPStatement) hint)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
 
-        if (!mHighBallot || !mCommit)
+        if (!this.mHighBallot || !this.mCommit)
             return false;
 
         // extracts value from hint
@@ -984,7 +984,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 assert(0);
         }
 
-        if (!areBallotsCompatible(ballot, *mCommit))
+        if (!areBallotsCompatible(ballot, *this.mCommit))
             return false;
 
         Set!uint32 boundaries = getCommitBoundariesFromStatements(ballot);
@@ -1014,20 +1014,20 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             this.mSlot.getSlotIndex(), this.mSlot.getSCP().ballotToStr(c),
             this.mSlot.getSCP().ballotToStr(h));
 
-        mCommit = new SCPBallot;
-        *mCommit = duplicate(c);
-        mHighBallot = new SCPBallot;
-        *mHighBallot = duplicate(h);
-        updateCurrentIfNeeded(*mHighBallot);
+        this.mCommit = new SCPBallot;
+        *this.mCommit = duplicate(c);
+        this.mHighBallot = new SCPBallot;
+        *this.mHighBallot = duplicate(h);
+        updateCurrentIfNeeded(*this.mHighBallot);
 
-        mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
+        this.mPhase = SCPPhase.SCP_PHASE_EXTERNALIZE;
 
         this.emitCurrentStateStatement();
 
         this.mSlot.stopNomination();
 
         this.mSlot.getSCPDriver().valueExternalized(this.mSlot.getSlotIndex(),
-            mCommit.value);
+            this.mCommit.value);
 
         return true;
     }
@@ -1051,22 +1051,22 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
     private bool attemptBump ()
     {
-        if (mPhase == SCPPhase.SCP_PHASE_PREPARE ||
-            mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase == SCPPhase.SCP_PHASE_PREPARE ||
+            this.mPhase == SCPPhase.SCP_PHASE_CONFIRM)
         {
 
             // First check to see if this condition applies at all. If there
             // is no v-blocking set ahead of the local node, there's nothing
             // to do, return early.
             auto localNode = getLocalNode();
-            uint32 localCounter = mCurrentBallot ? mCurrentBallot.counter : 0;
-            if (!hasVBlockingSubsetStrictlyAheadOf(localNode, mLatestEnvelopes,
+            uint32 localCounter = this.mCurrentBallot ? this.mCurrentBallot.counter : 0;
+            if (!hasVBlockingSubsetStrictlyAheadOf(localNode, this.mLatestEnvelopes,
                 localCounter))
                 return false;
 
             // Collect all possible counters we might need to advance to.
             Set!uint32 allCounters = makeSet!uint32;
-            foreach (node_id, e; mLatestEnvelopes)
+            foreach (node_id, e; this.mLatestEnvelopes)
             {
                 uint32_t c = statementBallotCounter(e.statement);
                 if (c > localCounter)
@@ -1080,7 +1080,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             foreach (uint32_t n; allCounters)
             {
                 if (!hasVBlockingSubsetStrictlyAheadOf(
-                    localNode, mLatestEnvelopes, n))
+                    localNode, this.mLatestEnvelopes, n))
                     return this.abandonBallot(n);  // Move to n.
             }
         }
@@ -1136,7 +1136,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             const val = &topVote.value;
 
             // find candidates that may have been prepared
-            foreach (node_id, env; mLatestEnvelopes)
+            foreach (node_id, env; this.mLatestEnvelopes)
             {
                 const(SCPStatement)* st = &env.statement;
                 switch (st.pledges.type)
@@ -1190,7 +1190,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // helper to perform step (8) from the paper
     private bool updateCurrentIfNeeded(ref const(SCPBallot) h)
     {
-        if (!mCurrentBallot || compareBallots(*mCurrentBallot, h) < 0)
+        if (!this.mCurrentBallot || compareBallots(*this.mCurrentBallot, h) < 0)
         {
             bumpToBallot(h, true);
             return true;
@@ -1240,7 +1240,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         ref const(SCPBallot) ballot)
     {
         Set!uint32 res = makeSet!uint32;
-        foreach (node_id, env; mLatestEnvelopes)
+        foreach (node_id, env; this.mLatestEnvelopes)
         {
             const pl = &env.statement.pledges;
             switch (pl.type)
@@ -1371,19 +1371,19 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // p and p' are the two higest prepared and incompatible ballots
-        if (mPrepared)
+        if (this.mPrepared)
         {
-            int comp = compareBallots(*mPrepared, ballot);
+            int comp = compareBallots(*this.mPrepared, ballot);
             if (comp < 0)
             {
                 // as we're replacing p, we see if we should also replace p'
-                if (!areBallotsCompatible(*mPrepared, ballot))
+                if (!areBallotsCompatible(*this.mPrepared, ballot))
                 {
-                    mPreparedPrime = new SCPBallot;
-                    *mPreparedPrime = *mPrepared;
+                    this.mPreparedPrime = new SCPBallot;
+                    *this.mPreparedPrime = *this.mPrepared;
                 }
-                mPrepared = new SCPBallot;
-                *mPrepared = duplicate(ballot);
+                this.mPrepared = new SCPBallot;
+                *this.mPrepared = duplicate(ballot);
                 didWork = true;
             }
             else if (comp > 0)
@@ -1395,20 +1395,20 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 // note, the later check is here out of paranoia as this function is
                 // not called with a value that would not allow us to make progress
 
-                if (!mPreparedPrime ||
-                    ((compareBallots(*mPreparedPrime, ballot) < 0) &&
-                     !areBallotsCompatible(*mPrepared, ballot)))
+                if (!this.mPreparedPrime ||
+                    ((compareBallots(*this.mPreparedPrime, ballot) < 0) &&
+                     !areBallotsCompatible(*this.mPrepared, ballot)))
                 {
-                    mPreparedPrime = new SCPBallot;
-                    *mPreparedPrime = duplicate(ballot);
+                    this.mPreparedPrime = new SCPBallot;
+                    *this.mPreparedPrime = duplicate(ballot);
                     didWork = true;
                 }
             }
         }
         else
         {
-            mPrepared = new SCPBallot;
-            *mPrepared = duplicate(ballot);
+            this.mPrepared = new SCPBallot;
+            *this.mPrepared = duplicate(ballot);
             didWork = true;
         }
         return didWork;
@@ -1475,7 +1475,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private bool isNewerStatement (ref const(NodeID) nodeID,
         ref const(SCPStatement) st)
     {
-        if (auto oldp = nodeID in mLatestEnvelopes)
+        if (auto oldp = nodeID in this.mLatestEnvelopes)
             return isNewerStatement(oldp.statement, st);
 
         return true;
@@ -1625,7 +1625,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private void recordEnvelope (ref const(SCPEnvelope) env)
     {
         const st = &env.statement;
-        mLatestEnvelopes[st.nodeID] = duplicate(env);
+        this.mLatestEnvelopes[st.nodeID] = duplicate(env);
         this.mSlot.recordStatement(env.statement);
     }
 
@@ -1641,34 +1641,34 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             this.mSlot.getSlotIndex(), this.mSlot.getSCP().ballotToStr(ballot));
 
         // `bumpToBallot` should be never called once we committed.
-        assert(mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE);
+        assert(this.mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE);
 
         if (check)
         {
             // We should move mCurrentBallot monotonically only
-            assert(!mCurrentBallot ||
-                      compareBallots(ballot, *mCurrentBallot) >= 0);
+            assert(!this.mCurrentBallot ||
+                      compareBallots(ballot, *this.mCurrentBallot) >= 0);
         }
 
-        bool gotBumped = !mCurrentBallot ||
-            (mCurrentBallot.counter != ballot.counter);
+        bool gotBumped = !this.mCurrentBallot ||
+            (this.mCurrentBallot.counter != ballot.counter);
 
-        if (!mCurrentBallot)
+        if (!this.mCurrentBallot)
         {
             this.mSlot.getSCPDriver().startedBallotProtocol(
                 this.mSlot.getSlotIndex(), ballot);
         }
 
-        mCurrentBallot = new SCPBallot;
-        *mCurrentBallot = duplicate(ballot);
+        this.mCurrentBallot = new SCPBallot;
+        *this.mCurrentBallot = duplicate(ballot);
 
         // invariant: h.value = b.value
-        if (mHighBallot !is null &&
-            !areBallotsCompatible(*mCurrentBallot, *mHighBallot))
-            mHighBallot = null;
+        if (this.mHighBallot !is null &&
+            !areBallotsCompatible(*this.mCurrentBallot, *this.mHighBallot))
+            this.mHighBallot = null;
 
         if (gotBumped)
-            mHeardFromQuorum = false;
+            this.mHeardFromQuorum = false;
     }
 
     // switch the local node to the given ballot's value
@@ -1678,24 +1678,24 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // (that could be a prepared ballot) enforcing invariants
     private bool updateCurrentValue (ref const(SCPBallot) ballot)
     {
-        if (mPhase != SCPPhase.SCP_PHASE_PREPARE &&
-            mPhase != SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase != SCPPhase.SCP_PHASE_PREPARE &&
+            this.mPhase != SCPPhase.SCP_PHASE_CONFIRM)
             return false;
 
         bool updated = false;
-        if (!mCurrentBallot)
+        if (!this.mCurrentBallot)
         {
             bumpToBallot(ballot, true);
             updated = true;
         }
         else
         {
-            assert(compareBallots(*mCurrentBallot, ballot) <= 0);
+            assert(compareBallots(*this.mCurrentBallot, ballot) <= 0);
 
-            if (mCommit && !areBallotsCompatible(*mCommit, ballot))
+            if (this.mCommit && !areBallotsCompatible(*this.mCommit, ballot))
                 return false;
 
-            int comp = compareBallots(*mCurrentBallot, ballot);
+            int comp = compareBallots(*this.mCurrentBallot, ballot);
             if (comp < 0)
             {
                 bumpToBallot(ballot, true);
@@ -1732,7 +1732,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     {
         SCPStatementType t;
 
-        final switch (mPhase)
+        final switch (this.mPhase)
         {
             case SCPPhase.SCP_PHASE_PREPARE:
                 t = SCPStatementType.SCP_ST_PREPARE;
@@ -1750,12 +1750,12 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         SCPStatement statement = createStatement(t);
         SCPEnvelope envelope = this.mSlot.createEnvelope(statement);
 
-        bool canEmit = mCurrentBallot !is null;
+        bool canEmit = this.mCurrentBallot !is null;
 
         // if we generate the same envelope, don't process it again
         // this can occur when updating h in PREPARE phase
         // as statements only keep track of h.n (but h.x could be different)
-        auto lastEnv = this.mSlot.getSCP().getLocalNodeID() in mLatestEnvelopes;
+        auto lastEnv = this.mSlot.getSCP().getLocalNodeID() in this.mLatestEnvelopes;
 
         if (lastEnv is null || *lastEnv != envelope)
         {
@@ -1765,11 +1765,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 assert(0, "moved to a bad state (ballot protocol)");
 
             if (canEmit &&
-                (!mLastEnvelope || isNewerStatement(mLastEnvelope.statement,
+                (!this.mLastEnvelope || isNewerStatement(this.mLastEnvelope.statement,
                                                     envelope.statement)))
             {
-                mLastEnvelope = new SCPEnvelope;
-                *mLastEnvelope = envelope;
+                this.mLastEnvelope = new SCPEnvelope;
+                *this.mLastEnvelope = envelope;
                 // this will no-op if invoked from advanceSlot
                 // as advanceSlot consolidates all messages sent
                 sendLatestEnvelope();
@@ -1780,37 +1780,37 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // verifies that the internal state is consistent
     private void checkInvariants()
     {
-        if (mCurrentBallot)
-            assert(mCurrentBallot.counter != 0);
+        if (this.mCurrentBallot)
+            assert(this.mCurrentBallot.counter != 0);
 
-        if (mPrepared && mPreparedPrime)
-            assert(areBallotsLessAndIncompatible(*mPreparedPrime, *mPrepared));
+        if (this.mPrepared && this.mPreparedPrime)
+            assert(areBallotsLessAndIncompatible(*this.mPreparedPrime, *this.mPrepared));
 
-        if (mHighBallot)
+        if (this.mHighBallot)
         {
-            assert(mCurrentBallot);
-            assert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
+            assert(this.mCurrentBallot);
+            assert(areBallotsLessAndCompatible(*this.mHighBallot, *this.mCurrentBallot));
         }
 
-        if (mCommit)
+        if (this.mCommit)
         {
-            assert(mCurrentBallot);
-            assert(areBallotsLessAndCompatible(*mCommit, *mHighBallot));
-            assert(areBallotsLessAndCompatible(*mHighBallot, *mCurrentBallot));
+            assert(this.mCurrentBallot);
+            assert(areBallotsLessAndCompatible(*this.mCommit, *this.mHighBallot));
+            assert(areBallotsLessAndCompatible(*this.mHighBallot, *this.mCurrentBallot));
         }
 
-        final switch (mPhase)
+        final switch (this.mPhase)
         {
             case SCPPhase.SCP_PHASE_PREPARE:
                 break;
 
             case SCPPhase.SCP_PHASE_CONFIRM:
-                assert(mCommit);
+                assert(this.mCommit);
                 break;
 
             case SCPPhase.SCP_PHASE_EXTERNALIZE:
-                assert(mCommit);
-                assert(mHighBallot);
+                assert(this.mCommit);
+                assert(this.mHighBallot);
                 break;
         }
     }
@@ -1828,22 +1828,22 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             {
                 auto p = &statement.pledges.prepare;
                 p.quorumSetHash = getLocalNode().getQuorumSetHash();
-                if (mCurrentBallot)
-                    p.ballot = *mCurrentBallot;
+                if (this.mCurrentBallot)
+                    p.ballot = *this.mCurrentBallot;
 
-                if (mCommit)
-                    p.nC = mCommit.counter;
+                if (this.mCommit)
+                    p.nC = this.mCommit.counter;
 
-                if (mPrepared)
+                if (this.mPrepared)
                     p.prepared = new SCPBallot;
-                    *p.prepared = *mPrepared;
+                    *p.prepared = *this.mPrepared;
 
-                if (mPreparedPrime)
+                if (this.mPreparedPrime)
                     p.preparedPrime = new SCPBallot;
-                    *p.preparedPrime = *mPreparedPrime;
+                    *p.preparedPrime = *this.mPreparedPrime;
 
-                if (mHighBallot)
-                    p.nH = mHighBallot.counter;
+                if (this.mHighBallot)
+                    p.nH = this.mHighBallot.counter;
 
                 break;
             }
@@ -1852,18 +1852,18 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             {
                 auto c = &statement.pledges.confirm;
                 c.quorumSetHash = getLocalNode().getQuorumSetHash();
-                c.ballot = *mCurrentBallot;
-                c.nPrepared = mPrepared.counter;
-                c.nCommit = mCommit.counter;
-                c.nH = mHighBallot.counter;
+                c.ballot = *this.mCurrentBallot;
+                c.nPrepared = this.mPrepared.counter;
+                c.nCommit = this.mCommit.counter;
+                c.nH = this.mHighBallot.counter;
                 break;
             }
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
                 auto e = &statement.pledges.externalize;
-                e.commit = *mCommit;
-                e.nH = mHighBallot.counter;
+                e.commit = *this.mCommit;
+                e.nH = this.mHighBallot.counter;
                 e.commitQuorumSetHash = getLocalNode().getQuorumSetHash();
                 break;
             }
@@ -1883,18 +1883,18 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private bool federatedAccept (StatementPredicate voted,
         StatementPredicate accepted)
     {
-        return this.mSlot.federatedAccept(voted, accepted, mLatestEnvelopes);
+        return this.mSlot.federatedAccept(voted, accepted, this.mLatestEnvelopes);
     }
 
     private bool federatedRatify (StatementPredicate voted)
     {
-        return this.mSlot.federatedRatify(voted, mLatestEnvelopes);
+        return this.mSlot.federatedRatify(voted, this.mLatestEnvelopes);
     }
 
     private void startBallotProtocolTimer ()
     {
         Duration timeout =
-            this.mSlot.getSCPDriver().computeTimeout(mCurrentBallot.counter);
+            this.mSlot.getSCPDriver().computeTimeout(this.mCurrentBallot.counter);
 
         this.mSlot.getSCPDriver().setupTimer(
             this.mSlot.getSlotIndex(), TimerID.BALLOT_PROTOCOL_TIMER, timeout,
@@ -1917,17 +1917,17 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         // therefore the local node will not flip flop between "seen" and "not seen"
         // for a given counter on the local node
 
-        if (mCurrentBallot is null)
+        if (this.mCurrentBallot is null)
             return;
 
         if (LocalNode.isQuorum(
-                getLocalNode().getQuorumSet(), mLatestEnvelopes,
+                getLocalNode().getQuorumSet(), this.mLatestEnvelopes,
                 &this.mSlot.getQuorumSetFromStatement,
                 (ref const(SCPStatement) st) {
                     bool res;
                     if (st.pledges.type == SCPStatementType.SCP_ST_PREPARE)
                     {
-                        res = mCurrentBallot.counter <=
+                        res = this.mCurrentBallot.counter <=
                               st.pledges.prepare.ballot.counter;
                     }
                     else
@@ -1937,26 +1937,26 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                     return res;
                 }))
         {
-            bool oldHQ = mHeardFromQuorum;
-            mHeardFromQuorum = true;
+            bool oldHQ = this.mHeardFromQuorum;
+            this.mHeardFromQuorum = true;
             if (!oldHQ)
             {
                 // if we transition from not heard -> heard, we start the timer
                 this.mSlot.getSCPDriver().ballotDidHearFromQuorum(
-                    this.mSlot.getSlotIndex(), *mCurrentBallot);
-                if (mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
+                    this.mSlot.getSlotIndex(), *this.mCurrentBallot);
+                if (this.mPhase != SCPPhase.SCP_PHASE_EXTERNALIZE)
                 {
                     startBallotProtocolTimer();
                 }
             }
-            if (mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
+            if (this.mPhase == SCPPhase.SCP_PHASE_EXTERNALIZE)
             {
                 stopBallotProtocolTimer();
             }
         }
         else
         {
-            mHeardFromQuorum = false;
+            this.mHeardFromQuorum = false;
             stopBallotProtocolTimer();
         }
     }
