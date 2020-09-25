@@ -1420,24 +1420,14 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private static int compareBallots (ref const(SCPBallot*) b1,
         ref const(SCPBallot*) b2)
     {
-        int res;
         if (b1 && b2)
-        {
-            res = compareBallots(*b1, *b2);
-        }
+            return compareBallots(*b1, *b2);
         else if (b1 && !b2)
-        {
-            res = 1;
-        }
+            return 1;
         else if (!b1 && b2)
-        {
-            res = -1;
-        }
+            return -1;
         else
-        {
-            res = 0;
-        }
-        return res;
+            return 0;
     }
 
     private static int compareBallots (ref const(SCPBallot) b1,
@@ -1660,13 +1650,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                       compareBallots(ballot, *mCurrentBallot) >= 0);
         }
 
-        bool gotBumped =
-            !mCurrentBallot || (mCurrentBallot.counter != ballot.counter);
+        bool gotBumped = !mCurrentBallot ||
+            (mCurrentBallot.counter != ballot.counter);
 
         if (!mCurrentBallot)
         {
-            this.mSlot.getSCPDriver().startedBallotProtocol(this.mSlot.getSlotIndex(),
-                                                       ballot);
+            this.mSlot.getSCPDriver().startedBallotProtocol(
+                this.mSlot.getSlotIndex(), ballot);
         }
 
         mCurrentBallot = new SCPBallot;
@@ -1703,9 +1693,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             assert(compareBallots(*mCurrentBallot, ballot) <= 0);
 
             if (mCommit && !areBallotsCompatible(*mCommit, ballot))
-            {
                 return false;
-            }
 
             int comp = compareBallots(*mCurrentBallot, ballot);
             if (comp < 0)
@@ -1762,7 +1750,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         SCPStatement statement = createStatement(t);
         SCPEnvelope envelope = this.mSlot.createEnvelope(statement);
 
-        bool canEmit = (mCurrentBallot !is null);
+        bool canEmit = mCurrentBallot !is null;
 
         // if we generate the same envelope, don't process it again
         // this can occur when updating h in PREPARE phase
@@ -1831,9 +1819,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     SCPStatement createStatement (ref const(SCPStatementType) type)
     {
         SCPStatement statement;
-
         checkInvariants();
-
         statement.pledges.type = type;
 
         final switch (type)
