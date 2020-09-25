@@ -1498,7 +1498,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         if (auto oldp = nodeID in mLatestEnvelopes)
             return isNewerStatement(oldp.statement, st);
 
-        return false;
+        return true;
     }
 
     // returns true if new_st is newer than old_st
