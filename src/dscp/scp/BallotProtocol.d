@@ -88,7 +88,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         if (!isStatementSane(envelope.statement, self))
         {
             if (self)
-                log.info("not sane statement from self, skipping   e: ",
+                log.info("not sane statement from self, skipping   e: %s",
                     this.mSlot.getSCP().envToStr(envelope));
 
             return SCP.EnvelopeState.INVALID;
@@ -97,10 +97,10 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         if (!isNewerStatement(envelope.statement.nodeID, envelope.statement))
         {
             if (self)
-                log.error("stale statement from self, skipping   e: ",
+                log.error("stale statement from self, skipping   e: %s",
                     this.mSlot.getSCP().envToStr(envelope));
             else
-                log.trace("stale statement, skipping  i: ",
+                log.trace("stale statement, skipping  i: %s",
                     this.mSlot.getSlotIndex());
 
             return SCP.EnvelopeState.INVALID;
@@ -111,10 +111,10 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         {
             // If the value is not valid, we just ignore it.
             if (self)
-                log.error("invalid value from self, skipping   e: ",
+                log.error("invalid value from self, skipping   e: %s",
                     this.mSlot.getSCP().envToStr(envelope));
             else
-                log.trace("invalid value  i: ", this.mSlot.getSlotIndex());
+                log.trace("invalid value  i: %s", this.mSlot.getSlotIndex());
 
             return SCP.EnvelopeState.INVALID;
         }
@@ -132,7 +132,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
             if (self)
                 log.error("externalize statement with invalid value " ~
-                    "from self, skipping   e: ",
+                    "from self, skipping e: %s",
                     this.mSlot.getSCP().envToStr(envelope));
 
             return SCP.EnvelopeState.INVALID;
