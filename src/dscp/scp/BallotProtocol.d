@@ -234,10 +234,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 return st.pledges.prepare.ballot;
 
             case SCPStatementType.SCP_ST_CONFIRM:
-            {
-                const con = &st.pledges.confirm;
-                return const(SCPBallot)(con.nCommit, con.ballot.value);
-            }
+                return const(SCPBallot)(st.pledges.confirm.nCommit,
+                    st.pledges.confirm.ballot.value);
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
                 return st.pledges.externalize.commit;
