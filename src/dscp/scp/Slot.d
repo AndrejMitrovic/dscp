@@ -162,7 +162,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         mStatementsHistory ~= HistoricalStatement(time(null),
             duplicate(st), mFullyValidated);
 
-        log.trace("new statement:  i: %s st: %s validated: ",
+        log.trace("new statement:  i: %s st: %s validated: %s",
             getSlotIndex(), mSCP.envToStr(st, false),
             mFullyValidated ? "true" : "false");
     }

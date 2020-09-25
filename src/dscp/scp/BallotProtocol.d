@@ -210,7 +210,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             newb.value = duplicate(value);
         }
 
-        log.trace("BallotProtocol.bumpState i: %s v: ",
+        log.trace("BallotProtocol.bumpState i: %s v: %s",
             mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(newb));
 
         if (!updateCurrentValue(newb))
@@ -709,7 +709,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // newC, newH : low/high bounds prepared confirmed
     private bool setPreparedConfirmed(ref const(SCPBallot) newC, ref const(SCPBallot) newH)
     {
-        log.trace("BallotProtocol.setPreparedConfirmed i: %s h: ",
+        log.trace("BallotProtocol.setPreparedConfirmed i: %s h: %s",
             mSlot.getSlotIndex(), mSlot.getSCP().ballotToStr(newH));
 
         bool didWork = false;
