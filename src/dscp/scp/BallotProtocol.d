@@ -106,7 +106,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             return SCP.EnvelopeState.INVALID;
         }
 
-        auto validationRes = validateValues(envelope.statement);
+        auto validationRes = this.validateValues(envelope.statement);
         if (validationRes == ValidationLevel.kInvalidValue)
         {
             // If the value is not valid, we just ignore it.
@@ -150,7 +150,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
     public void ballotProtocolTimerExpired ()
     {
-        abandonBallot(0);
+        this.abandonBallot(0);
     }
 
     // abandon's current ballot, move to a new ballot
@@ -218,7 +218,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             return false;
 
         this.emitCurrentStateStatement();
-        checkHeardFromQuorum();
+        this.checkHeardFromQuorum();
         return true;
     }
 
@@ -430,7 +430,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 didWork = didBump || didWork;
             } while (didBump);
 
-            checkHeardFromQuorum();
+            this.checkHeardFromQuorum();
         }
 
         log.trace("BallotProtocol.advanceSlot %s - exiting %s",
@@ -442,8 +442,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             sendLatestEnvelope();
     }
 
-    // returns true if all values in statement are valid
-    private ValidationLevel validateValues(ref const(SCPStatement) st)
+    // returns the validation level for all values in this statement
+    private ValidationLevel validateValues (ref const(SCPStatement) st)
     {
         Set!Value values = makeSet!Value;
         final switch (st.pledges.type)
