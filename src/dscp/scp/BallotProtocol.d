@@ -190,7 +190,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         return this.bumpState(value, n);
     }
 
-    // flavor that takes the actual desired counter value
+    // overload that takes the actual desired counter value
     public bool bumpState (ref const(Value) value, uint32 n)
     {
         if (this.mPhase != SCPPhase.SCP_PHASE_PREPARE &&
