@@ -1122,7 +1122,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
         Set!(const(SCPBallot)) candidates = makeSet!(const(SCPBallot));
 
-        while (!hintBallots.length != 0)
+        while (hintBallots.length != 0)
         {
             const(SCPBallot) topVote = hintBallots[].front;
             hintBallots.removeFront();
