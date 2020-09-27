@@ -1828,12 +1828,16 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                     p.nC = this.mCommit.counter;
 
                 if (this.mPrepared)
+                {
                     p.prepared = new SCPBallot;
                     *p.prepared = *this.mPrepared;
+                }
 
                 if (this.mPreparedPrime)
+                {
                     p.preparedPrime = new SCPBallot;
                     *p.preparedPrime = *this.mPreparedPrime;
+                }
 
                 if (this.mHighBallot)
                     p.nH = this.mHighBallot.counter;
