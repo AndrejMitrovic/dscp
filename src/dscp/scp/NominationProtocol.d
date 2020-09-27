@@ -171,8 +171,8 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     }
 
     // attempts to nominate a value for consensus
-    public bool nominate (ref const(Value) value,
-        ref const(Value) previousValue, bool timedout)
+    public bool nominate (const(Value) value,
+        const(Value) previousValue, bool timedout)
     {
         log.trace("NominationProtocol.nominate (%s) %s",
             this.mRoundNumber, this.mSlot.getSCP().getValueString(value));
