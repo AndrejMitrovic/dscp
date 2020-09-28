@@ -160,14 +160,12 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     {
         log.trace("BallotProtocol.abandonBallot");
         Value v = duplicate(this.mSlot.getLatestCompositeCandidate());
-        if (v.empty())
+        if (v.empty() && this.mCurrentBallot)
         {
-            if (this.mCurrentBallot)
-                v = this.mCurrentBallot.value;
+            v = this.mCurrentBallot.value;
+            if (v.empty())
+                return false;
         }
-
-        if (v.empty())
-            return false;
 
         if (n == 0)
             return this.bumpState(v, true);
