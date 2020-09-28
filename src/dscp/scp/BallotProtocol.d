@@ -1960,10 +1960,25 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
 unittest
 {
+    import std.traits;
     alias Hash = ubyte[64];
     alias uint256 = ubyte[32];
     alias uint512 = ubyte[64];
-    alias Value = ubyte[];
+
+    static struct Value
+    {
+        int opCmp (const ref Value rhs) inout
+        {
+            return 0;
+        }
+
+        bool empty () const
+        {
+            return this.data == typeof(this.data).init;
+        }
+
+        ubyte[16] data;
+    }
 
     static struct PublicKey
     {
@@ -1981,7 +1996,7 @@ unittest
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
-    T duplicate (T)(T arg) { return arg; }
+    static Unqual!T duplicate (T)(T arg) { return *cast(Unqual!T*)&arg; }
     void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
     alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) BP;
 }

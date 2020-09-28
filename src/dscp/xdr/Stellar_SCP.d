@@ -14,15 +14,32 @@ struct SCPBallotT (Value)
     {
         if (this.counter < rhs.counter)
             return -1;
+        else if (rhs.counter < this.counter)
+            return 1;
 
         if (this.value < rhs.value)
             return -1;
+        else if (rhs.value < this.value)
+            return 1;
 
         return 0;
     }
 
     uint32 counter; // n
     Value value;    // x
+}
+
+///
+unittest
+{
+    import std.algorithm;
+    import std.stdio;
+
+    SCPBallot!int[] ballots;
+    ballots ~= SCPBallot!int(20, 0);
+    ballots ~= SCPBallot!int(10, 0);
+    sort(ballots);
+    writeln(ballots);
 }
 
 enum SCPStatementType
