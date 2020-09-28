@@ -1471,8 +1471,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private bool isNewerStatement (ref const(NodeID) nodeID,
         ref const(SCPStatement) st)
     {
-        if (auto oldp = nodeID in this.mLatestEnvelopes)
-            return isNewerStatement(oldp.statement, st);
+        if (auto old_env = nodeID in this.mLatestEnvelopes)
+            return isNewerStatement(old_env.statement, st);
 
         return true;
     }
