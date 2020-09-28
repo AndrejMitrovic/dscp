@@ -1124,7 +1124,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
         while (hintBallots.length != 0)
         {
-            const(SCPBallot) topVote = hintBallots[].front;
+            const(SCPBallot) topVote = hintBallots.front;
             hintBallots.removeFront();
 
             const val = &topVote.value;
@@ -1840,7 +1840,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 if (this.mHighBallot)
                     p.nH = this.mHighBallot.counter;
 
-                break;
+                return statement;
             }
 
             case SCPStatementType.SCP_ST_CONFIRM:
@@ -1854,7 +1854,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 c.nPrepared = this.mPrepared.counter;
                 c.nCommit = this.mCommit.counter;
                 c.nH = this.mHighBallot.counter;
-                break;
+                return statement;
             }
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
@@ -1865,14 +1865,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 e.commit = *this.mCommit;
                 e.nH = this.mHighBallot.counter;
                 e.commitQuorumSetHash = this.getLocalNode().getQuorumSetHash();
-                break;
+                return statement;
             }
 
             case SCPStatementType.SCP_ST_NOMINATE:
                 assert(0);
         }
 
-        return statement;
     }
 
     private LocalNode getLocalNode ()
