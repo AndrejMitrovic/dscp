@@ -1720,7 +1720,6 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private void emitCurrentStateStatement ()
     {
         SCPStatementType t;
-
         final switch (this.mPhase)
         {
             case SCPPhase.SCP_PHASE_PREPARE:
@@ -1744,25 +1743,28 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         // if we generate the same envelope, don't process it again
         // this can occur when updating h in PREPARE phase
         // as statements only keep track of h.n (but h.x could be different)
-        auto lastEnv = this.mSlot.getSCP().getLocalNodeID() in this.mLatestEnvelopes;
+        auto lastEnv = this.mSlot.getSCP().getLocalNodeID() in
+            this.mLatestEnvelopes;
 
-        if (lastEnv is null || *lastEnv != envelope)
+        if (lastEnv !is null && *lastEnv == envelope)
+            return;  // already emitted this message
+
+        const FromSelf = true;
+        if (this.mSlot.processEnvelope(envelope, FromSelf) !=
+            SCP.EnvelopeState.VALID)
+            assert(0, "moved to a bad state (ballot protocol)");
+
+        if (canEmit &&
+            (!this.mLastEnvelope ||
+                isNewerStatement(this.mLastEnvelope.statement,
+                    envelope.statement)))
         {
-            const FromSelf = true;
-            if (this.mSlot.processEnvelope(envelope, FromSelf) !=
-                SCP.EnvelopeState.VALID)
-                assert(0, "moved to a bad state (ballot protocol)");
+            this.mLastEnvelope = new SCPEnvelope;
+            *this.mLastEnvelope = envelope;
 
-            if (canEmit &&
-                (!this.mLastEnvelope || isNewerStatement(this.mLastEnvelope.statement,
-                                                    envelope.statement)))
-            {
-                this.mLastEnvelope = new SCPEnvelope;
-                *this.mLastEnvelope = envelope;
-                // this will no-op if invoked from advanceSlot
-                // as advanceSlot consolidates all messages sent
-                this.sendLatestEnvelope();
-            }
+            // this will no-op if invoked from advanceSlot
+            // as advanceSlot consolidates all messages sent
+            this.sendLatestEnvelope();
         }
     }
 
