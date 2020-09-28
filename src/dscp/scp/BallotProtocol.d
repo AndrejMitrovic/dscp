@@ -1807,14 +1807,14 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // create a statement of the given type using the local state
     SCPStatement createStatement (ref const(SCPStatementType) type)
     {
-        SCPStatement statement;
         this.checkInvariants();
-        statement.pledges.type = type;
 
         final switch (type)
         {
             case SCPStatementType.SCP_ST_PREPARE:
             {
+                SCPStatement statement;
+                statement.pledges.type = type;
                 auto p = &statement.pledges.prepare;
                 p.quorumSetHash = this.getLocalNode().getQuorumSetHash();
                 if (this.mCurrentBallot)
@@ -1843,8 +1843,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
             case SCPStatementType.SCP_ST_CONFIRM:
             {
+                SCPStatement statement;
+                statement.pledges.type = type;
                 auto c = &statement.pledges.confirm;
                 c.quorumSetHash = this.getLocalNode().getQuorumSetHash();
+                assert(this.mCurrentBallot);
                 c.ballot = *this.mCurrentBallot;
                 c.nPrepared = this.mPrepared.counter;
                 c.nCommit = this.mCommit.counter;
@@ -1854,6 +1857,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
             case SCPStatementType.SCP_ST_EXTERNALIZE:
             {
+                SCPStatement statement;
+                statement.pledges.type = type;
                 auto e = &statement.pledges.externalize;
                 e.commit = *this.mCommit;
                 e.nH = this.mHighBallot.counter;
