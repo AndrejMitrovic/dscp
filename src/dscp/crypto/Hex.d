@@ -12,10 +12,10 @@ import core.stdc.stdint;
 
 string hexAbbrev (in ubyte[64] bin)
 {
-    return bin.to!string;
+    return bin.to!string[0 .. 6];
 }
 
 string hexAbbrev (T)(T hash)
 {
-    return hash.to!string;
+    return hash.to!string[0 .. 6];
 }

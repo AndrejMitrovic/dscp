@@ -8,7 +8,8 @@ struct Log
     {
         public void log (T...)(T args)
         {
-            writefln("[%s] " ~ args[0], type, args[1 .. $]);
+            //writefln("[%s] " ~ args[0], type, args[1 .. $]);
+            writefln(args[0], args[1 .. $]);
         }
     }
 

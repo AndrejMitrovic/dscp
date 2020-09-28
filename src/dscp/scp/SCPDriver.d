@@ -111,20 +111,20 @@ abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias make
     // default implementation is the hash of the value
     public string getValueString (ref const(Value) v) const
     {
-        return v.to!string;
+        return getHashOf(v).to!string[0 .. 6];
     }
 
     // `toStrKey` returns StrKey encoded string representation
     public string toStrKey (ref const(PublicKey) pk,
         bool fullKey = true) const
     {
-        return pk.to!string;
+        return pk.to!string[0 .. 6];
     }
 
     // `toShortString` converts to the common name of a key if found
     public string toShortString (ref const(PublicKey) pk) const
     {
-        return pk.to!string;
+        return pk.to!string[0 .. 6];
     }
 
     // `computeHashNode` is used by the nomination protocol to

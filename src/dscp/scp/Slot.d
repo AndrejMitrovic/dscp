@@ -47,6 +47,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         bool mValidated;
     }
 
+    int count;
     private const uint64 mSlotIndex;  // the index this slot is tracking
     private SCP mSCP;
     private BallotProtocol mBallotProtocol;
@@ -162,8 +163,8 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         mStatementsHistory ~= HistoricalStatement(time(null),
             duplicate(st), mFullyValidated);
 
-        log.trace("new statement:  i: %s st: %s validated: %s",
-            getSlotIndex(), mSCP.envToStr(st, false),
+        log.trace("node: %s idx %s new statement:  i: %s st: %s validated: %s",
+            cast(void*)this, count++, getSlotIndex(), mSCP.envToStr(st, false),
             mFullyValidated ? "true" : "false");
     }
 
