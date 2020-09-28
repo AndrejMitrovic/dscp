@@ -982,13 +982,13 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             return false;
 
         Set!uint32 boundaries = this.getCommitBoundariesFromStatements(ballot);
-        Interval candidate;
 
         auto pred = (ref const(Interval) cur) {
             return this.federatedRatify(
                 (ref const(SCPStatement) st) => commitPredicate(ballot, cur, st));
         };
 
+        Interval candidate;
         findExtendedInterval(candidate, boundaries, pred);
 
         bool res = candidate.first != 0;
