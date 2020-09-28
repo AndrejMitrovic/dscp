@@ -848,15 +848,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         Set!uint32 boundaries = this.getCommitBoundariesFromStatements(ballot);
 
         if (boundaries.empty())
-        {
             return false;
-        }
 
         // now, look for the high interval
         Interval candidate;
-
         findExtendedInterval(candidate, boundaries, pred);
-
         bool res = false;
 
         if (candidate.first != 0)
