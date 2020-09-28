@@ -257,8 +257,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
         this.recordEnvelope(e);
 
-        if (this.mLastEnvelope is null)
-            this.mLastEnvelope = new SCPEnvelope;
+        this.mLastEnvelope = new SCPEnvelope;
         *this.mLastEnvelope = duplicate(e);
         this.mLastEnvelopeEmit = this.mLastEnvelope;
 
@@ -472,8 +471,9 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         ValidationLevel res = ValidationLevel.kFullyValidatedValue;
         foreach (v; values)
         {
+            const bool IsNomination = false;
             auto tr = this.mSlot.getSCPDriver().validateValue(
-                this.mSlot.getSlotIndex(), v, false);
+                this.mSlot.getSlotIndex(), v, IsNomination);
             if (tr != ValidationLevel.kFullyValidatedValue)
             {
                 if (tr == ValidationLevel.kInvalidValue)
