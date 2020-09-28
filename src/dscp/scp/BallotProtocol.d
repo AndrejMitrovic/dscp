@@ -1124,8 +1124,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
         while (hintBallots.length != 0)
         {
-            const(SCPBallot) topVote = hintBallots.front;
-            hintBallots.removeFront();
+            const(SCPBallot) topVote = hintBallots.back;
+            hintBallots.removeBack();
 
             const val = &topVote.value;
 
