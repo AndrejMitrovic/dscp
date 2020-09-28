@@ -1409,8 +1409,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // ** Helper methods to compare two ballots
 
     // ballot comparison (ordering)
-    private static int compareBallots (ref const(SCPBallot*) b1,
-        ref const(SCPBallot*) b2)
+    private static int compareBallots (const(SCPBallot)* b1,
+        const(SCPBallot)* b2)
     {
         if (b1 && b2)
             return compareBallots(*b1, *b2);
