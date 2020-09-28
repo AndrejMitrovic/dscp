@@ -1617,8 +1617,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     // any state changes alone however
     private void recordEnvelope (ref const(SCPEnvelope) env)
     {
-        const st = &env.statement;
-        this.mLatestEnvelopes[st.nodeID] = duplicate(env);
+        this.mLatestEnvelopes[env.statement.nodeID] = duplicate(env);
         this.mSlot.recordStatement(env.statement);
     }
 
