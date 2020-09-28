@@ -708,9 +708,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private bool setPreparedConfirmed (ref const(SCPBallot) newC,
         ref const(SCPBallot) newH)
     {
-        log.trace("BallotProtocol.setPreparedConfirmed i: %s h: %s newC: %s",
-            this.mSlot.getSlotIndex(), this.mSlot.getSCP().ballotToStr(newH),
-            this.mSlot.getSCP().ballotToStr(newC));
+        log.trace("BallotProtocol.setPreparedConfirmed i: %s h: %s",
+            this.mSlot.getSlotIndex(), this.mSlot.getSCP().ballotToStr(newH));
 
         bool didWork = false;
 
