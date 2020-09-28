@@ -94,7 +94,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
             return SCP.EnvelopeState.INVALID;
         }
 
-        if (!this.isNewerStatement(envelope.statement.nodeID, envelope.statement))
+        if (!this.isNewerStatement(envelope.statement.nodeID,
+            envelope.statement))
         {
             if (self)
                 log.error("stale statement from self, skipping   e: %s",
