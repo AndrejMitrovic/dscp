@@ -1637,7 +1637,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         {
             // We should move mCurrentBallot monotonically only
             assert(!this.mCurrentBallot ||
-                      compareBallots(ballot, *this.mCurrentBallot) >= 0);
+                   compareBallots(ballot, *this.mCurrentBallot) >= 0);
         }
 
         bool gotBumped = !this.mCurrentBallot ||
@@ -1897,8 +1897,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private void stopBallotProtocolTimer ()
     {
         this.mSlot.getSCPDriver().setupTimer(this.mSlot.getSlotIndex(),
-                                        TimerID.BALLOT_PROTOCOL_TIMER,
-                                        0.seconds, null);
+            TimerID.BALLOT_PROTOCOL_TIMER, 0.seconds, null);
     }
 
     private void checkHeardFromQuorum ()
