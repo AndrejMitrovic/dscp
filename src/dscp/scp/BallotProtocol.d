@@ -166,15 +166,14 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 v = this.mCurrentBallot.value;
         }
 
-        if (!v.empty())
-        {
-            if (n == 0)
-                return this.bumpState(v, true);
-            else
-                return this.bumpState(v, n);  // overload
-        }
+        if (v.empty())
+            return false;
 
-        return false;
+        if (n == 0)
+            return this.bumpState(v, true);
+        else
+            return this.bumpState(v, n);  // overload
+
     }
 
     // bumps the ballot based on the local state and the value passed in:
