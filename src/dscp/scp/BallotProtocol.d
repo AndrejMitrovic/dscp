@@ -1481,18 +1481,15 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private static bool isNewerStatement (ref const(SCPStatement) old_st,
         ref const(SCPStatement) new_st)
     {
-        // total ordering described in SCP paper.
-        const st_type = new_st.pledges.type;
-
         // if different type, must be (PREPARE < CONFIRM < EXTERNALIZE)
-        if (old_st.pledges.type != st_type)
-            return old_st.pledges.type < st_type;
+        if (old_st.pledges.type != new_st.pledges.type)
+            return old_st.pledges.type < new_st.pledges.type;
 
         // can't have duplicate EXTERNALIZE statements
-        if (st_type == SCPStatementType.SCP_ST_EXTERNALIZE)
+        if (new_st.pledges.type == SCPStatementType.SCP_ST_EXTERNALIZE)
             return false;
 
-        if (st_type == SCPStatementType.SCP_ST_CONFIRM)
+        if (new_st.pledges.type == SCPStatementType.SCP_ST_CONFIRM)
         {
             // sorted by (b, p, p', h) (p' = 0 implicitely)
             const oldC = &old_st.pledges.confirm;
@@ -1512,7 +1509,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         }
         else
         {
-            assert(st_type == SCPStatementType.SCP_ST_PREPARE);
+            assert(new_st.pledges.type == SCPStatementType.SCP_ST_PREPARE);
 
             // Lexicographical order between PREPARE statements:
             // (b, p, p', h)
