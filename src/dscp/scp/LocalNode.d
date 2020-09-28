@@ -122,8 +122,10 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
     public static bool isQuorumSlice (ref const(SCPQuorumSet) qSet,
         const(NodeID)[] nodeSet)
     {
-        log.trace("LocalNode.isQuorumSlice nodeSet.size: %s", nodeSet.length);
-        return isQuorumSliceInternal(qSet, nodeSet);
+        auto res = isQuorumSliceInternal(qSet, nodeSet);
+        log.trace("LocalNode.isQuorumSlice nodeSet.size: %s: %s",
+            nodeSet.length, res);
+        return res;
     }
 
     public static bool isVBlocking (ref const(SCPQuorumSet) qSet,

@@ -260,8 +260,8 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
     public string envToStr (ref const(SCPStatement) st, bool fullKeys = false) const
     {
-        return st.to!string;
-
+        return format("n: %s slot: %s type: %s",
+            st.nodeID, st.slotIndex, st.pledges.type);
         // todo: there's a segfault in here somewhere, null pointer
 
         //const(Hash) qSetHash = Slot.getCompanionQuorumSetHashFromStatement(st);
