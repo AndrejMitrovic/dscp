@@ -882,7 +882,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         this.mValueOverride = new Value;
         *this.mValueOverride = duplicate(h.value);
 
-        if (!this.mHighBallot || !this.mCommit || compareBallots(*this.mHighBallot, h) != 0 ||
+        if (!this.mHighBallot || !this.mCommit ||
+            compareBallots(*this.mHighBallot, h) != 0 ||
             compareBallots(*this.mCommit, c) != 0)
         {
             this.mCommit = new SCPBallot;
@@ -896,8 +897,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         if (this.mPhase == SCPPhase.SCP_PHASE_PREPARE)
         {
             this.mPhase = SCPPhase.SCP_PHASE_CONFIRM;
-            if (this.mCurrentBallot && !areBallotsLessAndCompatible(h, *this.mCurrentBallot))
+            if (this.mCurrentBallot &&
+                !areBallotsLessAndCompatible(h, *this.mCurrentBallot))
+            {
                 this.bumpToBallot(h, false);
+            }
 
             this.mPreparedPrime = null;
             didWork = true;
