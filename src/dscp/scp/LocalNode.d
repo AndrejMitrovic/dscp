@@ -123,8 +123,8 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
         const(NodeID)[] nodeSet)
     {
         auto res = isQuorumSliceInternal(qSet, nodeSet);
-        log.trace("LocalNode.isQuorumSlice nodeSet.size: %s: %s",
-            nodeSet.length, res);
+        //log.trace("LocalNode.isQuorumSlice nodeSet.size: %s: %s",
+        //    nodeSet.length, res);
         return res;
     }
 
