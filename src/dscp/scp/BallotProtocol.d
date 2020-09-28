@@ -1079,6 +1079,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 localNode, this.mLatestEnvelopes, n))
                 return this.abandonBallot(n);  // Move to n.
         }
+
+        return false;
     }
 
     // computes a list of candidate values that may have been prepared
