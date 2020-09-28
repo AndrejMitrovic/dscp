@@ -675,7 +675,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         SCPBallot newC;
         // now, look for newC (left as 0 if no update)
         // step (3) from the paper
-        SCPBallot b = this.mCurrentBallot ? *this.mCurrentBallot : SCPBallot();
+        SCPBallot b = this.mCurrentBallot ? *this.mCurrentBallot : SCPBallot.init;
         if (!this.mCommit &&
             (!this.mPrepared || !areBallotsLessAndIncompatible(newH, *this.mPrepared)) &&
             (!this.mPreparedPrime ||
@@ -792,12 +792,10 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 assert(0);
         }
 
-        if (this.mPhase == SCPPhase.SCP_PHASE_CONFIRM)
+        if (this.mPhase == SCPPhase.SCP_PHASE_CONFIRM &&
+            !areBallotsCompatible(ballot, *this.mHighBallot))
         {
-            if (!areBallotsCompatible(ballot, *this.mHighBallot))
-            {
-                return false;
-            }
+            return false;
         }
 
         auto pred = (ref const(Interval) cur) {
