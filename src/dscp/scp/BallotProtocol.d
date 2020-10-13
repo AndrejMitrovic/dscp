@@ -913,7 +913,6 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         while (!range.empty)
         {
             auto cur = range.front();
-            range.popFront();
             SCPBallot ballot = duplicate(cur);
 
             // only consider it if we can potentially raise h
@@ -928,6 +927,8 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
                 newHfound = true;
                 break;
             }
+
+            range.popFront();
         }
 
         if (!newHfound)
