@@ -11,15 +11,15 @@ import dscp.scp.Slot;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
-import std.conv ;
+import std.conv;
 import std.format;
 
-class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
+class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate, Logger)
 {
     public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPBallot = SCPBallotT!Value;
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
@@ -29,11 +29,14 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
     protected Slot[uint64] mKnownSlots;
     private SCPDriver mDriver;
 
+    private Logger log;
+
     public this (SCPDriver driver, ref const(NodeID) nodeID, bool isValidator,
-        ref SCPQuorumSet qSetLocal)
+        ref SCPQuorumSet qSetLocal, Logger log)
     {
         mDriver = driver;
-        mLocalNode = new LocalNode(nodeID, isValidator, qSetLocal, this);
+        this.log = log;
+        mLocalNode = new LocalNode(nodeID, isValidator, qSetLocal, this, this.log);
     }
 
     public SCPDriver getDriver ()
@@ -344,7 +347,7 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
     protected Slot getSlot (uint64 slotIndex, bool create)
     {
         if (create)
-            return mKnownSlots.require(slotIndex, new Slot(slotIndex, this));
+            return mKnownSlots.require(slotIndex, new Slot(slotIndex, this, this.log));
         else
             return mKnownSlots.get(slotIndex, null);
     }
@@ -374,6 +377,6 @@ unittest
     alias Set (V) = RedBlackTree!(const(V));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
     alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) SCP;
 }

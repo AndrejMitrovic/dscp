@@ -48,7 +48,7 @@ enum ValidationLevel
     kMaybeValidValue      // value may be valid
 }
 
-abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
+abstract class SCPDriverT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate, Logger)
 {
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
@@ -251,6 +251,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
     alias SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) SCP;
 }

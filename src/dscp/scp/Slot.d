@@ -9,7 +9,6 @@ import dscp.scp.BallotProtocol;
 import dscp.scp.NominationProtocol;
 import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
-import dscp.util.Log;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -26,17 +25,17 @@ public enum TimerID
  * The Slot object is in charge of maintaining the state of the SCP protocol
  * for a given slot index.
  */
-class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
+class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate, Logger)
 {
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
-    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
-    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
-    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias BallotProtocol = BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
+    public alias NominationProtocol = NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
+    public alias SCPDriver = SCPDriverT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
     public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
     public alias StatementPredicate = bool delegate (ref const(SCPStatement));
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
 
     // keeps track of all statements seen so far for this slot.
     // it is used for debugging purpose
@@ -53,13 +52,15 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     private NominationProtocol mNominationProtocol;
     private HistoricalStatement[] mStatementsHistory;
     private bool mFullyValidated;  // true if the Slot was fully validated
+    private Logger log;
 
-    public this (uint64 slotIndex, SCP scp)
+    public this (uint64 slotIndex, SCP scp, Logger log)
     {
+        this.log = log;
         mSlotIndex = slotIndex;
         mSCP = scp;
-        mBallotProtocol = new BallotProtocol(this);
-        mNominationProtocol = new NominationProtocol(this);
+        mBallotProtocol = new BallotProtocol(this, log);
+        mNominationProtocol = new NominationProtocol(this, log);
         mFullyValidated = scp.getLocalNode().isValidator();
     }
 
@@ -124,7 +125,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         }
         else
         {
-            log.trace("Slot.setStateFromEnvelope invalid envelope i: %s %s",
+            this.log.trace("Slot.setStateFromEnvelope invalid envelope i: %s %s",
                 mSCP.envToStr(e), getSlotIndex());
         }
     }
@@ -162,7 +163,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         mStatementsHistory ~= HistoricalStatement(time(null),
             duplicate(st), mFullyValidated);
 
-        log.trace("new statement:  i: %s st: %s validated: %s",
+        this.log.trace("new statement:  i: %s st: %s validated: %s",
             getSlotIndex(), mSCP.envToStr(st, false),
             mFullyValidated ? "true" : "false");
     }
@@ -176,7 +177,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
     {
         assert(envelope.statement.slotIndex == mSlotIndex);
 
-        log.trace("Slot.processEnvelope i: %s %s",
+        this.log.trace("Slot.processEnvelope i: %s %s",
             getSlotIndex(), mSCP.envToStr(envelope));
 
         try
@@ -189,7 +190,7 @@ class SlotT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias get
         }
         catch (Throwable thr)
         {
-            log.error("SCP context: %s. Exception processing SCP messages " ~
+            this.log.error("SCP context: %s. Exception processing SCP messages " ~
                 "at %s, envelope: %s",
                 this,
                 mSlotIndex,
@@ -389,6 +390,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
     alias SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) Slot;
 }

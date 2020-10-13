@@ -9,7 +9,6 @@ import dscp.scp.SCP;
 import dscp.scp.SCPDriver;
 import dscp.scp.Slot;
 import dscp.scp.QuorumSetUtils;
-import dscp.util.Log;
 import dscp.xdr.Stellar_SCP;
 import dscp.xdr.Stellar_types;
 
@@ -18,12 +17,12 @@ import std.range;
 
 import core.time;
 
-class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
+class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate, Logger)
 {
-    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias LocalNode = LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias Slot = SlotT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPNomination = SCPNominationT!(Hash, Value);
     public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
@@ -51,13 +50,16 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     // the value from the previous slot
     protected Value mPreviousValue;
 
-    public this (Slot slot)
+    private Logger log;
+
+    public this (Slot slot, Logger log)
     {
         this.mSlot = slot;
         this.mVotes = makeSet!Value;
         this.mAccepted = makeSet!Value;
         this.mCandidates = makeSet!Value;
         this.mRoundLeaders = makeSet!NodeID;
+        this.log = log;
     }
 
     public SCP.EnvelopeState processEnvelope (ref const(SCPEnvelope) envelope)
@@ -67,7 +69,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
 
         if (!this.isSane(envelope.statement))
         {
-            log.trace("NominationProtocol: message didn't pass sanity check");
+            this.log.trace("NominationProtocol: message didn't pass sanity check");
             return SCP.EnvelopeState.INVALID;
         }
 
@@ -174,12 +176,12 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
     public bool nominate (const(Value) value,
         const(Value) previousValue, bool timedout)
     {
-        log.trace("NominationProtocol.nominate (%s) %s",
+        this.log.trace("NominationProtocol.nominate (%s) %s",
             this.mRoundNumber, this.mSlot.getSCP().getValueString(value));
 
         if (timedout && !this.mNominationStarted)
         {
-            log.trace("NominationProtocol.nominate (TIMED OUT)");
+            this.log.trace("NominationProtocol.nominate (TIMED OUT)");
             return false;
         }
 
@@ -232,7 +234,7 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         if (updated)
             this.emitNomination();
         else
-            log.trace("NominationProtocol.nominate (SKIPPED)");
+            this.log.trace("NominationProtocol.nominate (SKIPPED)");
 
         return updated;
     }
@@ -466,11 +468,11 @@ class NominationProtocolT (NodeID, Hash, Value, Signature, alias Set, alias make
         foreach (new_leader; newRoundLeaders[])
             this.mRoundLeaders.insert(new_leader);
 
-        log.trace("updateRoundLeaders: %s -> %s", newRoundLeaders.length,
+        this.log.trace("updateRoundLeaders: %s -> %s", newRoundLeaders.length,
             this.mRoundLeaders.length);
 
         foreach (rl; this.mRoundLeaders)
-            log.trace("    leader %s",
+            this.log.trace("    leader %s",
                 this.mSlot.getSCPDriver().toShortString(rl));
     }
 
@@ -573,6 +575,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
     alias NominationProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) LN;
 }

@@ -6,7 +6,6 @@ module dscp.scp.LocalNode;
 
 import dscp.scp.SCP;
 import dscp.scp.QuorumSetUtils;
-import dscp.util.Log;
 import dscp.xdr.Stellar_types;
 import dscp.xdr.Stellar_SCP;
 
@@ -17,12 +16,12 @@ import std.range;
 /**
  * This is one Node in the stellar network
  */
-class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate)
+class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getHashOf, alias hashPart, alias duplicate, Logger)
 {
     public alias SCPQuorumSet = SCPQuorumSetT!(NodeID, hashPart);
     public alias SCPEnvelope = SCPEnvelopeT!(NodeID, Hash, Value, Signature);
     public alias SCPStatement = SCPStatementT!(NodeID, Hash, Value);
-    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate);
+    public alias SCP = SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger);
 
     protected const NodeID mNodeID;
     protected const bool mIsValidator;
@@ -34,8 +33,10 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
     protected SCPQuorumSet* mSingleQSet;  // {{mNodeID}}
     protected SCP mSCP;
 
+    private Logger log;
+
     public this (ref const(NodeID) nodeID, bool isValidator,
-        ref SCPQuorumSet qSet, SCP scp)
+        ref SCPQuorumSet qSet, SCP scp, Logger log)
     {
         mNodeID = nodeID;
         mIsValidator = isValidator;
@@ -43,8 +44,9 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
         mSCP = scp;
         normalizeQSet(mQSet);
         mQSetHash = getHashOf(mQSet);
+        this.log = log;
 
-        log.info("LocalNode.LocalNode@%s qset: %s", mNodeID, mQSetHash);
+        this.log.info("LocalNode.LocalNode@%s qset: %s", mNodeID, mQSetHash);
         mSingleQSet = getSingletonQSet(mNodeID);
         gSingleQSetHash = getHashOf(*mSingleQSet);
     }
@@ -123,7 +125,7 @@ class LocalNodeT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alia
         const(NodeID)[] nodeSet)
     {
         auto res = isQuorumSliceInternal(qSet, nodeSet);
-        //log.trace("LocalNode.isQuorumSlice nodeSet.size: %s: %s",
+        //this.log.trace("LocalNode.isQuorumSlice nodeSet.size: %s: %s",
         //    nodeSet.length, res);
         return res;
     }
@@ -385,6 +387,6 @@ unittest
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
     T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc {}
+    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
     alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) LN;
 }
