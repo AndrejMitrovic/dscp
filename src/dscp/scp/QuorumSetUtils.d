@@ -148,7 +148,7 @@ void normalizeQSetSimplify (PublicKey, alias hashPart)(
     if (idToRemove)
     {
         auto old_len = qSet.validators.length;
-        qSet.validators = qSet.validators.filter!(n => n == *idToRemove).array;
+        qSet.validators = qSet.validators.filter!(n => n != *idToRemove).array;
         qSet.threshold -= old_len - qSet.validators.length;
     }
 
