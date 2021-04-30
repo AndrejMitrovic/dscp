@@ -63,7 +63,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
     private SCPBallot* mCommit;             // c
     private SCPEnvelope[NodeID] mLatestEnvelopes; // M
     private SCPPhase mPhase = SCPPhase.SCP_PHASE_PREPARE;  // Phi
-    private Value* mValueOverride;           // z
+    private Value mValueOverride;           // z
 
     private int mCurrentMessageLevel = 0; // number of messages triggered in one run
 
@@ -355,11 +355,11 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         SCPBallot newb;
         newb.counter = n;
 
-        if (this.mValueOverride !is null)
+        if (!this.mValueOverride.empty)
         {
             // we use the value that we saw confirmed prepared
             // or that we at least voted to commit to
-            newb.value = *this.mValueOverride;
+            newb.value = this.mValueOverride;
         }
         else
         {
@@ -1012,8 +1012,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember newH's value
-        this.mValueOverride = new Value;
-        *this.mValueOverride = duplicate(newH.value);
+        this.mValueOverride = duplicate(newH.value);
 
         // we don't set c/h if we're not on a compatible ballot
         if (!this.mCurrentBallot || areBallotsCompatible(*this.mCurrentBallot, newH))
@@ -1267,8 +1266,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
         bool didWork = false;
 
         // remember h's value
-        this.mValueOverride = new Value;
-        *this.mValueOverride = duplicate(h.value);
+        this.mValueOverride = duplicate(h.value);
 
         if (!this.mHighBallot || !this.mCommit ||
             compareBallots(*this.mHighBallot, h) != 0 ||
@@ -1963,6 +1961,7 @@ class BallotProtocolT (NodeID, Hash, Value, Signature, alias Set, alias makeSet,
 
 unittest
 {
+    import std.container;
     import std.traits;
     alias Hash = ubyte[64];
     alias uint256 = ubyte[32];
@@ -1993,13 +1992,25 @@ unittest
         uint256 ed25519;
     }
 
+    static struct Logger
+    {
+        void trace (T...)(T t) { }
+        void info (T...)(T t) { }
+        void error (T...)(T t) { }
+    }
+
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
-    import std.container;
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
-    static Unqual!T duplicate (T)(T arg) { return *cast(Unqual!T*)&arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
-    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) BP;
+    static auto duplicate (T)(T arg)
+    {
+        static if (isArray!T)
+            return arg.dup;
+        else
+            return cast(Unqual!T)arg;
+    }
+    static void hashPart (T)(T arg, void delegate(scope const(ubyte)[]) dg) nothrow @safe @nogc { }
+    alias BallotProtocolT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger) BP;
 }

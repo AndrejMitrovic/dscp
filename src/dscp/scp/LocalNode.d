@@ -380,13 +380,27 @@ unittest
         uint256 ed25519;
     }
 
+    static struct Logger
+    {
+        void trace (T...)(T t) { }
+        void info (T...)(T t) { }
+        void error (T...)(T t) { }
+    }
+
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
     import std.container;
     alias Set (T) = RedBlackTree!(const(T));
     alias makeSet (T) = redBlackTree!(const(T));
-    T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
-    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) LN;
+    import std.traits;
+    static auto duplicate (T)(T arg)
+    {
+        static if (isArray!T)
+            return arg.dup;
+        else
+            return cast(Unqual!T)arg;
+    }
+    static void hashPart (T)(T arg, void delegate(scope const(ubyte)[]) dg) nothrow @safe @nogc { }
+    alias LocalNodeT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger) LN;
 }

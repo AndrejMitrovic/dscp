@@ -35,9 +35,9 @@ unittest
     import std.algorithm;
     import std.stdio;
 
-    SCPBallot!int[] ballots;
-    ballots ~= SCPBallot!int(20, 0);
-    ballots ~= SCPBallot!int(10, 0);
+    SCPBallotT!int[] ballots;
+    ballots ~= SCPBallotT!int(20, 0);
+    ballots ~= SCPBallotT!int(10, 0);
     sort(ballots);
     writeln(ballots);
 }

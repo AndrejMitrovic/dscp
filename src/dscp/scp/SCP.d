@@ -355,6 +355,8 @@ class SCPT (NodeID, Hash, Value, Signature, alias Set, alias makeSet, alias getH
 
 unittest
 {
+    import std.container;
+    import std.traits;
     alias Hash = ubyte[64];
     alias uint256 = ubyte[32];
     alias uint512 = ubyte[64];
@@ -373,10 +375,22 @@ unittest
     alias NodeID = PublicKey;
     alias Signature = ubyte[64];
     static Hash getHashOf (Args...)(Args args) { return Hash.init; }
-    import std.container;
     alias Set (V) = RedBlackTree!(const(V));
     alias makeSet (T) = redBlackTree!(const(T));
-    T duplicate (T)(T arg) { return arg; }
-    void hashPart (void delegate(scope const(ubyte)[]) dg) const nothrow @safe @nogc { }
-    alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate) SCP;
+    static auto duplicate (T)(T arg)
+    {
+        static if (isArray!T)
+            return arg.dup;
+        else
+            return cast(Unqual!T)arg;
+    }
+    static void hashPart (T)(T arg, void delegate(scope const(ubyte)[]) dg) nothrow @safe @nogc { }
+    static struct Logger
+    {
+        void trace (T...)(T t) { }
+        void info (T...)(T t) { }
+        void error (T...)(T t) { }
+    }
+
+    alias SCPT!(NodeID, Hash, Value, Signature, Set, makeSet, getHashOf, hashPart, duplicate, Logger) SCP;
 }

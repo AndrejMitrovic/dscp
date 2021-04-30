@@ -15,10 +15,10 @@ For testing these are the dependencies:
 
 ```console
 # Install a D compiler such as LDC:
-curl https://dlang.org/install.sh | bash -s ldc-1.20.0
+curl https://dlang.org/install.sh | bash -s ldc-1.25.1
 
 # Add the compiler to the $PATH
-source ~/dlang/ldc-1.20.0/activate
+source ~/dlang/ldc-1.25.1/activate
 
 # Run unittests
 rdmd -g -unittest -main --compiler=ldc2 -vcolumns src/dscp/SCP.d
