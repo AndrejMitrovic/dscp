@@ -2,6 +2,13 @@
 
 This is an implementation of SCP (Stellar Consensus Protocol) in the D2 programming language.
 
+# Examples
+
+There is a very old outdated commit which uses this library, found in:
+https://github.com/AndrejMitrovic/agora/tree/dscp
+
+It might be using a stale (pruned) commit however. Not guaranteed to work.
+
 # Building
 
 ## Dependencies
